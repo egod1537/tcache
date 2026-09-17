@@ -61,7 +61,7 @@ export function RouteSection({ dark, status }: RouteSectionProps) {
       <RouteTabs activeTab={activeTab} onNavigate={navigate} />
       {visited.has('route') && (
         <div hidden={activeTab !== 'route'}>
-          <RoutePlaygroundPage dark={dark} />
+          <RoutePlaygroundPage />
         </div>
       )}
       {visited.has('jobs') && (

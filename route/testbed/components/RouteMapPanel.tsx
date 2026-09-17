@@ -11,7 +11,15 @@ import {
 const frontendApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY as
   string | undefined;
 
-export function RouteMapPanel({ route }: { route: NormalizedRoute }) {
+export function RouteMapPanel({
+  route,
+  pending = false,
+  workspace = false,
+}: {
+  route?: NormalizedRoute | null;
+  pending?: boolean;
+  workspace?: boolean;
+}) {
   const elementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<GoogleMapInstance | null>(null);
   const mapsRef = useRef<GoogleMapsApi | null>(null);
@@ -26,7 +34,7 @@ export function RouteMapPanel({ route }: { route: NormalizedRoute }) {
   function fitRoute() {
     const map = mapRef.current;
     const maps = mapsRef.current;
-    if (!map || !maps || !route.bounds) return;
+    if (!map || !maps || !route?.bounds) return;
     map.fitBounds(
       new maps.LatLngBounds(
         { lat: route.bounds.south, lng: route.bounds.west },
@@ -45,7 +53,7 @@ export function RouteMapPanel({ route }: { route: NormalizedRoute }) {
         const map =
           mapRef.current ??
           new maps.Map(elementRef.current, {
-            center: route.path[0] ?? { lat: 35.6812, lng: 139.7671 },
+            center: route?.path[0] ?? { lat: 35.6812, lng: 139.7671 },
             zoom: 12,
             mapTypeControl: false,
             streetViewControl: false,
@@ -55,7 +63,7 @@ export function RouteMapPanel({ route }: { route: NormalizedRoute }) {
 
         const overlays: Array<{ setMap(map: GoogleMapInstance | null): void }> =
           [];
-        if (route.path.length) {
+        if (route?.path.length) {
           overlays.push(
             new maps.Polyline({
               map,
@@ -66,12 +74,14 @@ export function RouteMapPanel({ route }: { route: NormalizedRoute }) {
             }),
           );
         }
-        const endpoints = route.legs.length
+        const endpoints = route?.legs.length
           ? [
               route.legs[0]?.startLocation,
               ...route.legs.map((leg) => leg.endLocation),
             ]
-          : [route.path[0], route.path.at(-1)];
+          : route
+            ? [route.path[0], route.path.at(-1)]
+            : [];
         endpoints.forEach((position, index) => {
           if (!position) return;
           const last = index === endpoints.length - 1;
@@ -91,7 +101,7 @@ export function RouteMapPanel({ route }: { route: NormalizedRoute }) {
         });
         overlaysRef.current = overlays;
         setState('ready');
-        if (route.bounds) {
+        if (route?.bounds) {
           map.fitBounds(
             new maps.LatLngBounds(
               { lat: route.bounds.south, lng: route.bounds.west },
@@ -120,11 +130,17 @@ export function RouteMapPanel({ route }: { route: NormalizedRoute }) {
   );
 
   return (
-    <div className="route-map-panel">
+    <div
+      className={`route-map-panel${workspace ? ' route-map-workspace' : ''}`}
+    >
       <div className="route-map-toolbar">
-        <span>{route.path.length.toLocaleString()} path points</span>
+        <span>
+          {route
+            ? `${route.path.length.toLocaleString()} path points`
+            : 'Tokyo · waiting for a route'}
+        </span>
         <Button
-          disabled={state !== 'ready' || !route.bounds}
+          disabled={state !== 'ready' || !route?.bounds}
           icon="zoom-to-fit"
           onClick={fitRoute}
           size="small"
@@ -145,6 +161,12 @@ export function RouteMapPanel({ route }: { route: NormalizedRoute }) {
             {error} Route calculation still runs with the backend-only
             GOOGLE_MAPS_API_KEY.
           </Callout>
+        </div>
+      )}
+      {state === 'ready' && pending && (
+        <div className="route-map-overlay route-map-pending">
+          <Spinner size={32} />
+          Calling Google Routes…
         </div>
       )}
     </div>

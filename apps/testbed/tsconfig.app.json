@@ -21,5 +21,6 @@
     "noEmit": true,
     "types": ["vite/client", "react", "react-dom"]
   },
-  "include": ["src", "../../ai/testbed", "../../route/testbed"]
+  "include": ["src", "../../ai/testbed", "../../route/testbed"],
+  "exclude": ["../../route/testbed/**/*.test.ts"]
 }

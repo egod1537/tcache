@@ -622,6 +622,212 @@ body {
   gap: 16px;
 }
 
+.route-playground-workspace {
+  gap: 14px;
+}
+
+.route-playground-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(320px, 370px) minmax(0, 1fr);
+  align-items: stretch;
+  gap: 16px;
+}
+
+.route-playground-request-panel {
+  min-width: 0;
+  min-height: 680px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.route-playground-panel-heading,
+.route-playground-field-heading,
+.route-playground-raw-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.route-playground-panel-heading {
+  margin-bottom: 4px;
+  align-items: flex-start;
+}
+
+.route-playground-panel-heading h2,
+.route-playground-panel-heading p {
+  margin: 0;
+}
+
+.route-playground-panel-heading h2 {
+  font-size: 16px;
+}
+
+.route-playground-panel-heading p {
+  margin-top: 3px;
+  font-size: 12px;
+}
+
+.route-playground-request-panel .bp6-form-group {
+  margin-bottom: 8px;
+}
+
+.route-playground-location {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 7px;
+}
+
+.route-playground-location .bp6-html-select,
+.route-playground-location .bp6-html-select select {
+  width: 100%;
+}
+
+.route-playground-coordinates,
+.route-playground-inline-fields {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.route-playground-intermediates {
+  margin-bottom: 8px;
+}
+
+.route-playground-field-heading {
+  margin-bottom: 7px;
+  font-size: 12px;
+}
+
+.route-playground-intermediate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 2px;
+}
+
+.route-mode-selector {
+  flex-wrap: wrap;
+}
+
+.route-mode-selector .bp6-button {
+  min-width: 78px;
+}
+
+.route-playground-advanced {
+  border-block: 1px solid var(--bp-surface-border-color-default);
+  padding-block: 4px;
+}
+
+.route-playground-advanced-fields {
+  padding: 10px 4px 6px;
+}
+
+.route-playground-raw-heading {
+  margin: 3px 0 7px;
+  font-size: 12px;
+}
+
+.route-playground-raw-editor {
+  width: 100%;
+  min-height: 180px;
+  resize: vertical;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.route-playground-actions {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.route-playground-map,
+.route-playground-map .route-map-panel {
+  min-width: 0;
+  min-height: 680px;
+}
+
+.route-map-workspace .route-map-canvas {
+  height: 636px;
+}
+
+.route-playground-output {
+  min-width: 0;
+  min-height: 310px;
+}
+
+.route-playground-output > .bp6-tabs > .bp6-tab-list {
+  border-bottom: 1px solid var(--bp-surface-border-color-default);
+}
+
+.route-playground-output .bp6-tab-panel {
+  margin-top: 0;
+  padding-top: 16px;
+}
+
+.route-playground-output-empty {
+  min-height: 240px;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.route-playground-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.route-playground-result-facts,
+.route-playground-debug-facts,
+.route-playground-error-facts {
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+}
+
+.route-playground-route-switcher {
+  align-self: flex-start;
+}
+
+.route-playground-leg-list h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+}
+
+.route-playground-leg-list ol {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.route-playground-leg-list li {
+  padding-block: 5px;
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) repeat(3, minmax(80px, auto));
+  gap: 12px;
+}
+
+.route-playground-json-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.route-playground-json-grid .json-viewer,
+.route-playground-tab-content .json-viewer {
+  margin-top: 0;
+}
+
+.route-playground-json-grid .json-viewer:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .route-tool-heading,
 .route-playground-result-heading,
 .route-playground-actions,
@@ -1137,6 +1343,23 @@ body {
   .fact-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .route-playground-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .route-playground-request-panel {
+    min-height: auto;
+  }
+
+  .route-playground-map,
+  .route-playground-map .route-map-panel {
+    min-height: 520px;
+  }
+
+  .route-map-workspace .route-map-canvas {
+    height: 476px;
+  }
 }
 
 @media (max-width: 800px) {
@@ -1173,8 +1396,13 @@ body {
 
   .detail-section-grid,
   .service-grid,
-  .analytics-chart-grid {
+  .analytics-chart-grid,
+  .route-playground-json-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .route-playground-json-grid .json-viewer:last-child:nth-child(odd) {
+    grid-column: auto;
   }
 
   .analytics-summary {
@@ -1187,7 +1415,10 @@ body {
 
   .route-overview-facts,
   .route-request-facts,
-  .route-sse-facts {
+  .route-sse-facts,
+  .route-playground-result-facts,
+  .route-playground-debug-facts,
+  .route-playground-error-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1234,10 +1465,21 @@ body {
   .route-coordinate-inputs,
   .route-advanced-grid,
   .route-job-options,
+  .route-playground-location,
+  .route-playground-coordinates,
+  .route-playground-inline-fields,
   .route-overview-facts,
   .route-request-facts,
-  .route-sse-facts {
+  .route-sse-facts,
+  .route-playground-result-facts,
+  .route-playground-debug-facts,
+  .route-playground-error-facts {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .route-playground-leg-list li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
   }
 
   .analytics-summary,
