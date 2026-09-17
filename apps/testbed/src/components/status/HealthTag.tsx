@@ -8,9 +8,9 @@ interface HealthTagProps {
 }
 
 const STATE_LABELS: Record<CheckState, string> = {
-  checking: 'CHECKING',
-  online: 'ONLINE',
-  offline: 'OFFLINE',
+  checking: '확인 중',
+  online: '온라인',
+  offline: '오프라인',
 };
 
 export function HealthTag({ state, label }: HealthTagProps) {

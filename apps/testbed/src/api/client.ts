@@ -16,6 +16,22 @@ export type RouteLocation =
   | { type: 'coordinates'; latitude: number; longitude: number }
   | { type: 'placeId'; placeId: string };
 
+export type PublicRouteLocation =
+  | { placeId: string }
+  | { address: string }
+  | { latitude: number; longitude: number };
+
+export interface PublicRouteRequest {
+  locations: PublicRouteLocation[];
+  mode: RouteTravelMode;
+  departureTime: string;
+  computeAlternativeRoutes?: boolean;
+  languageCode?: string;
+  regionCode?: string;
+  routingPreference?: string;
+  units?: string;
+}
+
 export interface RouteRequest {
   origin: RouteLocation;
   intermediates: RouteLocation[];

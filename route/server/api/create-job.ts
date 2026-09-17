@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 
-import { normalizeRouteRequest } from '../types/route.js';
+import { normalizePublicRouteRequest } from '../types/route.js';
 import type { RouteApiContext } from './context.js';
 
 export function registerCreateJob(
@@ -10,11 +10,11 @@ export function registerCreateJob(
   app.post<{ Body: unknown }>('/jobs', async (request, reply) => {
     let input;
     try {
-      input = normalizeRouteRequest(request.body);
+      input = normalizePublicRouteRequest(request.body);
     } catch (error) {
       return reply.code(400).send({
         error: {
-          code: 'INVALID_REQUEST',
+          code: 'INVALID_ROUTE_REQUEST',
           message:
             error instanceof Error ? error.message : 'Invalid route request',
         },

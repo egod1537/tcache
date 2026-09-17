@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-import type { RouteJobRequest } from '../types/route.js';
+import type { NormalizedRouteRequest } from '../types/route.js';
 import type { RouteJob } from './route-job.js';
 import type { RouteJobEventBus } from './route-job-events.js';
 import { RouteJobRunner } from './route-job-runner.js';
@@ -13,7 +13,7 @@ export class RouteJobService {
     private readonly runner: RouteJobRunner,
   ) {}
 
-  async create(request: RouteJobRequest): Promise<RouteJob> {
+  async create(request: NormalizedRouteRequest): Promise<RouteJob> {
     const now = new Date().toISOString();
     const job: RouteJob = {
       jobId: `route_${randomUUID().replaceAll('-', '')}`,

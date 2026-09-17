@@ -5,6 +5,8 @@ import type {
 
 export type RouteDayType = 'weekday' | 'saturday' | 'sunday' | 'holiday';
 
+export const ROUTE_COORDINATE_PRECISION = 5;
+
 export interface RouteTemporalMetadata {
   dayType: RouteDayType;
   timeBucket: string;
@@ -76,7 +78,7 @@ export function getRouteTimeBucket(date: Date, timeZone = 'UTC'): string {
 
 function formatCoordinate(value: number) {
   const normalized = Object.is(value, -0) ? 0 : value;
-  return normalized.toFixed(5);
+  return normalized.toFixed(ROUTE_COORDINATE_PRECISION);
 }
 
 function normalizeAddress(value: string) {

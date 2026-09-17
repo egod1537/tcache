@@ -62,7 +62,7 @@ export function RouteResultPanel({
               selectedRoute={selectedRoute}
             />
           }
-          title="Result"
+          title="결과"
         />
         <Tab
           id="request"
@@ -72,12 +72,12 @@ export function RouteResultPanel({
               submittedRequest={submittedRequest}
             />
           }
-          title="Request"
+          title="요청"
         />
         <Tab
           id="response"
           panel={<ResponseTabPanel response={response} />}
-          title="Response"
+          title="응답"
         />
         <Tab
           id="debug"
@@ -88,7 +88,7 @@ export function RouteResultPanel({
               response={response}
             />
           }
-          title="Debug"
+          title="디버그"
         />
       </Tabs>
     </Card>
@@ -114,31 +114,31 @@ function ResultTabPanel({
     return (
       <div className="route-playground-output-empty">
         <Spinner size={28} />
-        Waiting for Google Routes…
+        Google Routes 응답 대기 중…
       </div>
     );
   }
   if (error) return <ProviderError error={error} />;
-  if (!response) return <OutputEmpty title="No route result" />;
+  if (!response) return <OutputEmpty title="경로 결과가 없습니다" />;
 
   const result = response.result;
   return (
     <div className="route-playground-tab-content">
       <dl className="fact-grid route-playground-result-facts">
         <Fact label="Provider" value="Google" />
-        <Fact label="Latency" value={`${result.debug.latencyMs} ms`} />
-        <Fact label="Routes" value={result.routes.length} />
+        <Fact label="응답 시간" value={`${result.debug.latencyMs} ms`} />
+        <Fact label="경로 수" value={result.routes.length} />
         <Fact
-          label="Distance"
+          label="거리"
           value={formatDistance(selectedRoute?.distanceMeters ?? null)}
         />
         <Fact
-          label="Duration"
+          label="소요 시간"
           value={formatDuration(selectedRoute?.durationSeconds ?? null)}
         />
         <Fact
-          label="Selected"
-          value={selectedRoute ? `Route ${selectedIndex + 1}` : '—'}
+          label="선택한 경로"
+          value={selectedRoute ? `경로 ${selectedIndex + 1}` : '—'}
         />
       </dl>
 
@@ -151,7 +151,7 @@ function ResultTabPanel({
               key={`${index}-${route.encodedPolyline.slice(0, 12)}`}
               onClick={() => onSelectRoute(index)}
             >
-              Route {index + 1}
+              경로 {index + 1}
             </Button>
           ))}
         </ButtonGroup>
@@ -159,21 +159,21 @@ function ResultTabPanel({
 
       {selectedRoute?.legs.length ? (
         <div className="route-playground-leg-list">
-          <h3 className={Classes.HEADING}>Legs</h3>
+          <h3 className={Classes.HEADING}>구간</h3>
           <ol>
             {selectedRoute.legs.map((leg, index) => (
               <li key={index}>
-                <strong>Leg {index + 1}</strong>
+                <strong>구간 {index + 1}</strong>
                 <span>{formatDistance(leg.distanceMeters)}</span>
                 <span>{formatDuration(leg.durationSeconds)}</span>
-                <span>{leg.steps.length} steps</span>
+                <span>단계 {leg.steps.length}개</span>
               </li>
             ))}
           </ol>
         </div>
       ) : (
         <Callout compact icon="info-sign">
-          Google returned no route legs.
+          Google에서 반환한 경로 구간이 없습니다.
         </Callout>
       )}
     </div>
@@ -187,16 +187,17 @@ function RequestTabPanel({
   response: GoogleProviderComputeResponse | null;
   submittedRequest: unknown;
 }) {
-  if (submittedRequest === null) return <OutputEmpty title="No request sent" />;
+  if (submittedRequest === null)
+    return <OutputEmpty title="전송한 요청이 없습니다" />;
   return (
     <div className="route-playground-json-grid">
-      <JsonViewer title="Submitted request" value={submittedRequest} />
+      <JsonViewer title="전송한 요청" value={submittedRequest} />
       <JsonViewer
-        title="Normalized request"
+        title="정규화된 요청"
         value={response?.normalizedRequest ?? null}
       />
       <JsonViewer
-        title="Google provider request"
+        title="Google Provider 요청"
         value={response?.result.debug.request ?? null}
       />
     </div>
@@ -208,14 +209,11 @@ function ResponseTabPanel({
 }: {
   response: GoogleProviderComputeResponse | null;
 }) {
-  if (!response) return <OutputEmpty title="No response received" />;
+  if (!response) return <OutputEmpty title="수신한 응답이 없습니다" />;
   return (
     <div className="route-playground-json-grid">
-      <JsonViewer
-        title="Normalized route result"
-        value={response.result.routes}
-      />
-      <JsonViewer title="Raw Google response" value={response.result.raw} />
+      <JsonViewer title="정규화된 경로 결과" value={response.result.routes} />
+      <JsonViewer title="Google 원본 응답" value={response.result.raw} />
     </div>
   );
 }
@@ -234,22 +232,24 @@ function DebugTabPanel({
     <div className="route-playground-tab-content">
       <dl className="fact-grid route-playground-debug-facts">
         <Fact
-          label="Endpoint"
+          label="엔드포인트"
           value="POST /api/route/provider/google/compute"
         />
         <Fact label="Provider" value={response?.provider ?? 'google'} />
         <Fact
-          label="Requested"
+          label="요청 시각"
           value={
-            requestTimestamp ? new Date(requestTimestamp).toLocaleString() : '—'
+            requestTimestamp
+              ? new Date(requestTimestamp).toLocaleString('ko-KR')
+              : '—'
           }
         />
         <Fact
-          label="Latency"
+          label="응답 시간"
           value={response ? `${response.result.debug.latencyMs} ms` : '—'}
         />
         <Fact
-          label="Upstream status"
+          label="Upstream 상태"
           value={
             response?.result.debug.httpStatus ??
             upstream?.httpStatus ??
@@ -257,10 +257,7 @@ function DebugTabPanel({
             '—'
           }
         />
-        <Fact
-          label="Route count"
-          value={response?.result.routes.length ?? '—'}
-        />
+        <Fact label="경로 수" value={response?.result.routes.length ?? '—'} />
       </dl>
       {response && (
         <JsonViewer
@@ -269,7 +266,7 @@ function DebugTabPanel({
         />
       )}
       {error?.details !== undefined && (
-        <JsonViewer title="Normalized upstream error" value={error.details} />
+        <JsonViewer title="정규화된 Upstream 오류" value={error.details} />
       )}
     </div>
   );
@@ -283,14 +280,14 @@ function ProviderError({ error }: { error: PlaygroundError }) {
         {error.message}
       </Callout>
       <dl className="fact-grid route-playground-error-facts">
-        <Fact label="Endpoint HTTP" value={error.httpStatus ?? '—'} />
-        <Fact label="Error code" value={error.code} />
+        <Fact label="엔드포인트 HTTP" value={error.httpStatus ?? '—'} />
+        <Fact label="오류 코드" value={error.code} />
         <Fact label="Upstream HTTP" value={upstream?.httpStatus ?? '—'} />
-        <Fact label="Google status" value={upstream?.status ?? '—'} />
-        <Fact label="Google message" value={upstream?.message ?? '—'} />
+        <Fact label="Google 상태" value={upstream?.status ?? '—'} />
+        <Fact label="Google 메시지" value={upstream?.message ?? '—'} />
       </dl>
       {error.details !== undefined && (
-        <JsonViewer title="Upstream details" value={error.details} />
+        <JsonViewer title="Upstream 상세 정보" value={error.details} />
       )}
     </div>
   );
@@ -300,7 +297,7 @@ function OutputEmpty({ title }: { title: string }) {
   return (
     <div className="route-playground-output-empty">
       <NonIdealState
-        description="Run Route to populate this panel."
+        description="경로 실행 후 이 패널에서 결과를 확인할 수 있습니다."
         icon="route"
         title={title}
       />
@@ -345,8 +342,8 @@ function formatDistance(value: number | null) {
 function formatDuration(value: number | null) {
   if (value === null) return '—';
   const minutes = Math.round(value / 60);
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return `${minutes}분`;
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
-  return remainder ? `${hours} hr ${remainder} min` : `${hours} hr`;
+  return remainder ? `${hours}시간 ${remainder}분` : `${hours}시간`;
 }

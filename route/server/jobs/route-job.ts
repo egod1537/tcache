@@ -1,6 +1,6 @@
 import type {
   NormalizedRouteRequest,
-  RouteJobRequest,
+  RouteRequestInput,
 } from '../types/route.js';
 
 export type RouteJobStatus =
@@ -56,7 +56,7 @@ export interface RouteJob {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
-  request: RouteJobRequest;
+  request: RouteRequestInput | NormalizedRouteRequest;
   normalizedRequest?: NormalizedRouteRequest;
   requestMetadata?: RouteRequestMetadata;
   cache?: RouteCacheMetadata;

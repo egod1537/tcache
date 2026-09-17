@@ -8,9 +8,9 @@ export interface RouteDefinition {
 }
 
 export const APP_ROUTES: RouteDefinition[] = [
-  { id: 'route', label: 'Route Cache', path: '/route', icon: 'route' },
-  { id: 'ai', label: 'AI Cache', path: '/ai', icon: 'predictive-analysis' },
-  { id: 'status', label: 'Status', path: '/status', icon: 'pulse' },
+  { id: 'route', label: '경로 캐시', path: '/route', icon: 'route' },
+  { id: 'ai', label: 'AI 캐시', path: '/ai', icon: 'predictive-analysis' },
+  { id: 'status', label: '상태', path: '/status', icon: 'pulse' },
 ];
 
 export function routeFromPath(pathname: string): AppRoute {

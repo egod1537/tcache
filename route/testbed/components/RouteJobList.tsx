@@ -5,6 +5,7 @@ import type {
   RouteJobView,
 } from '../../../apps/testbed/src/api/client';
 import { EmptyState } from '../../../apps/testbed/src/components/common/EmptyState';
+import { routeJobStatusLabel, routeModeLabel } from '../route-ui-labels';
 
 function statusIntent(status: RouteJobStatus) {
   if (status === 'completed') return Intent.SUCCESS;
@@ -28,16 +29,16 @@ export function RouteJobList({
     return (
       <div className="sidebar-content">
         <EmptyState
-          description="Create a request to inspect the Job lifecycle and result."
+          description="요청을 생성하면 작업 처리 과정과 결과를 확인할 수 있습니다."
           icon="route"
-          title="No Route Jobs yet"
+          title="경로 작업이 없습니다"
         />
       </div>
     );
   }
 
   return (
-    <div className="route-job-list" role="listbox" aria-label="Route Jobs">
+    <div className="route-job-list" role="listbox" aria-label="경로 작업">
       {jobs.map((job) => (
         <button
           aria-selected={selectedJobId === job.jobId}
@@ -52,14 +53,15 @@ export function RouteJobList({
               {job.jobId.slice(0, 18)}
             </code>
             <Tag intent={statusIntent(job.status)} minimal>
-              {job.status}
+              {routeJobStatusLabel(job.status)}
             </Tag>
           </span>
           <span className={`${Classes.TEXT_MUTED} job-list-secondary`}>
-            {job.request.travelMode} · {job.stage} · {job.progress}%
+            {routeModeLabel(job.request.travelMode)} · {job.stage} ·{' '}
+            {job.progress}%
           </span>
           <span className={`${Classes.TEXT_MUTED} job-list-secondary`}>
-            Created {new Date(job.createdAt).toLocaleString()}
+            생성 {new Date(job.createdAt).toLocaleString('ko-KR')}
           </span>
         </button>
       ))}

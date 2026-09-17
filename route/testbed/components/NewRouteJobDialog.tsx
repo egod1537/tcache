@@ -14,10 +14,12 @@ import {
 import { useMemo, useState } from 'react';
 
 import type {
+  PublicRouteLocation,
+  PublicRouteRequest,
   RouteLocation,
-  RouteRequest,
   RouteTravelMode,
 } from '../../../apps/testbed/src/api/client';
+import { ROUTE_MODE_LABELS } from '../route-ui-labels';
 
 type LocationKind = RouteLocation['type'];
 
@@ -38,10 +40,10 @@ const newLocation = (address = ''): LocationDraft => ({
 });
 
 const modeOptions: Array<{ value: RouteTravelMode; label: string }> = [
-  { value: 'DRIVING', label: 'Driving' },
-  { value: 'WALKING', label: 'Walking' },
-  { value: 'BICYCLING', label: 'Bicycling' },
-  { value: 'TRANSIT', label: 'Transit' },
+  { value: 'DRIVING', label: ROUTE_MODE_LABELS.DRIVING },
+  { value: 'WALKING', label: ROUTE_MODE_LABELS.WALKING },
+  { value: 'BICYCLING', label: ROUTE_MODE_LABELS.BICYCLING },
+  { value: 'TRANSIT', label: ROUTE_MODE_LABELS.TRANSIT },
 ];
 
 interface NewRouteJobDialogProps {
@@ -61,9 +63,9 @@ export function NewRouteJobDialog({
   creating,
   onClose,
   onCreate,
-  title = 'New Route Job',
-  description = 'The backend runs this request through the existing Job, SSE, and cache pipeline.',
-  submitLabel = 'Create Job',
+  title = '새 경로 작업',
+  description = '백엔드에서 이 요청을 작업, SSE, 캐시 파이프라인으로 처리합니다.',
+  submitLabel = '작업 생성',
 }: NewRouteJobDialogProps) {
   const [origin, setOrigin] = useState(() => newLocation('東京駅、日本'));
   const [destination, setDestination] = useState(() =>
@@ -74,7 +76,9 @@ export function NewRouteJobDialog({
   const [alternatives, setAlternatives] = useState(false);
   const [languageCode, setLanguageCode] = useState('ja');
   const [regionCode, setRegionCode] = useState('JP');
-  const [departureTime, setDepartureTime] = useState('');
+  const [departureTime, setDepartureTime] = useState(
+    createDefaultDepartureTime,
+  );
   const [routingPreference, setRoutingPreference] = useState('');
   const [rawOverride, setRawOverride] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -121,13 +125,13 @@ export function NewRouteJobDialog({
       request =
         rawOverride === null ? generatedRequest : JSON.parse(rawOverride);
       if (!request) {
-        throw new Error('Origin, destination, and coordinates are required.');
+        throw new Error('출발지, 도착지와 좌표 값을 모두 입력하세요.');
       }
     } catch (submitError) {
       setError(
         submitError instanceof Error
           ? submitError.message
-          : 'Request must be valid JSON.',
+          : '요청 JSON 형식이 올바르지 않습니다.',
       );
       return;
     }
@@ -139,7 +143,7 @@ export function NewRouteJobDialog({
       setError(
         createError instanceof Error
           ? createError.message
-          : 'Failed to submit route request',
+          : '경로 요청을 전송하지 못했습니다.',
       );
     }
   }
@@ -159,7 +163,7 @@ export function NewRouteJobDialog({
         <p className={Classes.TEXT_MUTED}>{description}</p>
 
         <LocationEditor
-          label="Origin"
+          label="출발지"
           onChange={(value) => {
             setRawOverride(null);
             setOrigin(value);
@@ -168,7 +172,7 @@ export function NewRouteJobDialog({
         />
 
         <div className="route-waypoint-heading">
-          <strong>Intermediates</strong>
+          <strong>경유지</strong>
           <Button
             disabled={intermediates.length >= 25}
             icon="plus"
@@ -179,24 +183,24 @@ export function NewRouteJobDialog({
             size="small"
             variant="minimal"
           >
-            Add
+            추가
           </Button>
         </div>
         {intermediates.length === 0 && (
           <p className={`${Classes.TEXT_MUTED} route-waypoint-empty`}>
-            No intermediate stops.
+            경유지가 없습니다.
           </p>
         )}
         {intermediates.map((intermediate, index) => (
           <div className="route-waypoint-row" key={index}>
             <LocationEditor
               compact
-              label={`Intermediate ${index + 1}`}
+              label={`경유지 ${index + 1}`}
               onChange={(value) => updateIntermediate(index, value)}
               value={intermediate}
             />
             <Button
-              aria-label={`Remove intermediate ${index + 1}`}
+              aria-label={`경유지 ${index + 1} 삭제`}
               icon="trash"
               intent={Intent.DANGER}
               onClick={() => {
@@ -212,7 +216,7 @@ export function NewRouteJobDialog({
         ))}
 
         <LocationEditor
-          label="Destination"
+          label="도착지"
           onChange={(value) => {
             setRawOverride(null);
             setDestination(value);
@@ -221,7 +225,7 @@ export function NewRouteJobDialog({
         />
 
         <div className="route-job-options">
-          <FormGroup label="Travel mode" labelFor="route-travel-mode">
+          <FormGroup label="이동 수단" labelFor="route-travel-mode">
             <HTMLSelect
               fill
               id="route-travel-mode"
@@ -237,7 +241,7 @@ export function NewRouteJobDialog({
           </FormGroup>
           <Switch
             checked={alternatives}
-            label="Alternative routes"
+            label="대체 경로"
             onChange={(event) => {
               setRawOverride(null);
               setAlternatives(event.currentTarget.checked);
@@ -246,9 +250,9 @@ export function NewRouteJobDialog({
         </div>
 
         <details className="route-advanced-options">
-          <summary>Advanced options &amp; raw JSON</summary>
+          <summary>고급 옵션 및 원본 JSON</summary>
           <div className="route-advanced-grid">
-            <FormGroup label="Language code" labelFor="route-language">
+            <FormGroup label="언어 코드" labelFor="route-language">
               <InputGroup
                 id="route-language"
                 onChange={(event) => {
@@ -258,7 +262,7 @@ export function NewRouteJobDialog({
                 value={languageCode}
               />
             </FormGroup>
-            <FormGroup label="Region code" labelFor="route-region">
+            <FormGroup label="지역 코드" labelFor="route-region">
               <InputGroup
                 id="route-region"
                 onChange={(event) => {
@@ -268,7 +272,7 @@ export function NewRouteJobDialog({
                 value={regionCode}
               />
             </FormGroup>
-            <FormGroup label="Departure time" labelFor="route-departure">
+            <FormGroup label="출발 시각" labelFor="route-departure">
               <InputGroup
                 id="route-departure"
                 onChange={(event) => {
@@ -280,7 +284,7 @@ export function NewRouteJobDialog({
               />
             </FormGroup>
             <FormGroup
-              label="Routing preference"
+              label="경로 탐색 옵션"
               labelFor="route-routing-preference"
             >
               <HTMLSelect
@@ -292,32 +296,32 @@ export function NewRouteJobDialog({
                   setRoutingPreference(event.target.value);
                 }}
                 options={[
-                  { value: '', label: 'Google default' },
-                  { value: 'TRAFFIC_AWARE', label: 'Traffic aware' },
+                  { value: '', label: 'Google 기본값' },
+                  { value: 'TRAFFIC_AWARE', label: '교통 상황 반영' },
                   {
                     value: 'TRAFFIC_AWARE_OPTIMAL',
-                    label: 'Traffic aware optimal',
+                    label: '교통 상황 최적 반영',
                   },
-                  { value: 'TRAFFIC_UNAWARE', label: 'Traffic unaware' },
+                  { value: 'TRAFFIC_UNAWARE', label: '교통 상황 미반영' },
                 ]}
                 value={routingPreference}
               />
             </FormGroup>
           </div>
           <div className="route-raw-editor-heading">
-            <span>Request JSON</span>
+            <span>요청 JSON</span>
             {rawOverride !== null && (
               <Button
                 onClick={() => setRawOverride(null)}
                 size="small"
                 variant="minimal"
               >
-                Reset from form
+                폼 내용으로 되돌리기
               </Button>
             )}
           </div>
           <textarea
-            aria-label="Route request JSON"
+            aria-label="경로 요청 JSON"
             className={`${Classes.INPUT} route-request-editor`}
             onChange={(event) => setRawOverride(event.target.value)}
             spellCheck={false}
@@ -335,7 +339,7 @@ export function NewRouteJobDialog({
         actions={
           <>
             <Button disabled={creating} onClick={onClose}>
-              Cancel
+              취소
             </Button>
             <Button
               icon="play"
@@ -370,20 +374,20 @@ function LocationEditor({
     >
       <div className="route-location-editor">
         <HTMLSelect
-          aria-label={`${label} type`}
+          aria-label={`${label} 유형`}
           onChange={(event) =>
             onChange({ ...value, type: event.target.value as LocationKind })
           }
           options={[
-            { value: 'address', label: 'Address' },
-            { value: 'coordinates', label: 'Coordinates' },
+            { value: 'address', label: '주소' },
+            { value: 'coordinates', label: '좌표' },
             { value: 'placeId', label: 'Place ID' },
           ]}
           value={value.type}
         />
         {value.type === 'address' && (
           <InputGroup
-            aria-label={`${label} address`}
+            aria-label={`${label} 주소`}
             fill
             onChange={(event) =>
               onChange({ ...value, address: event.target.value })
@@ -394,7 +398,7 @@ function LocationEditor({
         )}
         {value.type === 'placeId' && (
           <InputGroup
-            aria-label={`${label} place ID`}
+            aria-label={`${label} Place ID`}
             fill
             onChange={(event) =>
               onChange({ ...value, placeId: event.target.value })
@@ -406,23 +410,23 @@ function LocationEditor({
         {value.type === 'coordinates' && (
           <div className="route-coordinate-inputs">
             <InputGroup
-              aria-label={`${label} latitude`}
+              aria-label={`${label} 위도`}
               fill
               inputMode="decimal"
               onChange={(event) =>
                 onChange({ ...value, latitude: event.target.value })
               }
-              placeholder="Latitude"
+              placeholder="위도"
               value={value.latitude}
             />
             <InputGroup
-              aria-label={`${label} longitude`}
+              aria-label={`${label} 경도`}
               fill
               inputMode="decimal"
               onChange={(event) =>
                 onChange({ ...value, longitude: event.target.value })
               }
-              placeholder="Longitude"
+              placeholder="경도"
               value={value.longitude}
             />
           </div>
@@ -432,18 +436,18 @@ function LocationEditor({
   );
 }
 
-function toLocation(value: LocationDraft, label: string): RouteLocation {
+function toLocation(value: LocationDraft, label: string): PublicRouteLocation {
   if (value.type === 'address') {
-    if (!value.address.trim()) throw new Error(`${label} address is required.`);
-    return { type: 'address', address: value.address.trim() };
+    if (!value.address.trim()) throw new Error(`${label} 주소를 입력하세요.`);
+    return { address: value.address.trim() };
   }
   if (value.type === 'placeId') {
     if (!value.placeId.trim())
-      throw new Error(`${label} Place ID is required.`);
-    return { type: 'placeId', placeId: value.placeId.trim() };
+      throw new Error(`${label} Place ID를 입력하세요.`);
+    return { placeId: value.placeId.trim() };
   }
   if (!value.latitude.trim() || !value.longitude.trim()) {
-    throw new Error(`${label} coordinates are required.`);
+    throw new Error(`${label} 좌표를 입력하세요.`);
   }
   const latitude = Number(value.latitude);
   const longitude = Number(value.longitude);
@@ -455,9 +459,9 @@ function toLocation(value: LocationDraft, label: string): RouteLocation {
     longitude < -180 ||
     longitude > 180
   ) {
-    throw new Error(`${label} coordinates are invalid.`);
+    throw new Error(`${label} 좌표가 올바르지 않습니다.`);
   }
-  return { type: 'coordinates', latitude, longitude };
+  return { latitude, longitude };
 }
 
 function buildRequest(input: {
@@ -470,24 +474,31 @@ function buildRequest(input: {
   regionCode: string;
   departureTime: string;
   routingPreference: string;
-}): RouteRequest {
+}): PublicRouteRequest {
+  if (!input.departureTime) throw new Error('출발 시각을 입력하세요.');
   return {
-    origin: toLocation(input.origin, 'Origin'),
-    intermediates: input.intermediates.map((location, index) =>
-      toLocation(location, `Intermediate ${index + 1}`),
-    ),
-    destination: toLocation(input.destination, 'Destination'),
-    travelMode: input.travelMode,
-    computeAlternativeRoutes: input.alternatives,
+    locations: [
+      toLocation(input.origin, '출발지'),
+      ...input.intermediates.map((location, index) =>
+        toLocation(location, `경유지 ${index + 1}`),
+      ),
+      toLocation(input.destination, '도착지'),
+    ],
+    mode: input.travelMode,
+    departureTime: new Date(input.departureTime).toISOString(),
+    ...(input.alternatives ? { computeAlternativeRoutes: true } : {}),
     ...(input.languageCode.trim()
       ? { languageCode: input.languageCode.trim() }
       : {}),
     ...(input.regionCode.trim() ? { regionCode: input.regionCode.trim() } : {}),
-    ...(input.departureTime
-      ? { departureTime: new Date(input.departureTime).toISOString() }
-      : {}),
     ...(input.routingPreference
       ? { routingPreference: input.routingPreference }
       : {}),
   };
+}
+
+function createDefaultDepartureTime() {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 16);
 }

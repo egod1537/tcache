@@ -26,23 +26,23 @@ export function RouteSidebar({
     <Card className="cache-sidebar" compact elevation={1}>
       <div className="panel-heading">
         <div>
-          <h1 className={Classes.HEADING}>Route Jobs</h1>
-          <span className={Classes.TEXT_MUTED}>{jobs.length} recent Jobs</span>
+          <h1 className={Classes.HEADING}>경로 작업</h1>
+          <span className={Classes.TEXT_MUTED}>최근 작업 {jobs.length}개</span>
         </div>
         <div className="sidebar-actions">
           <Button
-            aria-label="Refresh Route Jobs"
+            aria-label="경로 작업 새로고침"
             disabled={refreshing}
             icon="refresh"
             intent={refreshError ? Intent.WARNING : Intent.NONE}
             loading={refreshing}
             onClick={onRefresh}
             size="small"
-            title="Refresh Route Jobs"
+            title="경로 작업 새로고침"
             variant="minimal"
           />
           <Button icon="plus" intent={Intent.PRIMARY} onClick={onNewRequest}>
-            New Request
+            새 요청
           </Button>
         </div>
       </div>

@@ -131,10 +131,12 @@ server의 `GET /status`는 service, commit SHA, environment, uptime, Redis 및 P
 curl -X POST http://localhost:3200/api/route/provider/google/compute \
   -H 'Content-Type: application/json' \
   -d '{
-    "origin":{"type":"address","address":"東京駅、日本"},
-    "intermediates":[],
-    "destination":{"type":"address","address":"東京タワー、日本"},
-    "travelMode":"DRIVING",
+    "locations":[
+      {"address":"東京駅、日本"},
+      {"address":"東京タワー、日本"}
+    ],
+    "mode":"DRIVING",
+    "departureTime":"2026-10-02T14:23:00+09:00",
     "computeAlternativeRoutes":true
   }'
 ```
@@ -143,15 +145,20 @@ curl -X POST http://localhost:3200/api/route/provider/google/compute \
 
 Route 요청은 `202 Accepted`와 `route_` prefix Job ID를 즉시 반환하고 Redis에서 상태를 관리합니다. 클라이언트는 callback URL을 제공하지 않으며, 반환된 `eventsUrl`에 직접 SSE 연결을 열어 `snapshot`, `progress`, `completed`, `failed`, `cancelled` 이벤트를 받습니다. 연결이 끊겨도 Job은 계속 실행되며 재연결 시 최신 Redis snapshot이 먼저 전송됩니다.
 
+외부 클라이언트는 방문 순서대로 정렬된 `locations`, `mode`, timezone이 포함된 `departureTime`만 전송하면 됩니다. 첫 위치는 출발지, 마지막 위치는 도착지, 그 사이는 경유지로 정규화됩니다. 위치는 2~27개이며 Place ID를 우선 권장하고 주소와 위도/경도도 지원합니다. 요일 유형, 10분 단위 시간 버킷, cache key, provider 요청은 서버가 계산합니다. 기존 `origin` / `intermediates` / `destination` / `travelMode` 형태도 호환을 위해 계속 지원합니다.
+
 ```bash
 curl -X POST http://localhost:3200/api/route/jobs \
   -H 'Content-Type: application/json' \
   -d '{
-    "origin":{"address":"Seoul Station"},
-    "destination":{"address":"Gangnam Station"},
-    "waypoints":[],
-    "travelMode":"TRANSIT",
-    "options":{"languageCode":"ko"}
+    "locations":[
+      {"placeId":"ChIJ-origin"},
+      {"placeId":"ChIJ-stop"},
+      {"placeId":"ChIJ-destination"}
+    ],
+    "mode":"TRANSIT",
+    "departureTime":"2026-10-02T14:23:00+09:00",
+    "languageCode":"ko"
   }'
 
 curl -N http://localhost:3200/api/route/jobs/<jobId>/events

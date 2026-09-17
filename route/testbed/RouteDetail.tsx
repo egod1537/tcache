@@ -26,6 +26,7 @@ import { JsonViewer } from '../../apps/testbed/src/components/common/JsonViewer'
 import { SectionHeader } from '../../apps/testbed/src/components/common/SectionHeader';
 import { HealthTag } from '../../apps/testbed/src/components/status/HealthTag';
 import { RouteMapPanel } from './components/RouteMapPanel';
+import { routeJobStatusLabel, routeModeLabel } from './route-ui-labels';
 
 interface RouteDetailProps {
   job: RouteJobView | null;
@@ -72,9 +73,9 @@ export function RouteDetail({
     return (
       <Card className="route-detail-empty" compact elevation={1}>
         <NonIdealState
-          description="Create a new request or select an existing Job from the sidebar."
+          description="새 요청을 만들거나 왼쪽에서 기존 작업을 선택하세요."
           icon="search"
-          title="Select a Route Job"
+          title="경로 작업을 선택하세요"
         />
       </Card>
     );
@@ -96,14 +97,14 @@ export function RouteDetail({
     <div className="route-job-detail">
       <div className="panel-heading detail-heading">
         <div>
-          <h1 className={Classes.HEADING}>Route Job Detail</h1>
+          <h1 className={Classes.HEADING}>경로 작업 상세</h1>
           <code className={`${Classes.TEXT_MUTED} ${Classes.MONOSPACE_TEXT}`}>
             {job.jobId}
           </code>
         </div>
         <div className="detail-actions">
           <Tag intent={statusIntent(job.status)}>
-            {job.status.toUpperCase()}
+            {routeJobStatusLabel(job.status)}
           </Tag>
           {cancellable && (
             <Button
@@ -113,7 +114,7 @@ export function RouteDetail({
               onClick={() => onCancel(job.jobId)}
               size="small"
             >
-              Cancel
+              작업 취소
             </Button>
           )}
         </div>
@@ -122,9 +123,8 @@ export function RouteDetail({
 
       <div className="detail-content">
         {streamState === 'reconnecting' && cancellable && (
-          <Callout compact intent={Intent.WARNING} title="SSE reconnecting">
-            EventSource is reconnecting. Polling keeps the Job snapshot current
-            until SSE reconnects.
+          <Callout compact intent={Intent.WARNING} title="SSE 재연결 중">
+            SSE가 다시 연결될 때까지 Polling으로 작업 상태를 갱신합니다.
           </Callout>
         )}
 
@@ -135,7 +135,7 @@ export function RouteDetail({
             </Callout>
             {job.error.details !== undefined && (
               <JsonViewer
-                title="Upstream error details"
+                title="Upstream 오류 상세"
                 value={job.error.details}
               />
             )}
@@ -143,25 +143,25 @@ export function RouteDetail({
         )}
 
         <Card className="detail-section" compact>
-          <SectionHeader title="Overview" description={job.message} />
+          <SectionHeader title="개요" description={job.message} />
           <dl className="fact-grid route-overview-facts">
-            <Fact label="Job ID" value={job.jobId} />
-            <Fact label="Status" value={job.status} />
-            <Fact label="Stage" value={job.stage} />
-            <Fact label="Progress" value={`${job.progress}%`} />
+            <Fact label="작업 ID" value={job.jobId} />
+            <Fact label="상태" value={routeJobStatusLabel(job.status)} />
+            <Fact label="단계" value={job.stage} />
+            <Fact label="진행률" value={`${job.progress}%`} />
             <Fact
-              label="Created"
-              value={new Date(job.createdAt).toLocaleString()}
+              label="생성 시각"
+              value={new Date(job.createdAt).toLocaleString('ko-KR')}
             />
             <Fact
-              label="Updated"
-              value={new Date(job.updatedAt).toLocaleString()}
+              label="수정 시각"
+              value={new Date(job.updatedAt).toLocaleString('ko-KR')}
             />
             <Fact
-              label="Completed"
+              label="완료 시각"
               value={
                 job.completedAt
-                  ? new Date(job.completedAt).toLocaleString()
+                  ? new Date(job.completedAt).toLocaleString('ko-KR')
                   : '—'
               }
             />
@@ -170,7 +170,7 @@ export function RouteDetail({
         </Card>
 
         <Card className="detail-section" compact>
-          <SectionHeader title="Progress" description={job.message} />
+          <SectionHeader title="진행 상황" description={job.message} />
           <ProgressBar
             animate={cancellable}
             intent={statusIntent(job.status)}
@@ -179,16 +179,16 @@ export function RouteDetail({
           />
           <dl className="fact-grid route-progress-facts">
             <div>
-              <dt>Stage</dt>
+              <dt>단계</dt>
               <dd>
                 <Tag icon="timeline-events" minimal>
                   {job.stage}
                 </Tag>
               </dd>
             </div>
-            <Fact label="Progress" value={`${job.progress}%`} />
+            <Fact label="진행률" value={`${job.progress}%`} />
             <div>
-              <dt>Route module</dt>
+              <dt>경로 모듈</dt>
               <dd>
                 <HealthTag state={systemState} />
               </dd>
@@ -205,11 +205,11 @@ export function RouteDetail({
         <Card className="detail-section" compact>
           <SectionHeader
             title="SSE"
-            description="Live lifecycle transport and fallback state"
+            description="실시간 작업 전송 및 대체 연결 상태"
           />
           <dl className="fact-grid route-sse-facts">
             <div>
-              <dt>Connection</dt>
+              <dt>연결</dt>
               <dd>
                 <Tag intent={streamIntent(streamState)}>
                   {streamLabel(streamState)}
@@ -217,21 +217,21 @@ export function RouteDetail({
               </dd>
             </div>
             <Fact
-              label="Progress source"
+              label="진행 정보 출처"
               value={
                 progressSource === 'sse'
                   ? 'SSE'
                   : progressSource === 'polling'
-                    ? 'Polling fallback'
+                    ? 'Polling 대체 연결'
                     : '—'
               }
             />
-            <Fact label="Latest event" value={latestEvent?.type ?? '—'} />
+            <Fact label="최근 이벤트" value={latestEvent?.type ?? '—'} />
             <Fact
-              label="Received"
+              label="수신 시각"
               value={
                 latestEvent
-                  ? new Date(latestEvent.receivedAt).toLocaleTimeString()
+                  ? new Date(latestEvent.receivedAt).toLocaleTimeString('ko-KR')
                   : '—'
               }
             />
@@ -240,12 +240,12 @@ export function RouteDetail({
 
         <Card className="detail-section" compact>
           <SectionHeader
-            title="Request"
-            description="Submitted input and server normalization"
+            title="요청"
+            description="전송한 입력과 서버 정규화 결과"
           />
           <dl className="fact-grid route-request-facts">
             <Fact
-              label="From"
+              label="출발지"
               value={
                 job.requestMetadata?.fromKey ??
                 formatLocation(
@@ -254,7 +254,7 @@ export function RouteDetail({
               }
             />
             <Fact
-              label="To"
+              label="도착지"
               value={
                 job.requestMetadata?.toKey ??
                 formatLocation(
@@ -263,7 +263,7 @@ export function RouteDetail({
               }
             />
             <Fact
-              label="Intermediates"
+              label="경유지"
               value={
                 job.requestMetadata?.intermediateKeys.length ??
                 job.normalizedRequest?.intermediates.length ??
@@ -271,24 +271,27 @@ export function RouteDetail({
                 0
               }
             />
-            <Fact label="Mode" value={job.request.travelMode} />
             <Fact
-              label="Day type"
+              label="이동 수단"
+              value={routeModeLabel(job.request.travelMode)}
+            />
+            <Fact
+              label="요일 유형"
               value={job.requestMetadata?.dayType ?? '—'}
             />
             <Fact
-              label="Time bucket"
+              label="시간대"
               value={job.requestMetadata?.timeBucket ?? '—'}
             />
           </dl>
           <details className="route-request-json">
-            <summary>Submitted request JSON</summary>
-            <JsonViewer title="Submitted request" value={job.request} />
+            <summary>전송한 요청 JSON</summary>
+            <JsonViewer title="전송한 요청" value={job.request} />
           </details>
           <details className="route-request-json">
-            <summary>Server normalized request</summary>
+            <summary>서버 정규화 요청</summary>
             <JsonViewer
-              title="Normalized request"
+              title="정규화된 요청"
               value={job.normalizedRequest ?? job.request}
             />
           </details>
@@ -296,25 +299,22 @@ export function RouteDetail({
 
         <div className="detail-section-grid">
           <Card className="detail-section" compact>
-            <SectionHeader
-              title="Cache"
-              description="Lookup result and policy"
-            />
+            <SectionHeader title="캐시" description="조회 결과와 정책" />
             {job.cache ? (
               <dl className="compact-facts">
                 <div>
-                  <dt>Result</dt>
+                  <dt>결과</dt>
                   <dd>
                     <Tag
                       intent={job.cache.hit ? Intent.SUCCESS : Intent.WARNING}
                     >
-                      {job.cache.hit ? 'HIT' : 'MISS'}
+                      {job.cache.hit ? '적중' : '미적중'}
                     </Tag>
                   </dd>
                 </div>
                 <Fact label="TTL" value={`${job.cache.ttl}s`} />
                 <div>
-                  <dt>Key</dt>
+                  <dt>키</dt>
                   <dd>
                     <code className={Classes.MONOSPACE_TEXT}>
                       {job.cache.key}
@@ -324,7 +324,7 @@ export function RouteDetail({
               </dl>
             ) : (
               <Callout compact icon="time">
-                Cache lookup has not completed.
+                캐시 조회가 아직 완료되지 않았습니다.
               </Callout>
             )}
           </Card>
@@ -332,12 +332,12 @@ export function RouteDetail({
           <Card className="detail-section" compact>
             <SectionHeader
               title="Provider"
-              description="Upstream route source"
+              description="Upstream 경로 제공 정보"
             />
             <dl className="compact-facts">
               <Fact label="Provider" value={job.provider ?? '—'} />
               <Fact
-                label="Latency"
+                label="응답 시간"
                 value={
                   job.providerLatencyMs === undefined
                     ? '—'
@@ -350,19 +350,16 @@ export function RouteDetail({
 
         <Card className="detail-section" compact>
           <SectionHeader
-            title="Route Result"
-            description="Normalized provider routes"
+            title="경로 결과"
+            description="정규화된 Provider 경로"
           />
           {resultLoading ? (
             <Callout compact icon="time">
-              Loading final result…
+              최종 결과를 불러오는 중…
             </Callout>
           ) : googleResult && googleResult.routes.length ? (
             <>
-              <div
-                className="route-result-selector"
-                aria-label="Route selection"
-              >
+              <div className="route-result-selector" aria-label="경로 선택">
                 {googleResult.routes.map((route, index) => (
                   <button
                     aria-pressed={selectedRouteIndex === index}
@@ -371,7 +368,7 @@ export function RouteDetail({
                     onClick={() => setSelectedRouteIndex(index)}
                     type="button"
                   >
-                    <strong>Route {index + 1}</strong>
+                    <strong>경로 {index + 1}</strong>
                     <span>{formatDuration(route.durationSeconds)}</span>
                     <small>{formatDistance(route.distanceMeters)}</small>
                   </button>
@@ -381,12 +378,12 @@ export function RouteDetail({
             </>
           ) : result?.result !== undefined ? (
             <Callout compact icon="info-sign">
-              This provider result has no Google normalized routes. See Raw
-              JSON.
+              Provider 결과에 정규화된 Google 경로가 없습니다. 원본 JSON을
+              확인하세요.
             </Callout>
           ) : (
             <Callout compact icon="info-sign">
-              The final result becomes available after the Job completes.
+              작업이 완료되면 최종 결과를 확인할 수 있습니다.
             </Callout>
           )}
         </Card>
@@ -394,8 +391,8 @@ export function RouteDetail({
         {selectedRoute && (
           <Card className="detail-section" compact>
             <SectionHeader
-              title="Map"
-              description={`Route ${selectedRouteIndex + 1} polyline and stops`}
+              title="지도"
+              description={`경로 ${selectedRouteIndex + 1}의 polyline과 위치`}
             />
             <RouteMapPanel route={selectedRoute} />
           </Card>
@@ -403,33 +400,33 @@ export function RouteDetail({
 
         <Card className="detail-section route-debug-section" compact>
           <SectionHeader
-            title="Debug"
-            description="Normalized and raw provider diagnostics (API keys are never included)"
+            title="디버그"
+            description="정규화된 결과와 Provider 원본 진단 정보(API 키 제외)"
           />
           {googleResult && (
             <>
               <details>
-                <summary>Normalized result</summary>
+                <summary>정규화된 결과</summary>
+                <JsonViewer title="정규화된 결과" value={googleResult.routes} />
+              </details>
+              <details>
+                <summary>Provider 요청 / 응답 시간</summary>
                 <JsonViewer
-                  title="Normalized result"
-                  value={googleResult.routes}
+                  title="Provider 디버그"
+                  value={googleResult.debug}
                 />
               </details>
               <details>
-                <summary>Provider request / latency</summary>
-                <JsonViewer title="Provider debug" value={googleResult.debug} />
-              </details>
-              <details>
-                <summary>Raw provider response</summary>
+                <summary>Provider 원본 응답</summary>
                 <JsonViewer
-                  title="Raw provider response"
+                  title="Provider 원본 응답"
                   value={googleResult.raw}
                 />
               </details>
             </>
           )}
           {result?.result !== undefined && !googleResult && (
-            <JsonViewer title="Raw JSON" value={result.result} />
+            <JsonViewer title="원본 JSON" value={result.result} />
           )}
         </Card>
       </div>
@@ -444,9 +441,9 @@ function streamIntent(state: RouteJobStreamState) {
 }
 
 function streamLabel(state: RouteJobStreamState) {
-  if (state === 'connected') return 'Connected';
-  if (state === 'reconnecting') return 'Reconnecting';
-  return 'Disconnected';
+  if (state === 'connected') return '연결됨';
+  if (state === 'reconnecting') return '재연결 중';
+  return '연결 끊김';
 }
 
 function formatLocation(value: unknown) {
@@ -474,21 +471,22 @@ function RouteSummary({ route }: { route: NormalizedRoute }) {
   return (
     <div className="route-result-summary">
       <dl className="fact-grid">
-        <Fact label="Distance" value={formatDistance(route.distanceMeters)} />
-        <Fact label="Duration" value={formatDuration(route.durationSeconds)} />
-        <Fact label="Path points" value={route.path.length} />
-        <Fact label="Legs" value={route.legs.length} />
+        <Fact label="거리" value={formatDistance(route.distanceMeters)} />
+        <Fact label="소요 시간" value={formatDuration(route.durationSeconds)} />
+        <Fact label="경로 점" value={route.path.length} />
+        <Fact label="구간" value={route.legs.length} />
       </dl>
       {route.description && <p>{route.description}</p>}
       {route.legs.length > 0 && (
         <details className="route-leg-details">
-          <summary>Leg details ({route.legs.length})</summary>
+          <summary>구간 상세 ({route.legs.length})</summary>
           <ol>
             {route.legs.map((leg, index) => (
               <li key={index}>
-                <strong>Leg {index + 1}</strong> ·{' '}
+                <strong>구간 {index + 1}</strong> ·{' '}
                 {formatDistance(leg.distanceMeters)} ·{' '}
-                {formatDuration(leg.durationSeconds)} · {leg.steps.length} steps
+                {formatDuration(leg.durationSeconds)} · 단계 {leg.steps.length}
+                개
               </li>
             ))}
           </ol>
@@ -518,8 +516,8 @@ function formatDistance(value: number | null) {
 function formatDuration(value: number | null) {
   if (value === null) return '—';
   const minutes = Math.round(value / 60);
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return `${minutes}분`;
   const hours = Math.floor(minutes / 60);
   const remainder = minutes % 60;
-  return remainder ? `${hours} hr ${remainder} min` : `${hours} hr`;
+  return remainder ? `${hours}시간 ${remainder}분` : `${hours}시간`;
 }

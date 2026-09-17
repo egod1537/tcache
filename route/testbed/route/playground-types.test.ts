@@ -4,55 +4,66 @@ import {
   buildRouteRequest,
   createDefaultRouteDraft,
   createLocationDraft,
+  createRouteDraftLocation,
   parseRawRouteRequest,
 } from './playground-types.js';
 
 describe('Route Playground request builder', () => {
-  it('builds the default address request', () => {
+  it('builds the default ordered location request', () => {
     expect(buildRouteRequest(createDefaultRouteDraft())).toMatchObject({
-      origin: { type: 'address', address: '東京駅、日本' },
-      intermediates: [],
-      destination: { type: 'address', address: '東京タワー、日本' },
-      travelMode: 'DRIVING',
-      computeAlternativeRoutes: false,
+      locations: [{ address: '東京駅、日本' }, { address: '東京タワー、日本' }],
+      mode: 'DRIVING',
+      departureTime: expect.stringMatching(/Z$/),
     });
   });
 
-  it('removes empty intermediates while preserving populated order', () => {
+  it('maps first, middle, and last locations to the request in list order', () => {
     const draft = createDefaultRouteDraft();
-    draft.intermediates = [
-      createLocationDraft('浅草寺、日本'),
-      createLocationDraft(),
-      {
+    draft.locations = [
+      createRouteDraftLocation(createLocationDraft('Tokyo')),
+      createRouteDraftLocation(createLocationDraft('Asakusa')),
+      createRouteDraftLocation({
         ...createLocationDraft(),
         type: 'coordinates',
         latitude: '35.6762',
         longitude: '139.6503',
-      },
+      }),
+      createRouteDraftLocation(createLocationDraft('Tokyo Tower')),
     ];
 
-    expect(buildRouteRequest(draft).intermediates).toEqual([
-      { type: 'address', address: '浅草寺、日本' },
-      { type: 'coordinates', latitude: 35.6762, longitude: 139.6503 },
-    ]);
+    expect(buildRouteRequest(draft)).toMatchObject({
+      locations: [
+        { address: 'Tokyo' },
+        { address: 'Asakusa' },
+        { latitude: 35.6762, longitude: 139.6503 },
+        { address: 'Tokyo Tower' },
+      ],
+      mode: 'DRIVING',
+    });
   });
 
-  it('rejects missing endpoints, invalid coordinates, and invalid raw JSON', () => {
-    const missingOrigin = createDefaultRouteDraft();
-    missingOrigin.origin.address = '';
-    expect(() => buildRouteRequest(missingOrigin)).toThrow(
-      'Origin address is required',
+  it('rejects too few locations, empty rows, invalid coordinates, and invalid raw JSON', () => {
+    const tooShort = createDefaultRouteDraft();
+    tooShort.locations = tooShort.locations.slice(0, 1);
+    expect(() => buildRouteRequest(tooShort)).toThrow(
+      '출발지와 도착지를 포함해 위치를 2개 이상 입력하세요',
+    );
+
+    const emptyStop = createDefaultRouteDraft();
+    emptyStop.locations.splice(1, 0, createRouteDraftLocation());
+    expect(() => buildRouteRequest(emptyStop)).toThrow(
+      '경유지 1 주소를 입력하세요',
     );
 
     const invalidCoordinates = createDefaultRouteDraft();
-    invalidCoordinates.destination = {
+    invalidCoordinates.locations[1]!.location = {
       ...createLocationDraft(),
       type: 'coordinates',
       latitude: '100',
       longitude: '139',
     };
     expect(() => buildRouteRequest(invalidCoordinates)).toThrow(
-      'Destination coordinates are invalid',
+      '도착지 좌표가 올바르지 않습니다',
     );
     expect(() => parseRawRouteRequest('{')).toThrow();
   });

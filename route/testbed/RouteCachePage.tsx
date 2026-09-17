@@ -259,8 +259,8 @@ export function RouteCachePage({
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onCreate={create}
-        submitLabel="Send Request"
-        title="New Route Request"
+        submitLabel="요청 전송"
+        title="새 경로 요청"
       />
     </>
   );

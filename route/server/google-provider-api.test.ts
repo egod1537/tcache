@@ -170,7 +170,7 @@ describe('Google provider debug API', () => {
     expect(response.statusCode).toBe(400);
     expect(provider.getRoute).not.toHaveBeenCalled();
     expect(response.json()).toMatchObject({
-      error: { code: 'INVALID_REQUEST' },
+      error: { code: 'INVALID_ROUTE_REQUEST' },
     });
   });
 });

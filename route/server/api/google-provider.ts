@@ -2,7 +2,7 @@ import type { FastifyInstance } from 'fastify';
 
 import type { RouteProvider } from '../providers/provider.js';
 import { GoogleRoutesError } from '../providers/google/errors.js';
-import { normalizeRouteRequest } from '../types/route.js';
+import { normalizePublicRouteRequest } from '../types/route.js';
 
 export interface GoogleProviderDebugContext {
   provider: RouteProvider;
@@ -18,11 +18,11 @@ export function registerGoogleProviderDebug(
     async (request, reply) => {
       let normalizedRequest;
       try {
-        normalizedRequest = normalizeRouteRequest(request.body);
+        normalizedRequest = normalizePublicRouteRequest(request.body);
       } catch (error) {
         return reply.code(400).send({
           error: {
-            code: 'INVALID_REQUEST',
+            code: 'INVALID_ROUTE_REQUEST',
             message:
               error instanceof Error ? error.message : 'Invalid route request',
           },

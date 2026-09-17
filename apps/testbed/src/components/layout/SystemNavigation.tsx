@@ -12,7 +12,7 @@ export function SystemNavigation({
   onNavigate,
 }: SystemNavigationProps) {
   return (
-    <nav className="system-navigation" aria-label="tcache systems">
+    <nav className="system-navigation" aria-label="tcache 시스템">
       {APP_ROUTES.map((route) => (
         <Button
           active={currentRoute === route.id}

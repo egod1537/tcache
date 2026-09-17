@@ -7,6 +7,7 @@ import {
 } from '../../../apps/testbed/src/api/client';
 import {
   buildRouteRequest,
+  buildRouteRequestPreview,
   createDefaultRouteDraft,
   parseRawRouteRequest,
   type PlaygroundError,
@@ -21,7 +22,7 @@ export function useRoutePlayground() {
   const [rawOverride, setRawOverrideState] = useState<string | null>(null);
   const [validation, setValidation] = useState<ValidationState>({
     state: 'idle',
-    message: 'Not validated',
+    message: '검증하지 않음',
   });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<PlaygroundError | null>(null);
@@ -40,7 +41,12 @@ export function useRoutePlayground() {
     }
   }, [draft]);
   const rawJson =
-    rawOverride ?? JSON.stringify(generatedRequest ?? draft, null, 2);
+    rawOverride ??
+    JSON.stringify(
+      generatedRequest ?? buildRouteRequestPreview(draft),
+      null,
+      2,
+    );
 
   useEffect(() => () => controllerRef.current?.abort(), []);
 
@@ -50,12 +56,14 @@ export function useRoutePlayground() {
   ) {
     setDraftState(next);
     setRawOverrideState(null);
-    setValidation({ state: 'idle', message: 'Not validated' });
+    setValidation({ state: 'idle', message: '검증하지 않음' });
+    clearStaleResult();
   }
 
   function setRawOverride(value: string | null) {
     setRawOverrideState(value);
-    setValidation({ state: 'idle', message: 'Not validated' });
+    setValidation({ state: 'idle', message: '검증하지 않음' });
+    clearStaleResult();
   }
 
   function getRequest() {
@@ -63,25 +71,21 @@ export function useRoutePlayground() {
       rawOverride !== null
         ? parseRawRouteRequest(rawOverride)
         : buildRouteRequest(draft);
-    if (rawOverride === null) {
-      setDraftState((current) => ({
-        ...current,
-        intermediates: current.intermediates.filter((location) => {
-          if (location.type === 'address')
-            return Boolean(location.address.trim());
-          if (location.type === 'placeId')
-            return Boolean(location.placeId.trim());
-          return Boolean(location.latitude.trim() || location.longitude.trim());
-        }),
-      }));
-    }
     return request;
+  }
+
+  function clearStaleResult() {
+    setError(null);
+    setResponse(null);
+    setSubmittedRequest(null);
+    setRequestTimestamp(null);
+    setSelectedRouteIndex(0);
   }
 
   function validate() {
     try {
       const request = getRequest();
-      setValidation({ state: 'valid', message: 'Valid request' });
+      setValidation({ state: 'valid', message: '유효한 요청입니다.' });
       return request;
     } catch (validationError) {
       setValidation({
@@ -89,7 +93,7 @@ export function useRoutePlayground() {
         message:
           validationError instanceof Error
             ? validationError.message
-            : 'Invalid route request',
+            : '경로 요청이 올바르지 않습니다.',
       });
       return null;
     }
@@ -126,7 +130,7 @@ export function useRoutePlayground() {
     controllerRef.current = null;
     setDraftState(createDefaultRouteDraft());
     setRawOverrideState(null);
-    setValidation({ state: 'idle', message: 'Not validated' });
+    setValidation({ state: 'idle', message: '검증하지 않음' });
     setPending(false);
     setError(null);
     setResponse(null);
@@ -167,6 +171,7 @@ function toPlaygroundError(error: unknown): PlaygroundError {
   return {
     httpStatus: null,
     code: 'REQUEST_ERROR',
-    message: error instanceof Error ? error.message : 'Route request failed',
+    message:
+      error instanceof Error ? error.message : '경로 요청에 실패했습니다.',
   };
 }

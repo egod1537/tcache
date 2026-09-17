@@ -53,10 +53,10 @@ export function AppHeader({
         <SystemNavigation currentRoute={currentRoute} onNavigate={onNavigate} />
       </NavbarGroup>
       <NavbarGroup align={Alignment.END} className="navbar-end">
-        <HealthTag label="Server" state={health} />
-        <Tooltip content="Refresh service health" placement="bottom">
+        <HealthTag label="서버" state={health} />
+        <Tooltip content="서비스 상태 새로고침" placement="bottom">
           <Button
-            aria-label="Refresh service health"
+            aria-label="서비스 상태 새로고침"
             disabled={healthRefreshing}
             icon="refresh"
             loading={healthRefreshing}

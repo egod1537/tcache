@@ -16,13 +16,13 @@ export function RouteIntermediateList({
   return (
     <section className="route-playground-intermediates">
       <div className="route-playground-field-heading">
-        <strong>Intermediates</strong>
+        <strong>경유지</strong>
         <span className={Classes.TEXT_MUTED}>{values.length}/25</span>
       </div>
       {values.map((value, index) => (
         <div className="route-playground-intermediate" key={index}>
           <RouteLocationInput
-            label={`Intermediate ${index + 1}`}
+            label={`경유지 ${index + 1}`}
             onChange={(next) =>
               onChange(
                 values.map((current, itemIndex) =>
@@ -33,7 +33,7 @@ export function RouteIntermediateList({
             value={value}
           />
           <Button
-            aria-label={`Remove intermediate ${index + 1}`}
+            aria-label={`경유지 ${index + 1} 삭제`}
             icon="cross"
             onClick={() =>
               onChange(values.filter((_, itemIndex) => itemIndex !== index))
@@ -51,7 +51,7 @@ export function RouteIntermediateList({
         size="small"
         variant="outlined"
       >
-        Add Intermediate
+        경유지 추가
       </Button>
     </section>
   );

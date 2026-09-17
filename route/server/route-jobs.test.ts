@@ -197,6 +197,40 @@ describe('route jobs', () => {
     expect(events.body).toContain('event: completed');
   });
 
+  it('accepts the public ordered-locations contract at POST /jobs', async () => {
+    const { app } = createTestApp(new TestProvider());
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: {
+        locations: [
+          { placeId: 'origin-place' },
+          { address: '중간 위치' },
+          { latitude: 35.6586, longitude: 139.7454 },
+        ],
+        mode: 'TRANSIT',
+        departureTime: '2026-10-02T14:23:00+09:00',
+      },
+    });
+
+    expect(created.statusCode).toBe(202);
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+    expect(job.normalizedRequest).toMatchObject({
+      origin: { type: 'placeId', placeId: 'origin-place' },
+      intermediates: [{ type: 'address', address: '중간 위치' }],
+      destination: {
+        type: 'coordinates',
+        latitude: 35.6586,
+        longitude: 139.7454,
+      },
+      travelMode: 'TRANSIT',
+      departureTime: '2026-10-02T14:23:00+09:00',
+    });
+  });
+
   it('lists server-side jobs from every client in newest-first order', async () => {
     const { app, store } = createTestApp(new TestProvider());
     const externalRequest = normalizeRouteRequest(requestBody);
@@ -422,7 +456,7 @@ describe('route jobs', () => {
 
     expect(response.statusCode).toBe(400);
     expect(response.json()).toMatchObject({
-      error: { code: 'INVALID_REQUEST' },
+      error: { code: 'INVALID_ROUTE_REQUEST' },
     });
     expect(store.jobs.size).toBe(0);
   });

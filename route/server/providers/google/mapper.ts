@@ -1,7 +1,7 @@
 import type {
   NormalizedRouteLocation,
   NormalizedRouteRequest,
-  RouteJobRequest,
+  RouteRequestInput,
   RouteTravelMode,
 } from '../../types/route.js';
 import { normalizeRouteRequest } from '../../types/route.js';
@@ -31,7 +31,7 @@ function toWaypoint(point: NormalizedRouteLocation): GoogleWaypoint {
 }
 
 export function toGoogleRoutesRequest(
-  request: NormalizedRouteRequest | RouteJobRequest,
+  request: NormalizedRouteRequest | RouteRequestInput,
 ): GoogleRoutesRequest {
   const normalized = normalizeRouteRequest(request);
   return {

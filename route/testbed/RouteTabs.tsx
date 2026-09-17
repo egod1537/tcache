@@ -7,10 +7,10 @@ export const ROUTE_TABS: Array<{
   label: string;
   path: string;
 }> = [
-  { id: 'route', label: 'Route', path: '/route' },
-  { id: 'jobs', label: 'Jobs', path: '/route/jobs' },
-  { id: 'cache', label: 'Cache', path: '/route/cache' },
-  { id: 'analytics', label: 'Analytics', path: '/route/analytics' },
+  { id: 'route', label: '경로', path: '/route' },
+  { id: 'jobs', label: '작업', path: '/route/jobs' },
+  { id: 'cache', label: '캐시', path: '/route/cache' },
+  { id: 'analytics', label: '분석', path: '/route/analytics' },
 ];
 
 interface RouteTabsProps {
@@ -20,7 +20,7 @@ interface RouteTabsProps {
 
 export function RouteTabs({ activeTab, onNavigate }: RouteTabsProps) {
   return (
-    <nav className="route-section-tabs" aria-label="Route tools">
+    <nav className="route-section-tabs" aria-label="경로 도구">
       <Tabs
         id="route-section-tabs"
         onChange={(tab: TabId) => onNavigate(tab as RouteTab)}
