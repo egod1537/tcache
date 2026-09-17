@@ -1,7 +1,10 @@
 import { Classes, Intent, Tag } from '@blueprintjs/core';
 
-import type { RouteJobStatus, RouteJobView } from '../../api/client';
-import { EmptyState } from '../../components/common/EmptyState';
+import type {
+  RouteJobStatus,
+  RouteJobView,
+} from '../../../apps/testbed/src/api/client';
+import { EmptyState } from '../../../apps/testbed/src/components/common/EmptyState';
 
 function statusIntent(status: RouteJobStatus) {
   if (status === 'completed') return Intent.SUCCESS;

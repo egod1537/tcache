@@ -1,10 +1,20 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@tcache/common": ["../../packages/common/src/index.ts"],
+      "fastify": ["node_modules/fastify/fastify.d.ts"],
+      "*": ["node_modules/*"]
+    },
+    "rootDir": "../..",
     "outDir": "dist",
     "types": ["node"]
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src", "../../ai/server", "../../route/server"],
+  "exclude": [
+    "src/**/*.test.ts",
+    "../../ai/server/**/*.test.ts",
+    "../../route/server/**/*.test.ts"
+  ]
 }

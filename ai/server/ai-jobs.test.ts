@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildApp } from '../app.js';
+import { buildApp } from '../../apps/server/src/app.js';
 import { createAiCacheKey } from './cache/key.js';
 import { createAiCachePolicy } from './cache/policy.js';
 import type {

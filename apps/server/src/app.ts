@@ -1,10 +1,10 @@
 import Fastify, { type FastifyServerOptions } from 'fastify';
 
-import type { AiApiContext } from './ai-cache/api/context.js';
-import { aiCacheRoutes } from './ai-cache/routes.js';
+import type { AiApiContext } from '../../../ai/server/api/context.js';
+import { aiCacheRoutes } from '../../../ai/server/routes.js';
+import type { RouteApiContext } from '../../../route/server/api/context.js';
+import { routeCacheRoutes } from '../../../route/server/routes.js';
 import { healthRoutes } from './health/routes.js';
-import type { RouteApiContext } from './route-cache/api/context.js';
-import { routeCacheRoutes } from './route-cache/routes.js';
 
 export interface BuildAppOptions {
   environment?: string;

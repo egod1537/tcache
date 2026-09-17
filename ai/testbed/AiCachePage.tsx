@@ -9,9 +9,9 @@ import {
   subscribeAiJob,
   type AiJobResult,
   type AiJobView,
-} from '../api/client';
-import type { TcacheStatusState } from '../api/useTcacheStatus';
-import { Workspace } from '../components/layout/Workspace';
+} from '../../apps/testbed/src/api/client';
+import type { TcacheStatusState } from '../../apps/testbed/src/api/useTcacheStatus';
+import { Workspace } from '../../apps/testbed/src/components/layout/Workspace';
 import { AiDetail } from './AiDetail';
 import { AiSidebar } from './AiSidebar';
 import { NewAiJobDialog } from './components/NewAiJobDialog';

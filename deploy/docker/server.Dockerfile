@@ -9,6 +9,8 @@ COPY packages/common/package.json packages/common/package.json
 RUN pnpm install --frozen-lockfile
 
 COPY apps/server apps/server
+COPY ai/server ai/server
+COPY route/server route/server
 COPY packages/common packages/common
 RUN pnpm --filter @tcache/server... build
 
@@ -27,4 +29,4 @@ COPY --from=build /app/packages/common/dist ./packages/common/dist
 
 USER node
 EXPOSE 3200
-CMD ["node", "apps/server/dist/index.js"]
+CMD ["node", "apps/server/dist/apps/server/src/index.js"]

@@ -5,23 +5,22 @@ Trasolve와 troute에서 공용으로 사용하는 캐시 서버의 기반 프�
 ## 구조와 분리 원칙
 
 ```text
+ai/
+├── server/           # AI Response Cache 서버 기능
+└── testbed/          # AI Cache testbed 기능
+route/
+├── server/           # Route Cache 서버 기능
+└── testbed/          # Route Cache testbed 기능
 apps/
-├── server/src/
-│   ├── route-cache/  # Route Cache 전용 영역
-│   ├── ai-cache/     # AI Response Cache 전용 영역
-│   ├── health/       # health/status API
-│   └── redis/        # 공용 인프라
-└── testbed/src/
-    ├── route/        # Route Cache testbed
-    ├── ai/           # AI Cache testbed
-    └── common/       # testbed 공용 UI/HTTP 코드
+├── server/src/       # 공용 서버 인프라와 실행 진입점
+└── testbed/src/      # testbed 공용 UI/HTTP 코드와 앱 셸
 packages/common/      # 실제로 범용적인 공유 타입
 deploy/
 ├── docker/           # 컨테이너 이미지와 Nginx 설정
 └── cloudflare/       # Cloudflare Tunnel 예시 및 문서
 ```
 
-`route-cache`와 `ai-cache`는 서로의 내부 구현을 import하지 않습니다. 공유 코드는 Redis client, config, logger, health/HTTP utility, 범용 타입 같은 인프라 계층으로 제한합니다. 이 경계를 유지하면 향후 각 시스템을 별도 프로세스나 컨테이너로 분리할 수 있습니다.
+`route`와 `ai`는 각각 `server`와 `testbed`를 소유하며 서로의 내부 구현을 import하지 않습니다. 공유 코드는 `apps`의 실행 셸과 Redis client, config, health/HTTP utility, 범용 타입 같은 인프라 계층으로 제한합니다. 이 경계를 유지하면 향후 각 시스템을 별도 프로세스나 컨테이너로 분리할 수 있습니다.
 
 ## 기술 스택
 

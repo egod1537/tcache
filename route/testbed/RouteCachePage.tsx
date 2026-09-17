@@ -9,9 +9,9 @@ import {
   subscribeRouteJob,
   type RouteJobResult,
   type RouteJobView,
-} from '../api/client';
-import type { TcacheStatusState } from '../api/useTcacheStatus';
-import { Workspace } from '../components/layout/Workspace';
+} from '../../apps/testbed/src/api/client';
+import type { TcacheStatusState } from '../../apps/testbed/src/api/useTcacheStatus';
+import { Workspace } from '../../apps/testbed/src/components/layout/Workspace';
 import { NewRouteJobDialog } from './components/NewRouteJobDialog';
 import { RouteDetail } from './RouteDetail';
 import { RouteSidebar } from './RouteSidebar';

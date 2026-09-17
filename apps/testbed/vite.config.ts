@@ -9,6 +9,15 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    resolve: {
+      dedupe: [
+        '@blueprintjs/core',
+        '@blueprintjs/icons',
+        '@tcache/common',
+        'react',
+        'react-dom',
+      ],
+    },
     server: {
       host: '0.0.0.0',
       port: testbedPort,

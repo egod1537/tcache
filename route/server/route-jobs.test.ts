@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { buildApp } from '../app.js';
+import { buildApp } from '../../apps/server/src/app.js';
 import { createRouteCachePolicy } from './cache/policy.js';
 import type { CachedRoute, RouteCacheRepository } from './cache/repository.js';
 import type { RouteJob } from './jobs/route-job.js';

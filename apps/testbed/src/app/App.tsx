@@ -1,7 +1,7 @@
 import { useTcacheStatus } from '../api/useTcacheStatus';
-import { AiCachePage } from '../ai/AiCachePage';
+import { AiCachePage } from '../../../../ai/testbed/AiCachePage';
+import { RouteCachePage } from '../../../../route/testbed/RouteCachePage';
 import { AppShell } from '../components/layout/AppShell';
-import { RouteCachePage } from '../route/RouteCachePage';
 import { StatusPage } from '../status/StatusPage';
 import { useTheme, type ThemeMode } from '../theme/theme';
 import { useAppRouter } from './router';

@@ -9,6 +9,8 @@ COPY packages/common/package.json packages/common/package.json
 RUN pnpm install --frozen-lockfile
 
 COPY apps/testbed apps/testbed
+COPY ai/testbed ai/testbed
+COPY route/testbed route/testbed
 COPY packages/common packages/common
 RUN pnpm --filter @tcache/testbed build
 

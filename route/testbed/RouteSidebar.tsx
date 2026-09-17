@@ -1,10 +1,10 @@
 import { Button, Card, Classes, Divider, Intent } from '@blueprintjs/core';
 
-import type { AiJobView } from '../api/client';
-import { AiJobList } from './components/AiJobList';
+import type { RouteJobView } from '../../apps/testbed/src/api/client';
+import { RouteJobList } from './components/RouteJobList';
 
-interface AiSidebarProps {
-  jobs: AiJobView[];
+interface RouteSidebarProps {
+  jobs: RouteJobView[];
   selectedJobId: string | null;
   refreshing: boolean;
   refreshError: boolean;
@@ -13,7 +13,7 @@ interface AiSidebarProps {
   onSelect: (jobId: string) => void;
 }
 
-export function AiSidebar({
+export function RouteSidebar({
   jobs,
   selectedJobId,
   refreshing,
@@ -21,24 +21,24 @@ export function AiSidebar({
   onNewJob,
   onRefresh,
   onSelect,
-}: AiSidebarProps) {
+}: RouteSidebarProps) {
   return (
     <Card className="cache-sidebar" compact elevation={1}>
       <div className="panel-heading">
         <div>
-          <h1 className={Classes.HEADING}>AI Jobs</h1>
+          <h1 className={Classes.HEADING}>Route Jobs</h1>
           <span className={Classes.TEXT_MUTED}>{jobs.length} recent Jobs</span>
         </div>
         <div className="sidebar-actions">
           <Button
-            aria-label="Refresh AI Jobs"
+            aria-label="Refresh Route Jobs"
             disabled={refreshing}
             icon="refresh"
             intent={refreshError ? Intent.WARNING : Intent.NONE}
             loading={refreshing}
             onClick={onRefresh}
             size="small"
-            title="Refresh AI Jobs"
+            title="Refresh Route Jobs"
             variant="minimal"
           />
           <Button icon="plus" intent={Intent.PRIMARY} onClick={onNewJob}>
@@ -47,7 +47,7 @@ export function AiSidebar({
         </div>
       </div>
       <Divider />
-      <AiJobList
+      <RouteJobList
         jobs={jobs}
         onSelect={onSelect}
         selectedJobId={selectedJobId}

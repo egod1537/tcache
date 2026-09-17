@@ -11,11 +11,15 @@ import {
 } from '@blueprintjs/core';
 import type { ServiceStatus } from '@tcache/common';
 
-import type { AiJobResult, AiJobStatus, AiJobView } from '../api/client';
-import type { CheckState } from '../api/useTcacheStatus';
-import { JsonViewer } from '../components/common/JsonViewer';
-import { SectionHeader } from '../components/common/SectionHeader';
-import { HealthTag } from '../components/status/HealthTag';
+import type {
+  AiJobResult,
+  AiJobStatus,
+  AiJobView,
+} from '../../apps/testbed/src/api/client';
+import type { CheckState } from '../../apps/testbed/src/api/useTcacheStatus';
+import { JsonViewer } from '../../apps/testbed/src/components/common/JsonViewer';
+import { SectionHeader } from '../../apps/testbed/src/components/common/SectionHeader';
+import { HealthTag } from '../../apps/testbed/src/components/status/HealthTag';
 
 interface AiDetailProps {
   job: AiJobView | null;

@@ -1,7 +1,10 @@
 import { Classes, Intent, Tag } from '@blueprintjs/core';
 
-import type { AiJobStatus, AiJobView } from '../../api/client';
-import { EmptyState } from '../../components/common/EmptyState';
+import type {
+  AiJobStatus,
+  AiJobView,
+} from '../../../apps/testbed/src/api/client';
+import { EmptyState } from '../../../apps/testbed/src/components/common/EmptyState';
 
 function statusIntent(status: AiJobStatus) {
   if (status === 'completed') return Intent.SUCCESS;

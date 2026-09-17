@@ -15,11 +15,11 @@ import type {
   RouteJobResult,
   RouteJobStatus,
   RouteJobView,
-} from '../api/client';
-import type { CheckState } from '../api/useTcacheStatus';
-import { JsonViewer } from '../components/common/JsonViewer';
-import { SectionHeader } from '../components/common/SectionHeader';
-import { HealthTag } from '../components/status/HealthTag';
+} from '../../apps/testbed/src/api/client';
+import type { CheckState } from '../../apps/testbed/src/api/useTcacheStatus';
+import { JsonViewer } from '../../apps/testbed/src/components/common/JsonViewer';
+import { SectionHeader } from '../../apps/testbed/src/components/common/SectionHeader';
+import { HealthTag } from '../../apps/testbed/src/components/status/HealthTag';
 
 interface RouteDetailProps {
   job: RouteJobView | null;

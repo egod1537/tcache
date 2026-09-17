@@ -1,4 +1,4 @@
-import type { RedisClient } from '../../redis/client.js';
+import type { RedisClient } from '../../../apps/server/src/redis/client.js';
 
 export interface CachedAiResponse {
   provider: string;
