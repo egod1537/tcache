@@ -45,7 +45,10 @@ jobs:
       GIT_COMMIT_SHA: ${{ github.sha }}
       TCACHE_PORT: ${{ vars.TCACHE_PORT || '3200' }}
       TCACHE_TESTBED_PORT: ${{ vars.TCACHE_TESTBED_PORT || '3201' }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       ROUTE_PROVIDER: ${{ vars.ROUTE_PROVIDER || 'google' }}
+      ROUTE_TIME_ZONE: ${{ vars.ROUTE_TIME_ZONE || 'Asia/Seoul' }}
       GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
       VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
       AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}

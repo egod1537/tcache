@@ -12,6 +12,9 @@ import { OpenWebUIModelService } from '../../../ai/server/providers/openwebui/mo
 import { AiProviderRegistry } from '../../../ai/server/providers/provider.js';
 import { createRouteCachePolicy } from '../../../route/server/cache/policy.js';
 import { RedisRouteCacheRepository } from '../../../route/server/cache/repository.js';
+import { RedisRouteCacheInspector } from '../../../route/server/cache/inspector.js';
+import { RepositoryRouteAnalyticsRecorder } from '../../../route/server/analytics/recorder.js';
+import { PostgresRouteAnalyticsRepository } from '../../../route/server/analytics/repository.js';
 import { InMemoryRouteJobEventBus } from '../../../route/server/jobs/route-job-events.js';
 import { RouteJobRunner } from '../../../route/server/jobs/route-job-runner.js';
 import { RouteJobService } from '../../../route/server/jobs/route-job-service.js';
@@ -19,17 +22,35 @@ import { RedisRouteJobStore } from '../../../route/server/jobs/route-job-store.j
 import { GoogleRouteProvider } from '../../../route/server/providers/google/client.js';
 import { MockRouteProvider } from '../../../route/server/providers/mock/client.js';
 import { loadConfig } from './config.js';
+import { closeDatabasePool, createDatabasePool } from './db/client.js';
+import { PostgresHealthMonitor } from './db/health.js';
+import { runMigrations } from './db/migrations.js';
 import { createRedisClient, getRedisStatus } from './redis/client.js';
 
 const config = loadConfig();
 const redis = createRedisClient(config.redisUrl);
+const database = createDatabasePool(config.databaseUrl);
+const postgres = new PostgresHealthMonitor(database);
+const routeAnalyticsRepository = database
+  ? new PostgresRouteAnalyticsRepository(database)
+  : undefined;
+const routeAnalyticsRecorder = routeAnalyticsRepository
+  ? new RepositoryRouteAnalyticsRecorder(routeAnalyticsRepository, {
+      timeZone: config.routeTimeZone,
+    })
+  : undefined;
 const routeJobStore = new RedisRouteJobStore(redis, config.routeJobTtlSeconds);
 const routeEvents = new InMemoryRouteJobEventBus();
 const routeCache = new RedisRouteCacheRepository(redis);
+const routeCacheInspector = new RedisRouteCacheInspector(redis);
+const googleRouteProvider = new GoogleRouteProvider(config.googleMapsApiKey);
 const routeProvider =
   config.routeProvider === 'google'
-    ? new GoogleRouteProvider(config.googleMapsApiKey)
+    ? googleRouteProvider
     : new MockRouteProvider();
+const analyticsWarningLogger: {
+  log?: (error: unknown, event: string, jobId: string) => void;
+} = {};
 const routeRunner = new RouteJobRunner({
   store: routeJobStore,
   events: routeEvents,
@@ -37,6 +58,11 @@ const routeRunner = new RouteJobRunner({
   cachePolicy: createRouteCachePolicy(config.routeCacheTtlSeconds),
   provider: routeProvider,
   providerTimeoutMs: config.routeProviderTimeoutMs,
+  ...(routeAnalyticsRecorder ? { analytics: routeAnalyticsRecorder } : {}),
+  routeTimeZone: config.routeTimeZone,
+  onAnalyticsError: (error, event, job) => {
+    analyticsWarningLogger.log?.(error, event, job.jobId);
+  },
 });
 const routeJobs = new RouteJobService(routeJobStore, routeEvents, routeRunner);
 const aiJobStore = new RedisAiJobStore(redis, config.aiJobTtlSeconds);
@@ -66,8 +92,20 @@ const app = buildApp({
   environment: config.nodeEnv,
   version: config.gitCommitSha,
   getRedisStatus: () => getRedisStatus(redis),
+  getPostgresStatus: async () => postgres.getStatus(),
   logger: true,
-  routeCache: { jobs: routeJobs, events: routeEvents },
+  routeCache: {
+    jobs: routeJobs,
+    events: routeEvents,
+    cacheInspector: routeCacheInspector,
+    googleProviderDebug: {
+      provider: googleRouteProvider,
+      timeoutMs: config.routeProviderTimeoutMs,
+    },
+    ...(routeAnalyticsRepository
+      ? { analytics: routeAnalyticsRepository }
+      : {}),
+  },
   aiCache: {
     jobs: aiJobs,
     events: aiEvents,
@@ -83,6 +121,13 @@ const app = buildApp({
   },
 });
 
+analyticsWarningLogger.log = (error, event, jobId) => {
+  app.log.warn(
+    { err: error, analyticsEvent: event, jobId },
+    'Failed to record Route analytics',
+  );
+};
+
 redis.on('error', (error) => {
   app.log.error({ error }, 'Redis connection error');
 });
@@ -94,6 +139,8 @@ async function shutdown(signal: string) {
   if (redis.isOpen) {
     await redis.quit();
   }
+  postgres.stop();
+  await closeDatabasePool(database);
 }
 
 process.once('SIGINT', () => void shutdown('SIGINT'));
@@ -101,6 +148,25 @@ process.once('SIGTERM', () => void shutdown('SIGTERM'));
 
 try {
   await redis.connect();
+  if (!database && config.nodeEnv === 'production') {
+    throw new Error('DATABASE_URL is required in production');
+  }
+  if (database) {
+    const migrations = await runMigrations(database);
+    app.log.info(
+      {
+        appliedMigrations: migrations.applied,
+        existingMigrationCount: migrations.alreadyApplied.length,
+      },
+      'PostgreSQL migrations complete',
+    );
+  }
+  const postgresStatus = await postgres.start();
+  if (postgresStatus === 'error') {
+    app.log.warn(
+      'PostgreSQL is not configured or unavailable; /status will report an error',
+    );
+  }
   const resumedJobs = await routeJobs.resumePending();
   if (resumedJobs) app.log.info({ resumedJobs }, 'Resumed pending Route Jobs');
   const resumedAiJobs = await aiJobs.resumePending();
@@ -129,5 +195,8 @@ try {
   await app.listen({ host: '0.0.0.0', port: config.port });
 } catch (error) {
   app.log.error(error);
+  postgres.stop();
+  await closeDatabasePool(database).catch(() => undefined);
+  if (redis.isOpen) await redis.quit().catch(() => undefined);
   process.exitCode = 1;
 }

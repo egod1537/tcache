@@ -5,6 +5,7 @@ export interface HealthRoutesOptions {
   environment: string;
   version: string;
   getRedisStatus: () => Promise<'ok' | 'error'>;
+  getPostgresStatus: () => Promise<'ok' | 'error'>;
 }
 
 export const healthRoutes: FastifyPluginAsync<HealthRoutesOptions> = async (
@@ -20,5 +21,6 @@ export const healthRoutes: FastifyPluginAsync<HealthRoutesOptions> = async (
     environment: options.environment,
     uptime: Math.floor(process.uptime()),
     redis: await options.getRedisStatus(),
+    postgres: await options.getPostgresStatus(),
   }));
 };

@@ -1,6 +1,6 @@
 import { useTcacheStatus } from '../api/useTcacheStatus';
 import { AiCachePage } from '../../../../ai/testbed/AiCachePage';
-import { RouteCachePage } from '../../../../route/testbed/RouteCachePage';
+import { RouteSection } from '../../../../route/testbed/RouteSection';
 import { AppShell } from '../components/layout/AppShell';
 import { StatusPage } from '../status/StatusPage';
 import { useTheme, type ThemeMode } from '../theme/theme';
@@ -23,7 +23,7 @@ export function App({ initialThemeMode }: AppProps) {
     ) : route === 'status' ? (
       <StatusPage status={status} />
     ) : (
-      <RouteCachePage dark={resolvedTheme === 'dark'} status={status} />
+      <RouteSection dark={resolvedTheme === 'dark'} status={status} />
     );
 
   return (

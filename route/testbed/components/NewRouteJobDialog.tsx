@@ -50,6 +50,9 @@ interface NewRouteJobDialogProps {
   creating: boolean;
   onClose: () => void;
   onCreate: (request: unknown) => Promise<void>;
+  title?: string;
+  description?: string;
+  submitLabel?: string;
 }
 
 export function NewRouteJobDialog({
@@ -58,6 +61,9 @@ export function NewRouteJobDialog({
   creating,
   onClose,
   onCreate,
+  title = 'New Route Job',
+  description = 'The backend runs this request through the existing Job, SSE, and cache pipeline.',
+  submitLabel = 'Create Job',
 }: NewRouteJobDialogProps) {
   const [origin, setOrigin] = useState(() => newLocation('東京駅、日本'));
   const [destination, setDestination] = useState(() =>
@@ -133,7 +139,7 @@ export function NewRouteJobDialog({
       setError(
         createError instanceof Error
           ? createError.message
-          : 'Failed to create job',
+          : 'Failed to submit route request',
       );
     }
   }
@@ -146,14 +152,11 @@ export function NewRouteJobDialog({
       isCloseButtonShown={!creating}
       isOpen={isOpen}
       onClose={onClose}
-      title="New Route Job"
+      title={title}
       {...(dark ? { portalClassName: Classes.DARK } : {})}
     >
       <DialogBody>
-        <p className={Classes.TEXT_MUTED}>
-          The backend runs this request through the existing Job, SSE, and cache
-          pipeline.
-        </p>
+        <p className={Classes.TEXT_MUTED}>{description}</p>
 
         <LocationEditor
           label="Origin"
@@ -314,7 +317,7 @@ export function NewRouteJobDialog({
             )}
           </div>
           <textarea
-            aria-label="Route Job request JSON"
+            aria-label="Route request JSON"
             className={`${Classes.INPUT} route-request-editor`}
             onChange={(event) => setRawOverride(event.target.value)}
             spellCheck={false}
@@ -340,7 +343,7 @@ export function NewRouteJobDialog({
               loading={creating}
               onClick={() => void submit()}
             >
-              Create Job
+              {submitLabel}
             </Button>
           </>
         }

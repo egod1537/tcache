@@ -6,7 +6,10 @@ import { createRouteCacheKey } from './cache/key.js';
 import type { CachedRoute, RouteCacheRepository } from './cache/repository.js';
 import type { RouteJob } from './jobs/route-job.js';
 import { InMemoryRouteJobEventBus } from './jobs/route-job-events.js';
-import { RouteJobRunner } from './jobs/route-job-runner.js';
+import {
+  RouteJobRunner,
+  type RouteJobRunnerOptions,
+} from './jobs/route-job-runner.js';
 import { RouteJobService } from './jobs/route-job-service.js';
 import type { RouteJobStore } from './jobs/route-job-store.js';
 import type {
@@ -101,6 +104,8 @@ function createTestApp(
   provider: RouteProvider,
   providerTimeoutMs = 1_000,
   cache = new MemoryCache(),
+  analytics?: RouteJobRunnerOptions['analytics'],
+  onAnalyticsError?: RouteJobRunnerOptions['onAnalyticsError'],
 ) {
   const store = new MemoryJobStore();
   const events = new InMemoryRouteJobEventBus();
@@ -111,6 +116,8 @@ function createTestApp(
     cachePolicy: createRouteCachePolicy(3_600),
     provider,
     providerTimeoutMs,
+    ...(analytics ? { analytics } : {}),
+    ...(onAnalyticsError ? { onAnalyticsError } : {}),
   });
   const jobs = new RouteJobService(store, events, runner);
   const app = buildApp({ routeCache: { jobs, events } });
@@ -161,6 +168,13 @@ describe('route jobs', () => {
       status: 'completed',
       progress: 100,
       provider: 'test',
+      requestMetadata: {
+        fromKey: 'coord:37.56650,126.97800',
+        toKey: 'coord:35.17960,129.07560',
+        intermediateKeys: [],
+        dayType: 'weekday',
+        timeBucket: '02:00',
+      },
     });
 
     const result = await app.inject({
@@ -181,6 +195,42 @@ describe('route jobs', () => {
     expect(events.headers['content-type']).toContain('text/event-stream');
     expect(events.body).toContain('event: snapshot');
     expect(events.body).toContain('event: completed');
+  });
+
+  it('lists server-side jobs from every client in newest-first order', async () => {
+    const { app, store } = createTestApp(new TestProvider());
+    const externalRequest = normalizeRouteRequest(requestBody);
+    await store.save({
+      jobId: 'route_external_older',
+      status: 'completed',
+      stage: 'completed',
+      progress: 100,
+      message: 'External client request',
+      createdAt: '2026-09-17T01:00:00.000Z',
+      updatedAt: '2026-09-17T01:00:01.000Z',
+      completedAt: '2026-09-17T01:00:01.000Z',
+      request: externalRequest,
+    });
+    await store.save({
+      jobId: 'route_external_newer',
+      status: 'running',
+      stage: 'calling_provider',
+      progress: 40,
+      message: 'External client request',
+      createdAt: '2026-09-17T02:00:00.000Z',
+      updatedAt: '2026-09-17T02:00:01.000Z',
+      request: externalRequest,
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/route/jobs?limit=2',
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(
+      response.json<{ jobs: RouteJob[] }>().jobs.map((job) => job.jobId),
+    ).toEqual(['route_external_newer', 'route_external_older']);
   });
 
   it('keeps job semantics on cache hits', async () => {
@@ -210,8 +260,95 @@ describe('route jobs', () => {
     expect(provider.calls).toBe(1);
   });
 
+  it('records cache miss/hit lifecycle analytics with provider latency', async () => {
+    const analytics = {
+      started: vi.fn(),
+      completed: vi.fn(),
+      failed: vi.fn(),
+      cancelled: vi.fn(),
+    };
+    const cache = new MemoryCache();
+    const provider = new TestProvider();
+    const { app } = createTestApp(provider, 1_000, cache, analytics);
+
+    for (let index = 0; index < 2; index += 1) {
+      const created = await app.inject({
+        method: 'POST',
+        url: '/api/route/jobs',
+        payload: requestBody,
+      });
+      await waitForTerminal(app, created.json<{ jobId: string }>().jobId);
+    }
+
+    await vi.waitFor(() =>
+      expect(analytics.completed).toHaveBeenCalledTimes(2),
+    );
+    expect(analytics.started).toHaveBeenCalledTimes(2);
+    expect(analytics.completed.mock.calls[0]?.[0]).toMatchObject({
+      cache: { hit: false },
+      providerLatencyMs: expect.any(Number),
+    });
+    expect(analytics.completed.mock.calls[1]?.[0]).toMatchObject({
+      cache: { hit: true },
+    });
+    expect(
+      analytics.completed.mock.calls[1]?.[0].providerLatencyMs,
+    ).toBeUndefined();
+    expect(provider.calls).toBe(1);
+  });
+
+  it('keeps completed jobs successful and warns when analytics recording fails', async () => {
+    const analyticsError = new Error('analytics unavailable');
+    const analytics = {
+      started: vi.fn().mockRejectedValue(analyticsError),
+      completed: vi.fn(),
+      failed: vi.fn(),
+      cancelled: vi.fn(),
+    };
+    const onAnalyticsError = vi.fn();
+    const { app } = createTestApp(
+      new TestProvider(),
+      1_000,
+      new MemoryCache(),
+      analytics,
+      onAnalyticsError,
+    );
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: requestBody,
+    });
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+
+    await vi.waitFor(() => expect(analytics.started).toHaveBeenCalledOnce());
+    expect(analytics.completed).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId: job.jobId, status: 'completed' }),
+      expect.objectContaining({ provider: 'unknown' }),
+    );
+    expect(onAnalyticsError).toHaveBeenCalledWith(
+      analyticsError,
+      'started',
+      expect.objectContaining({ jobId: job.jobId }),
+    );
+    expect(job.status).toBe('completed');
+  });
+
   it('cancels provider work and keeps cancel idempotent', async () => {
-    const { app } = createTestApp(new BlockingProvider());
+    const analytics = {
+      started: vi.fn(),
+      completed: vi.fn(),
+      failed: vi.fn(),
+      cancelled: vi.fn(),
+    };
+    const { app } = createTestApp(
+      new BlockingProvider(),
+      1_000,
+      new MemoryCache(),
+      analytics,
+    );
     const created = await app.inject({
       method: 'POST',
       url: '/api/route/jobs',
@@ -232,10 +369,25 @@ describe('route jobs', () => {
     expect(cancelled.json()).toEqual({ jobId, status: 'cancelled' });
     expect(repeated.json()).toEqual({ jobId, status: 'cancelled' });
     expect((await waitForTerminal(app, jobId)).status).toBe('cancelled');
+    expect(analytics.cancelled).toHaveBeenCalledWith(
+      expect.objectContaining({ jobId, status: 'cancelled' }),
+      expect.anything(),
+    );
   });
 
   it('fails jobs that exceed the provider timeout', async () => {
-    const { app } = createTestApp(new BlockingProvider(), 20);
+    const analytics = {
+      started: vi.fn(),
+      completed: vi.fn(),
+      failed: vi.fn(),
+      cancelled: vi.fn(),
+    };
+    const { app } = createTestApp(
+      new BlockingProvider(),
+      20,
+      new MemoryCache(),
+      analytics,
+    );
     const created = await app.inject({
       method: 'POST',
       url: '/api/route/jobs',
@@ -250,6 +402,14 @@ describe('route jobs', () => {
       status: 'failed',
       error: { code: 'ROUTE_PROVIDER_TIMEOUT' },
     });
+    expect(analytics.failed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        jobId: job.jobId,
+        status: 'failed',
+        error: expect.objectContaining({ code: 'ROUTE_PROVIDER_TIMEOUT' }),
+      }),
+      expect.anything(),
+    );
   });
 
   it('rejects invalid requests without creating a job', async () => {

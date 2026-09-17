@@ -23,6 +23,12 @@ function redisState(status: TcacheStatusState): CheckState {
   return status.server === 'checking' ? 'checking' : 'offline';
 }
 
+function postgresState(status: TcacheStatusState): CheckState {
+  if (status.service?.postgres === 'ok') return 'online';
+  if (status.service?.postgres === 'error') return 'offline';
+  return status.server === 'checking' ? 'checking' : 'offline';
+}
+
 function formatUptime(seconds: number) {
   const days = Math.floor(seconds / 86_400);
   const hours = Math.floor((seconds % 86_400) / 3_600);
@@ -95,6 +101,11 @@ export function StatusPage({ status }: StatusPageProps) {
             description="Internal cache data store"
             name="redis"
             state={redisState(status)}
+          />
+          <ServiceStatus
+            description="Persistent analytics data store"
+            name="postgres"
+            state={postgresState(status)}
           />
         </div>
       </section>
@@ -172,7 +183,7 @@ export function StatusPage({ status }: StatusPageProps) {
           <Divider />
           <Callout compact icon="info-sign">
             The testbed proxies API requests to the internal tcache server.
-            Redis is not exposed outside Docker.
+            Redis and PostgreSQL are not exposed outside Docker.
           </Callout>
         </Card>
       </section>

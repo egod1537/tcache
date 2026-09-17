@@ -20,8 +20,10 @@ export function useAppRouter() {
 
   const navigate = useCallback((nextRoute: AppRoute) => {
     const path = getRouteDefinition(nextRoute).path;
-    if (window.location.pathname !== path)
+    if (window.location.pathname !== path) {
       window.history.pushState(null, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    }
     setRoute(nextRoute);
   }, []);
 

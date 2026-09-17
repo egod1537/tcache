@@ -12,4 +12,5 @@ export interface ServiceStatus {
   environment: string;
   uptime: number;
   redis: 'ok' | 'error';
+  postgres: 'ok' | 'error';
 }

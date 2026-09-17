@@ -8,6 +8,8 @@ import {
   listRouteJobs,
   subscribeRouteJob,
   type RouteJobResult,
+  type RouteJobStreamEventType,
+  type RouteJobStreamState,
   type RouteJobView,
 } from '../../apps/testbed/src/api/client';
 import type { TcacheStatusState } from '../../apps/testbed/src/api/useTcacheStatus';
@@ -21,6 +23,8 @@ const SELECTED_JOB_KEY = 'tcache.route.selectedJobId';
 interface RouteCachePageProps {
   dark: boolean;
   status: TcacheStatusState;
+  requestedJobId?: string | null;
+  requestedJobSequence?: number;
 }
 
 function upsertJob(jobs: RouteJobView[], job: RouteJobView) {
@@ -33,7 +37,12 @@ function upsertJob(jobs: RouteJobView[], job: RouteJobView) {
   );
 }
 
-export function RouteCachePage({ dark, status }: RouteCachePageProps) {
+export function RouteCachePage({
+  dark,
+  status,
+  requestedJobId,
+  requestedJobSequence,
+}: RouteCachePageProps) {
   const [jobs, setJobs] = useState<RouteJobView[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string | null>(() =>
     window.localStorage.getItem(SELECTED_JOB_KEY),
@@ -41,7 +50,15 @@ export function RouteCachePage({ dark, status }: RouteCachePageProps) {
   const [result, setResult] = useState<RouteJobResult | null>(null);
   const [refreshing, setRefreshing] = useState(true);
   const [refreshError, setRefreshError] = useState(false);
-  const [streamError, setStreamError] = useState(false);
+  const [streamState, setStreamState] =
+    useState<RouteJobStreamState>('disconnected');
+  const [progressSource, setProgressSource] = useState<
+    'sse' | 'polling' | 'none'
+  >('none');
+  const [latestEvent, setLatestEvent] = useState<{
+    type: RouteJobStreamEventType | 'poll';
+    receivedAt: string;
+  } | null>(null);
   const [resultLoading, setResultLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -53,9 +70,12 @@ export function RouteCachePage({ dark, status }: RouteCachePageProps) {
   );
 
   function selectJob(jobId: string) {
+    if (jobId === selectedJobId) return;
     setSelectedJobId(jobId);
     setResult(null);
-    setStreamError(false);
+    setStreamState('disconnected');
+    setProgressSource('none');
+    setLatestEvent(null);
     window.localStorage.setItem(SELECTED_JOB_KEY, jobId);
   }
 
@@ -95,6 +115,21 @@ export function RouteCachePage({ dark, status }: RouteCachePageProps) {
   }, []);
 
   useEffect(() => {
+    if (!requestedJobId) return;
+    const existing = jobs.find((job) => job.jobId === requestedJobId);
+    if (existing) {
+      selectJob(requestedJobId);
+      return;
+    }
+    void getRouteJob(requestedJobId)
+      .then((job) => {
+        setJobs((current) => upsertJob(current, job));
+        selectJob(job.jobId);
+      })
+      .catch(() => undefined);
+  }, [requestedJobId, requestedJobSequence]);
+
+  useEffect(() => {
     if (!selectedJob) return;
     if (selectedJob.status === 'completed') void loadResult(selectedJob.jobId);
     if (selectedJob.status === 'failed' || selectedJob.status === 'cancelled') {
@@ -103,22 +138,67 @@ export function RouteCachePage({ dark, status }: RouteCachePageProps) {
   }, [selectedJob?.jobId, selectedJob?.status]);
 
   useEffect(() => {
+    if (!selectedJob) {
+      setStreamState('disconnected');
+      return;
+    }
+
+    setStreamState('reconnecting');
+    return subscribeRouteJob(
+      selectedJob.jobId,
+      (job, eventType) => {
+        setProgressSource('sse');
+        setLatestEvent({
+          type: eventType,
+          receivedAt: new Date().toISOString(),
+        });
+        setJobs((current) => upsertJob(current, job));
+      },
+      (state) => {
+        setStreamState(state);
+        if (state === 'connected') setProgressSource('sse');
+      },
+    );
+  }, [selectedJob?.jobId]);
+
+  useEffect(() => {
     if (
       !selectedJob ||
-      ['completed', 'failed', 'cancelled'].includes(selectedJob.status)
+      ['completed', 'failed', 'cancelled'].includes(selectedJob.status) ||
+      streamState === 'connected'
     ) {
       return;
     }
 
-    return subscribeRouteJob(
-      selectedJob.jobId,
-      (job) => {
-        setStreamError(false);
+    let active = true;
+    let polling = false;
+    setProgressSource('polling');
+
+    const poll = async () => {
+      if (polling) return;
+      polling = true;
+      try {
+        const job = await getRouteJob(selectedJob.jobId);
+        if (!active) return;
         setJobs((current) => upsertJob(current, job));
-      },
-      () => setStreamError(true),
-    );
-  }, [selectedJob?.jobId, selectedJob?.status]);
+        setLatestEvent({ type: 'poll', receivedAt: new Date().toISOString() });
+        if (['completed', 'failed', 'cancelled'].includes(job.status)) {
+          setStreamState('disconnected');
+        }
+      } catch {
+        if (active) setStreamState('disconnected');
+      } finally {
+        polling = false;
+      }
+    };
+
+    void poll();
+    const interval = window.setInterval(() => void poll(), 2_000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [selectedJob?.jobId, selectedJob?.status, streamState]);
 
   async function create(request: unknown) {
     setCreating(true);
@@ -150,7 +230,7 @@ export function RouteCachePage({ dark, status }: RouteCachePageProps) {
         sidebar={
           <RouteSidebar
             jobs={jobs}
-            onNewJob={() => setDialogOpen(true)}
+            onNewRequest={() => setDialogOpen(true)}
             onRefresh={() => void refreshJobs()}
             onSelect={selectJob}
             refreshError={refreshError}
@@ -167,7 +247,9 @@ export function RouteCachePage({ dark, status }: RouteCachePageProps) {
           resultLoading={resultLoading}
           serverState={status.server}
           service={status.service}
-          streamError={streamError}
+          latestEvent={latestEvent}
+          progressSource={progressSource}
+          streamState={streamState}
           systemState={status.routeCache}
         />
       </Workspace>
@@ -177,6 +259,8 @@ export function RouteCachePage({ dark, status }: RouteCachePageProps) {
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
         onCreate={create}
+        submitLabel="Send Request"
+        title="New Route Request"
       />
     </>
   );

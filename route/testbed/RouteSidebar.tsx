@@ -8,7 +8,7 @@ interface RouteSidebarProps {
   selectedJobId: string | null;
   refreshing: boolean;
   refreshError: boolean;
-  onNewJob: () => void;
+  onNewRequest: () => void;
   onRefresh: () => void;
   onSelect: (jobId: string) => void;
 }
@@ -18,7 +18,7 @@ export function RouteSidebar({
   selectedJobId,
   refreshing,
   refreshError,
-  onNewJob,
+  onNewRequest,
   onRefresh,
   onSelect,
 }: RouteSidebarProps) {
@@ -41,8 +41,8 @@ export function RouteSidebar({
             title="Refresh Route Jobs"
             variant="minimal"
           />
-          <Button icon="plus" intent={Intent.PRIMARY} onClick={onNewJob}>
-            New Job
+          <Button icon="plus" intent={Intent.PRIMARY} onClick={onNewRequest}>
+            New Request
           </Button>
         </div>
       </div>

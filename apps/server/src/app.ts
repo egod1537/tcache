@@ -10,6 +10,7 @@ export interface BuildAppOptions {
   environment?: string;
   version?: string;
   getRedisStatus?: () => Promise<'ok' | 'error'>;
+  getPostgresStatus?: () => Promise<'ok' | 'error'>;
   logger?: FastifyServerOptions['logger'];
   routeCache?: RouteApiContext;
   aiCache?: AiApiContext;
@@ -22,6 +23,7 @@ export function buildApp(options: BuildAppOptions = {}) {
     environment: options.environment ?? 'development',
     version: options.version ?? 'dev',
     getRedisStatus: options.getRedisStatus ?? (async () => 'error'),
+    getPostgresStatus: options.getPostgresStatus ?? (async () => 'error'),
   });
   app.register(routeCacheRoutes, {
     prefix: '/api/route',

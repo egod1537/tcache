@@ -39,6 +39,14 @@ export interface RouteCacheMetadata {
   ttl: number;
 }
 
+export interface RouteRequestMetadata {
+  fromKey: string;
+  toKey: string;
+  intermediateKeys: string[];
+  dayType: 'weekday' | 'saturday' | 'sunday' | 'holiday';
+  timeBucket: string;
+}
+
 export interface RouteJob {
   jobId: string;
   status: RouteJobStatus;
@@ -50,6 +58,7 @@ export interface RouteJob {
   completedAt?: string;
   request: RouteJobRequest;
   normalizedRequest?: NormalizedRouteRequest;
+  requestMetadata?: RouteRequestMetadata;
   cache?: RouteCacheMetadata;
   provider?: string;
   providerLatencyMs?: number;
@@ -85,6 +94,7 @@ export function toJobStatus(job: RouteJob) {
     ...(job.normalizedRequest
       ? { normalizedRequest: job.normalizedRequest }
       : {}),
+    ...(job.requestMetadata ? { requestMetadata: job.requestMetadata } : {}),
     ...(job.cache ? { cache: job.cache } : {}),
     ...(job.provider ? { provider: job.provider } : {}),
     ...(job.providerLatencyMs !== undefined

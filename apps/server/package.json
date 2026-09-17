@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && pnpm run copy:migrations",
+    "copy:migrations": "mkdir -p dist/apps/server/src/db/migrations && cp src/db/migrations/*.sql dist/apps/server/src/db/migrations/",
+    "db:migrate": "tsx src/db/migrate.ts",
     "start": "node dist/apps/server/src/index.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --root ../.."
@@ -13,10 +15,12 @@
   "dependencies": {
     "@tcache/common": "workspace:*",
     "fastify": "^5.6.0",
+    "pg": "^8.23.0",
     "redis": "^4.7.0"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "@types/pg": "^8.23.1",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"

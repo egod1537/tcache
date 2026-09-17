@@ -17,6 +17,8 @@ import type {
   NormalizedRoute,
   RouteJobResult,
   RouteJobStatus,
+  RouteJobStreamEventType,
+  RouteJobStreamState,
   RouteJobView,
 } from '../../apps/testbed/src/api/client';
 import type { CheckState } from '../../apps/testbed/src/api/useTcacheStatus';
@@ -30,7 +32,12 @@ interface RouteDetailProps {
   result: RouteJobResult | null;
   resultLoading: boolean;
   cancelling: boolean;
-  streamError: boolean;
+  streamState: RouteJobStreamState;
+  progressSource: 'sse' | 'polling' | 'none';
+  latestEvent: {
+    type: RouteJobStreamEventType | 'poll';
+    receivedAt: string;
+  } | null;
   systemState: CheckState;
   serverState: CheckState;
   service: ServiceStatus | null;
@@ -49,7 +56,9 @@ export function RouteDetail({
   result,
   resultLoading,
   cancelling,
-  streamError,
+  streamState,
+  progressSource,
+  latestEvent,
   systemState,
   serverState,
   service,
@@ -63,7 +72,7 @@ export function RouteDetail({
     return (
       <Card className="route-detail-empty" compact elevation={1}>
         <NonIdealState
-          description="Create a new Job or select an existing Job from the sidebar."
+          description="Create a new request or select an existing Job from the sidebar."
           icon="search"
           title="Select a Route Job"
         />
@@ -112,10 +121,10 @@ export function RouteDetail({
       <Divider />
 
       <div className="detail-content">
-        {streamError && cancellable && (
+        {streamState === 'reconnecting' && cancellable && (
           <Callout compact intent={Intent.WARNING} title="SSE reconnecting">
-            The live connection was interrupted. EventSource will reconnect
-            while the Job continues on the server.
+            EventSource is reconnecting. Polling keeps the Job snapshot current
+            until SSE reconnects.
           </Callout>
         )}
 
@@ -136,21 +145,27 @@ export function RouteDetail({
         <Card className="detail-section" compact>
           <SectionHeader title="Overview" description={job.message} />
           <dl className="fact-grid route-overview-facts">
+            <Fact label="Job ID" value={job.jobId} />
             <Fact label="Status" value={job.status} />
             <Fact label="Stage" value={job.stage} />
+            <Fact label="Progress" value={`${job.progress}%`} />
+            <Fact
+              label="Created"
+              value={new Date(job.createdAt).toLocaleString()}
+            />
+            <Fact
+              label="Updated"
+              value={new Date(job.updatedAt).toLocaleString()}
+            />
+            <Fact
+              label="Completed"
+              value={
+                job.completedAt
+                  ? new Date(job.completedAt).toLocaleString()
+                  : '—'
+              }
+            />
             <Fact label="Provider" value={job.provider ?? '—'} />
-            <Fact
-              label="Cache"
-              value={job.cache ? (job.cache.hit ? 'HIT' : 'MISS') : '—'}
-            />
-            <Fact
-              label="Route count"
-              value={googleResult?.routes.length ?? '—'}
-            />
-            <Fact
-              label="Selected route"
-              value={selectedRoute ? selectedRouteIndex + 1 : '—'}
-            />
           </dl>
         </Card>
 
@@ -188,7 +203,95 @@ export function RouteDetail({
         </Card>
 
         <Card className="detail-section" compact>
-          <JsonViewer title="Request" value={job.request} />
+          <SectionHeader
+            title="SSE"
+            description="Live lifecycle transport and fallback state"
+          />
+          <dl className="fact-grid route-sse-facts">
+            <div>
+              <dt>Connection</dt>
+              <dd>
+                <Tag intent={streamIntent(streamState)}>
+                  {streamLabel(streamState)}
+                </Tag>
+              </dd>
+            </div>
+            <Fact
+              label="Progress source"
+              value={
+                progressSource === 'sse'
+                  ? 'SSE'
+                  : progressSource === 'polling'
+                    ? 'Polling fallback'
+                    : '—'
+              }
+            />
+            <Fact label="Latest event" value={latestEvent?.type ?? '—'} />
+            <Fact
+              label="Received"
+              value={
+                latestEvent
+                  ? new Date(latestEvent.receivedAt).toLocaleTimeString()
+                  : '—'
+              }
+            />
+          </dl>
+        </Card>
+
+        <Card className="detail-section" compact>
+          <SectionHeader
+            title="Request"
+            description="Submitted input and server normalization"
+          />
+          <dl className="fact-grid route-request-facts">
+            <Fact
+              label="From"
+              value={
+                job.requestMetadata?.fromKey ??
+                formatLocation(
+                  job.normalizedRequest?.origin ?? job.request.origin,
+                )
+              }
+            />
+            <Fact
+              label="To"
+              value={
+                job.requestMetadata?.toKey ??
+                formatLocation(
+                  job.normalizedRequest?.destination ?? job.request.destination,
+                )
+              }
+            />
+            <Fact
+              label="Intermediates"
+              value={
+                job.requestMetadata?.intermediateKeys.length ??
+                job.normalizedRequest?.intermediates.length ??
+                job.request.intermediates?.length ??
+                0
+              }
+            />
+            <Fact label="Mode" value={job.request.travelMode} />
+            <Fact
+              label="Day type"
+              value={job.requestMetadata?.dayType ?? '—'}
+            />
+            <Fact
+              label="Time bucket"
+              value={job.requestMetadata?.timeBucket ?? '—'}
+            />
+          </dl>
+          <details className="route-request-json">
+            <summary>Submitted request JSON</summary>
+            <JsonViewer title="Submitted request" value={job.request} />
+          </details>
+          <details className="route-request-json">
+            <summary>Server normalized request</summary>
+            <JsonViewer
+              title="Normalized request"
+              value={job.normalizedRequest ?? job.request}
+            />
+          </details>
         </Card>
 
         <div className="detail-section-grid">
@@ -240,14 +343,6 @@ export function RouteDetail({
                     ? '—'
                     : `${job.providerLatencyMs}ms`
                 }
-              />
-              <Fact
-                label="Created"
-                value={new Date(job.createdAt).toLocaleString()}
-              />
-              <Fact
-                label="Updated"
-                value={new Date(job.updatedAt).toLocaleString()}
               />
             </dl>
           </Card>
@@ -311,13 +406,6 @@ export function RouteDetail({
             title="Debug"
             description="Normalized and raw provider diagnostics (API keys are never included)"
           />
-          <details>
-            <summary>Normalized request</summary>
-            <JsonViewer
-              title="Normalized request"
-              value={job.normalizedRequest ?? job.request}
-            />
-          </details>
           {googleResult && (
             <>
               <details>
@@ -347,6 +435,30 @@ export function RouteDetail({
       </div>
     </div>
   );
+}
+
+function streamIntent(state: RouteJobStreamState) {
+  if (state === 'connected') return Intent.SUCCESS;
+  if (state === 'reconnecting') return Intent.WARNING;
+  return Intent.NONE;
+}
+
+function streamLabel(state: RouteJobStreamState) {
+  if (state === 'connected') return 'Connected';
+  if (state === 'reconnecting') return 'Reconnecting';
+  return 'Disconnected';
+}
+
+function formatLocation(value: unknown) {
+  if (typeof value !== 'object' || value === null) return '—';
+  const location = value as Record<string, unknown>;
+  if (typeof location.placeId === 'string') return `place:${location.placeId}`;
+  if (typeof location.address === 'string') return location.address;
+  const latitude = location.latitude ?? location.lat;
+  const longitude = location.longitude ?? location.lng;
+  return typeof latitude === 'number' && typeof longitude === 'number'
+    ? `${latitude}, ${longitude}`
+    : '—';
 }
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {

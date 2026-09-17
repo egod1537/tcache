@@ -71,6 +71,17 @@ export interface GoogleRouteProviderResult {
   };
 }
 
+export interface NormalizedRouteRequest extends RouteRequest {
+  waypoints: RouteLocation[];
+  options: Record<string, unknown>;
+}
+
+export interface GoogleProviderComputeResponse {
+  provider: string;
+  normalizedRequest: NormalizedRouteRequest;
+  result: GoogleRouteProviderResult;
+}
+
 export interface RouteJobView {
   jobId: string;
   status: RouteJobStatus;
@@ -82,6 +93,13 @@ export interface RouteJobView {
   completedAt?: string;
   request: RouteRequest;
   normalizedRequest?: RouteRequest & { waypoints?: RouteLocation[] };
+  requestMetadata?: {
+    fromKey: string;
+    toKey: string;
+    intermediateKeys: string[];
+    dayType: 'weekday' | 'saturday' | 'sunday' | 'holiday';
+    timeBucket: string;
+  };
   cache?: { hit: boolean; key: string; ttl: number };
   provider?: string;
   providerLatencyMs?: number;
@@ -103,6 +121,87 @@ export interface CreateRouteJobResponse {
   status: 'queued';
   eventsUrl: string;
   resultUrl: string;
+}
+
+export interface RouteCacheEntrySummary {
+  key: string;
+  provider: string | null;
+  ttlSeconds: number;
+  sizeBytes: number;
+}
+
+export interface RouteCacheEntry extends RouteCacheEntrySummary {
+  value: {
+    provider: string;
+    result: unknown;
+  };
+}
+
+export interface RouteAnalyticsFilters {
+  from: string;
+  to: string;
+  mode?: RouteTravelMode;
+  provider?: string;
+  status?: RouteJobStatus;
+}
+
+export interface RouteAnalyticsSummary {
+  requests: number;
+  cacheHits: number;
+  cacheMisses: number;
+  cacheHitRate: number;
+  providerCalls: number;
+  avgLatencyMs: number;
+  errorRate: number;
+}
+
+export interface RouteAnalyticsTimeseriesPoint {
+  time: string;
+  requests: number;
+  cacheHits: number;
+  cacheMisses: number;
+}
+
+export interface RouteAnalyticsMode {
+  mode: RouteTravelMode;
+  requests: number;
+  cacheHitRate: number;
+}
+
+export interface RouteAnalyticsTopRoute {
+  fromKey: string;
+  toKey: string;
+  mode: RouteTravelMode;
+  requests: number;
+  cacheHitRate: number;
+  avgLatencyMs: number;
+}
+
+export interface RouteAnalyticsError {
+  errorCode: string;
+  count: number;
+}
+
+export interface RouteAnalyticsRecentRequest {
+  createdAt: string;
+  jobId: string;
+  fromKey: string;
+  toKey: string;
+  mode: RouteTravelMode;
+  provider: string | null;
+  cacheHit: boolean | null;
+  latency: number | null;
+  status: RouteJobStatus;
+  errorCode: string | null;
+}
+
+export interface RouteAnalyticsDashboard {
+  summary: RouteAnalyticsSummary;
+  points: RouteAnalyticsTimeseriesPoint[];
+  modes: RouteAnalyticsMode[];
+  routes: RouteAnalyticsTopRoute[];
+  errors: RouteAnalyticsError[];
+  recent: RouteAnalyticsRecentRequest[];
 }
 
 async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
@@ -133,6 +232,18 @@ export function pingAiCache(signal?: AbortSignal) {
   return getJson<PingResponse>('/api/ai/ping', signal);
 }
 
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code: string,
+    readonly details?: unknown,
+  ) {
+    super(message);
+    this.name = 'ApiRequestError';
+  }
+}
+
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
     cache: 'no-store',
@@ -143,12 +254,28 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     },
   });
   const body = (await response.json()) as T & {
-    error?: { message?: string };
+    error?: { code?: string; message?: string; details?: unknown };
   };
   if (!response.ok) {
-    throw new Error(body.error?.message ?? `HTTP ${response.status}`);
+    throw new ApiRequestError(
+      body.error?.message ?? `HTTP ${response.status}`,
+      response.status,
+      body.error?.code ?? 'HTTP_ERROR',
+      body.error?.details,
+    );
   }
   return body;
+}
+
+export function computeGoogleRoute(request: unknown, signal?: AbortSignal) {
+  return requestJson<GoogleProviderComputeResponse>(
+    '/api/route/provider/google/compute',
+    {
+      method: 'POST',
+      body: JSON.stringify(request),
+      ...(signal ? { signal } : {}),
+    },
+  );
 }
 
 export function createRouteJob(request: unknown) {
@@ -190,10 +317,68 @@ export function cancelRouteJob(jobId: string) {
   );
 }
 
+export async function listRouteCacheEntries(limit = 50, signal?: AbortSignal) {
+  const response = await requestJson<{ entries: RouteCacheEntrySummary[] }>(
+    `/api/route/cache?limit=${limit}`,
+    { ...(signal ? { signal } : {}) },
+  );
+  return response.entries;
+}
+
+export function getRouteCacheEntry(key: string, signal?: AbortSignal) {
+  return requestJson<RouteCacheEntry>(
+    `/api/route/cache/entry?key=${encodeURIComponent(key)}`,
+    { ...(signal ? { signal } : {}) },
+  );
+}
+
+export async function getRouteAnalyticsDashboard(
+  filters: RouteAnalyticsFilters,
+  interval: 'hour' | 'day',
+  signal?: AbortSignal,
+): Promise<RouteAnalyticsDashboard> {
+  const query = createAnalyticsQuery(filters);
+  const request = <T>(path: string, extraQuery = '') =>
+    requestJson<T>(`/api/route/analytics/${path}?${query}${extraQuery}`, {
+      ...(signal ? { signal } : {}),
+    });
+  const [summary, timeseries, modes, topRoutes, errors, recent] =
+    await Promise.all([
+      request<RouteAnalyticsSummary>('summary'),
+      request<{ points: RouteAnalyticsTimeseriesPoint[] }>(
+        'timeseries',
+        `&interval=${interval}`,
+      ),
+      request<{ modes: RouteAnalyticsMode[] }>('modes'),
+      request<{ routes: RouteAnalyticsTopRoute[] }>('top-routes', '&limit=20'),
+      request<{ errors: RouteAnalyticsError[] }>('errors'),
+      request<{ requests: RouteAnalyticsRecentRequest[] }>(
+        'recent',
+        '&limit=50',
+      ),
+    ]);
+  return {
+    summary,
+    points: timeseries.points,
+    modes: modes.modes,
+    routes: topRoutes.routes,
+    errors: errors.errors,
+    recent: recent.requests,
+  };
+}
+
+function createAnalyticsQuery(filters: RouteAnalyticsFilters) {
+  const query = new URLSearchParams({ from: filters.from, to: filters.to });
+  if (filters.mode) query.set('mode', filters.mode);
+  if (filters.provider) query.set('provider', filters.provider);
+  if (filters.status) query.set('status', filters.status);
+  return query.toString();
+}
+
 export function subscribeRouteJob(
   jobId: string,
-  onEvent: (job: RouteJobView) => void,
-  onConnectionError: () => void,
+  onEvent: (job: RouteJobView, eventType: RouteJobStreamEventType) => void,
+  onConnectionState: (state: RouteJobStreamState) => void,
 ) {
   const source = new EventSource(
     `/api/route/jobs/${encodeURIComponent(jobId)}/events`,
@@ -206,19 +391,33 @@ export function subscribeRouteJob(
     'cancelled',
   ] as const;
 
+  source.onopen = () => onConnectionState('connected');
+
   for (const eventName of eventNames) {
     source.addEventListener(eventName, (event) => {
       const job = JSON.parse(
         (event as MessageEvent<string>).data,
       ) as RouteJobView;
-      onEvent(job);
-      if (['completed', 'failed', 'cancelled'].includes(eventName))
+      onEvent(job, eventName);
+      if (['completed', 'failed', 'cancelled'].includes(eventName)) {
         source.close();
+        onConnectionState('disconnected');
+      }
     });
   }
-  source.onerror = onConnectionError;
+  source.onerror = () =>
+    onConnectionState(
+      source.readyState === EventSource.CLOSED
+        ? 'disconnected'
+        : 'reconnecting',
+    );
   return () => source.close();
 }
+
+export type RouteJobStreamState = 'connected' | 'reconnecting' | 'disconnected';
+
+export type RouteJobStreamEventType =
+  'snapshot' | 'progress' | 'completed' | 'failed' | 'cancelled';
 
 export type AiJobStatus =
   'queued' | 'running' | 'completed' | 'failed' | 'cancelled';

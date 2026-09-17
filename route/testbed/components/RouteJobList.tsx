@@ -28,7 +28,7 @@ export function RouteJobList({
     return (
       <div className="sidebar-content">
         <EmptyState
-          description="Create a Route Job to inspect live progress and results."
+          description="Create a request to inspect the Job lifecycle and result."
           icon="route"
           title="No Route Jobs yet"
         />
@@ -56,10 +56,10 @@ export function RouteJobList({
             </Tag>
           </span>
           <span className={`${Classes.TEXT_MUTED} job-list-secondary`}>
-            {job.stage} · {job.progress}%
+            {job.request.travelMode} · {job.stage} · {job.progress}%
           </span>
           <span className={`${Classes.TEXT_MUTED} job-list-secondary`}>
-            {new Date(job.updatedAt).toLocaleString()}
+            Created {new Date(job.createdAt).toLocaleString()}
           </span>
         </button>
       ))}

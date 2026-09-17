@@ -15,6 +15,9 @@ export const APP_ROUTES: RouteDefinition[] = [
 
 export function routeFromPath(pathname: string): AppRoute {
   const normalized = pathname.replace(/\/$/, '') || '/';
+  if (normalized === '/route' || normalized.startsWith('/route/')) {
+    return 'route';
+  }
   return APP_ROUTES.find((route) => route.path === normalized)?.id ?? 'route';
 }
 

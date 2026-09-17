@@ -19,6 +19,8 @@ describe('tcache server', () => {
         OPENWEBUI_API_KEY: '',
         OPENWEBUI_MODEL: 'qwen3.5:9b',
         GEMINI_MODEL: 'gemini-test',
+        DATABASE_URL: 'postgresql://localhost:5432/tcache',
+        ROUTE_TIME_ZONE: 'Asia/Tokyo',
       }),
     ).toMatchObject({
       aiProvider: 'openwebui',
@@ -26,7 +28,15 @@ describe('tcache server', () => {
       openWebUIBaseUrl: 'http://host.docker.internal:3000/',
       openWebUIApiKey: '',
       openWebUIModel: 'qwen3.5:9b',
+      databaseUrl: 'postgresql://localhost:5432/tcache',
+      routeTimeZone: 'Asia/Tokyo',
     });
+  });
+
+  it('rejects an invalid Route timezone', () => {
+    expect(() => loadConfig({ ROUTE_TIME_ZONE: 'Mars/Olympus' })).toThrow(
+      'Invalid ROUTE_TIME_ZONE',
+    );
   });
 
   it.each([
@@ -48,6 +58,7 @@ describe('tcache server', () => {
       environment: 'test',
       version: 'abc123',
       getRedisStatus: async () => 'ok',
+      getPostgresStatus: async () => 'ok',
     });
     apps.push(app);
 
@@ -60,6 +71,7 @@ describe('tcache server', () => {
       version: 'abc123',
       environment: 'test',
       redis: 'ok',
+      postgres: 'ok',
     });
     expect(response.json().uptime).toEqual(expect.any(Number));
   });

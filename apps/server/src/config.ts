@@ -2,11 +2,13 @@ export interface AppConfig {
   nodeEnv: string;
   port: number;
   redisUrl: string;
+  databaseUrl: string;
   gitCommitSha: string;
   routeJobTtlSeconds: number;
   routeCacheTtlSeconds: number;
   routeProviderTimeoutMs: number;
   routeProvider: 'google' | 'mock';
+  routeTimeZone: string;
   googleMapsApiKey: string;
   aiJobTtlSeconds: number;
   aiCacheTtlSeconds: number;
@@ -34,6 +36,16 @@ function readPositiveInteger(
   return parsed;
 }
 
+function readTimeZone(value: string | undefined): string {
+  const timeZone = value?.trim() || 'Asia/Seoul';
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone }).format();
+  } catch {
+    throw new Error(`Invalid ROUTE_TIME_ZONE: ${timeZone}`);
+  }
+  return timeZone;
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const nodeEnv = env.NODE_ENV ?? 'development';
   const routeProvider =
@@ -57,6 +69,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     nodeEnv,
     port: readPositiveInteger('TCACHE_PORT', env.TCACHE_PORT, 3200, 65_535),
     redisUrl: env.REDIS_URL ?? 'redis://localhost:6379',
+    databaseUrl: env.DATABASE_URL?.trim() ?? '',
     gitCommitSha: env.GIT_COMMIT_SHA ?? 'dev',
     routeJobTtlSeconds: readPositiveInteger(
       'ROUTE_JOB_TTL_SECONDS',
@@ -74,6 +87,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       30_000,
     ),
     routeProvider,
+    routeTimeZone: readTimeZone(env.ROUTE_TIME_ZONE),
     googleMapsApiKey: env.GOOGLE_MAPS_API_KEY?.trim() ?? '',
     aiJobTtlSeconds: readPositiveInteger(
       'AI_JOB_TTL_SECONDS',

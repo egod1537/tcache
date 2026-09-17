@@ -1,6 +1,14 @@
 import type { RouteCachePolicy } from '../cache/policy.js';
 import { createRouteCacheKey } from '../cache/key.js';
 import type { RouteCacheRepository } from '../cache/repository.js';
+import {
+  canonicalizeRouteLocation,
+  getRouteTemporalMetadata,
+} from '../cache/canonical.js';
+import type {
+  RouteAnalyticsContext,
+  RouteAnalyticsRecorder,
+} from '../analytics/recorder.js';
 import type { RouteProvider } from '../providers/provider.js';
 import { normalizeRouteRequest } from '../types/route.js';
 import {
@@ -14,6 +22,8 @@ import type { RouteJobStore } from './route-job-store.js';
 
 class RouteJobStoppedError extends Error {}
 
+type RouteAnalyticsEvent = keyof RouteAnalyticsRecorder;
+
 export interface RouteJobRunnerOptions {
   store: RouteJobStore;
   events: RouteJobEventBus;
@@ -21,6 +31,14 @@ export interface RouteJobRunnerOptions {
   cachePolicy: RouteCachePolicy;
   provider: RouteProvider;
   providerTimeoutMs: number;
+  analytics?: RouteAnalyticsRecorder;
+  routeTimeZone?: string;
+  isHoliday?: (date: Date) => boolean;
+  onAnalyticsError?: (
+    error: unknown,
+    event: RouteAnalyticsEvent,
+    job: RouteJob,
+  ) => void;
 }
 
 export class RouteJobRunner {
@@ -37,6 +55,7 @@ export class RouteJobRunner {
     this.controllers.set(jobId, controller);
     let errorCode: RouteJobError['code'] = 'INTERNAL_ERROR';
     let timedOut = false;
+    let startedAnalytics: Promise<void> | undefined;
 
     try {
       await this.transition(jobId, {
@@ -48,16 +67,43 @@ export class RouteJobRunner {
 
       errorCode = 'INVALID_REQUEST';
       const normalizedRequest = normalizeRouteRequest(initial.request);
+      const canonicalizationOptions = {
+        fallbackTime: new Date(initial.createdAt),
+        ...(this.options.routeTimeZone
+          ? { timeZone: this.options.routeTimeZone }
+          : {}),
+        ...(this.options.isHoliday
+          ? { isHoliday: this.options.isHoliday }
+          : {}),
+      };
+      const temporal = getRouteTemporalMetadata(
+        normalizedRequest,
+        canonicalizationOptions,
+      );
       const cacheKey = createRouteCacheKey(
         normalizedRequest,
         this.options.provider.providerName ?? 'unknown',
+        canonicalizationOptions,
       );
 
-      await this.transition(jobId, {
+      const checkingCache = await this.transition(jobId, {
         stage: 'checking_cache',
         progress: 10,
         message: 'Route cache 조회 중',
         normalizedRequest,
+        requestMetadata: {
+          fromKey: canonicalizeRouteLocation(normalizedRequest.origin),
+          toKey: canonicalizeRouteLocation(normalizedRequest.destination),
+          intermediateKeys: normalizedRequest.intermediates.map(
+            canonicalizeRouteLocation,
+          ),
+          dayType: temporal.dayType,
+          timeBucket: temporal.timeBucket,
+        },
+      });
+      startedAnalytics = this.recordAnalytics('started', checkingCache, {
+        provider: this.providerName,
+        cacheKey,
       });
 
       errorCode = 'CACHE_ERROR';
@@ -157,6 +203,7 @@ export class RouteJobRunner {
           : {}),
       });
     } finally {
+      await startedAnalytics;
       this.controllers.delete(jobId);
     }
   }
@@ -189,6 +236,7 @@ export class RouteJobRunner {
         type: 'cancelled',
         job: cancelled,
       });
+      await this.recordAnalytics('cancelled', cancelled);
     }
     return cancelled;
   }
@@ -198,7 +246,7 @@ export class RouteJobRunner {
     message: string,
     patch: Partial<RouteJob> = {},
   ) {
-    await this.transition(
+    const completed = await this.transition(
       jobId,
       {
         ...patch,
@@ -210,11 +258,12 @@ export class RouteJobRunner {
       },
       'completed',
     );
+    await this.recordAnalytics('completed', completed);
   }
 
   private async fail(jobId: string, error: RouteJobError) {
     try {
-      await this.transition(
+      const failed = await this.transition(
         jobId,
         {
           status: 'failed',
@@ -225,10 +274,28 @@ export class RouteJobRunner {
         },
         'failed',
       );
+      await this.recordAnalytics('failed', failed);
     } catch (transitionError) {
       if (!(transitionError instanceof RouteJobStoppedError))
         throw transitionError;
     }
+  }
+
+  private async recordAnalytics(
+    event: RouteAnalyticsEvent,
+    job: RouteJob,
+    context: RouteAnalyticsContext = { provider: this.providerName },
+  ) {
+    if (!this.options.analytics) return;
+    try {
+      await this.options.analytics[event](job, context);
+    } catch (error) {
+      this.options.onAnalyticsError?.(error, event, job);
+    }
+  }
+
+  private get providerName() {
+    return this.options.provider.providerName ?? 'unknown';
   }
 
   private async transition(

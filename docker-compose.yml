@@ -13,6 +13,23 @@ services:
     networks:
       - tcache-internal
 
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tcache
+      POSTGRES_USER: tcache
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tcache -d tcache']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - tcache-internal
+
   tcache-server:
     build:
       context: .
@@ -22,11 +39,13 @@ services:
       NODE_ENV: production
       TCACHE_PORT: 3200
       REDIS_URL: redis://redis:6379
+      DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
       GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-dev}
       ROUTE_JOB_TTL_SECONDS: ${ROUTE_JOB_TTL_SECONDS:-86400}
       ROUTE_CACHE_TTL_SECONDS: ${ROUTE_CACHE_TTL_SECONDS:-3600}
       ROUTE_PROVIDER_TIMEOUT_MS: ${ROUTE_PROVIDER_TIMEOUT_MS:-30000}
       ROUTE_PROVIDER: ${ROUTE_PROVIDER:-google}
+      ROUTE_TIME_ZONE: ${ROUTE_TIME_ZONE:-Asia/Seoul}
       GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
       AI_JOB_TTL_SECONDS: ${AI_JOB_TTL_SECONDS:-86400}
       AI_CACHE_DEFAULT_TTL_SECONDS: ${AI_CACHE_DEFAULT_TTL_SECONDS:-3600}
@@ -41,6 +60,8 @@ services:
       - '127.0.0.1:${TCACHE_PORT:-3200}:3200'
     depends_on:
       redis:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
     healthcheck:
       test:
@@ -74,6 +95,7 @@ services:
 
 volumes:
   redis-data:
+  postgres-data:
 
 networks:
   tcache-internal:
