@@ -47,8 +47,13 @@ jobs:
       TCACHE_TESTBED_PORT: ${{ vars.TCACHE_TESTBED_PORT || '3201' }}
       ROUTE_PROVIDER: ${{ vars.ROUTE_PROVIDER || 'google' }}
       GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+      VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
       AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL || 'gemini-2.5-flash' }}
+      OPENWEBUI_BASE_URL: ${{ vars.OPENWEBUI_BASE_URL }}
+      OPENWEBUI_API_KEY: ${{ secrets.OPENWEBUI_API_KEY }}
+      OPENWEBUI_MODEL: ${{ vars.OPENWEBUI_MODEL }}
     steps:
       - uses: actions/checkout@v7
         with:

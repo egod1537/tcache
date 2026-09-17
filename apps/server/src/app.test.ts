@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { buildApp } from './app.js';
+import { loadConfig } from './config.js';
 
 const apps: ReturnType<typeof buildApp>[] = [];
 
@@ -9,6 +10,25 @@ afterEach(async () => {
 });
 
 describe('tcache server', () => {
+  it('loads OpenWebUI provider and model configuration', () => {
+    expect(
+      loadConfig({
+        NODE_ENV: 'production',
+        AI_PROVIDER: 'openwebui',
+        OPENWEBUI_BASE_URL: 'http://host.docker.internal:3000/',
+        OPENWEBUI_API_KEY: '',
+        OPENWEBUI_MODEL: 'qwen3.5:9b',
+        GEMINI_MODEL: 'gemini-test',
+      }),
+    ).toMatchObject({
+      aiProvider: 'openwebui',
+      geminiModel: 'gemini-test',
+      openWebUIBaseUrl: 'http://host.docker.internal:3000/',
+      openWebUIApiKey: '',
+      openWebUIModel: 'qwen3.5:9b',
+    });
+  });
+
   it.each([
     ['/health', { status: 'ok' }],
     ['/api/route/ping', { system: 'route-cache', status: 'ok' }],

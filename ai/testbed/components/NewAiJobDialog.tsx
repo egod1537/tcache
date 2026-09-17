@@ -1,27 +1,27 @@
 import {
   Button,
   Callout,
+  Checkbox,
   Classes,
+  Collapse,
   Dialog,
   DialogBody,
   DialogFooter,
+  FormGroup,
+  HTMLSelect,
+  InputGroup,
   Intent,
+  NumericInput,
+  TextArea,
 } from '@blueprintjs/core';
 import { useState } from 'react';
 
-const SAMPLE_REQUEST = JSON.stringify(
-  {
-    provider: import.meta.env.DEV ? 'mock' : 'gemini',
-    model: import.meta.env.DEV ? 'mock-ai-v1' : 'gemini-2.5-flash',
-    systemPrompt: 'You are a concise assistant.',
-    promptVersion: 'v1',
-    messages: [{ role: 'user', content: 'Summarize the cache status.' }],
-    options: { temperature: 0.2 },
-    cache: { enabled: true },
-  },
-  null,
-  2,
-);
+import {
+  getOpenWebUIModels,
+  type OpenWebUIModel,
+} from '../../../apps/testbed/src/api/client';
+
+type Provider = '' | 'gemini' | 'openwebui' | 'mock';
 
 interface NewAiJobDialogProps {
   dark: boolean;
@@ -38,17 +38,98 @@ export function NewAiJobDialog({
   onClose,
   onCreate,
 }: NewAiJobDialogProps) {
-  const [value, setValue] = useState(SAMPLE_REQUEST);
+  const [provider, setProvider] = useState<Provider>('');
+  const [model, setModel] = useState('');
+  const [systemPrompt, setSystemPrompt] = useState(
+    'You are a concise assistant.',
+  );
+  const [userPrompt, setUserPrompt] = useState('Summarize the cache status.');
+  const [cacheEnabled, setCacheEnabled] = useState(true);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [promptVersion, setPromptVersion] = useState('v1');
+  const [temperature, setTemperature] = useState('0.2');
+  const [rawMessages, setRawMessages] = useState('');
+  const [models, setModels] = useState<OpenWebUIModel[]>([]);
+  const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [modelsLoading, setModelsLoading] = useState(false);
+  const [modelsError, setModelsError] = useState('');
   const [error, setError] = useState('');
 
-  async function submit() {
-    let request: unknown;
+  function selectProvider(value: Provider) {
+    setProvider(value);
+    setModel(value === 'mock' ? 'mock-ai-v1' : '');
+    setModelsError('');
+  }
+
+  async function discoverModels() {
+    setModelsLoading(true);
+    setModelsError('');
     try {
-      request = JSON.parse(value);
-    } catch {
-      setError('Request must be valid JSON.');
+      const discovered = await getOpenWebUIModels();
+      setModels(discovered);
+      setModelsLoaded(true);
+      if (!model && discovered[0]) setModel(discovered[0].id);
+    } catch (discoveryError) {
+      setModels([]);
+      setModelsLoaded(false);
+      setModel('');
+      setModelsError(
+        discoveryError instanceof Error
+          ? discoveryError.message
+          : 'Failed to load OpenWebUI models',
+      );
+    } finally {
+      setModelsLoading(false);
+    }
+  }
+
+  async function submit() {
+    let messages: Array<{ role: string; content: string }>;
+    try {
+      if (rawMessages.trim()) {
+        const parsed = JSON.parse(rawMessages) as unknown;
+        if (!Array.isArray(parsed)) {
+          throw new Error('Raw messages JSON must be an array.');
+        }
+        messages = parsed as Array<{ role: string; content: string }>;
+      } else {
+        if (!userPrompt.trim()) throw new Error('User Prompt is required.');
+        messages = [{ role: 'user', content: userPrompt.trim() }];
+      }
+    } catch (parseError) {
+      setError(
+        parseError instanceof Error
+          ? parseError.message
+          : 'Raw messages must be valid JSON.',
+      );
       return;
     }
+
+    const numericTemperature = temperature.trim()
+      ? Number(temperature)
+      : undefined;
+    if (
+      numericTemperature !== undefined &&
+      !Number.isFinite(numericTemperature)
+    ) {
+      setError('Temperature must be a number.');
+      return;
+    }
+
+    const request = {
+      ...(provider ? { provider } : {}),
+      ...(provider && model.trim() ? { model: model.trim() } : {}),
+      ...(systemPrompt ? { systemPrompt } : {}),
+      ...(promptVersion.trim() ? { promptVersion: promptVersion.trim() } : {}),
+      messages,
+      options: {
+        ...(numericTemperature !== undefined
+          ? { temperature: numericTemperature }
+          : {}),
+      },
+      cache: { enabled: cacheEnabled },
+    };
+
     setError('');
     try {
       await onCreate(request);
@@ -74,16 +155,171 @@ export function NewAiJobDialog({
     >
       <DialogBody>
         <p className={Classes.TEXT_MUTED}>
-          Submit an AI request. Raw prompts are sent to the server but omitted
-          from Job status and SSE payloads.
+          Create a Job through the existing cache and SSE pipeline. Leave the
+          provider or model at Server Default to use server configuration.
         </p>
-        <textarea
-          aria-label="AI Job request JSON"
-          className={`${Classes.INPUT} route-request-editor`}
-          onChange={(event) => setValue(event.target.value)}
-          spellCheck={false}
-          value={value}
+
+        <div className="ai-job-form-grid">
+          <FormGroup label="Provider" labelFor="ai-provider">
+            <HTMLSelect
+              fill
+              id="ai-provider"
+              onChange={(event) =>
+                selectProvider(event.target.value as Provider)
+              }
+              value={provider}
+            >
+              <option value="">Server Default</option>
+              <option value="gemini">Gemini</option>
+              <option value="openwebui">OpenWebUI</option>
+              <option value="mock">Mock</option>
+            </HTMLSelect>
+          </FormGroup>
+
+          <FormGroup
+            helperText={
+              provider === ''
+                ? 'The server chooses both provider and model.'
+                : provider === 'mock'
+                  ? 'The built-in mock model is selected automatically.'
+                  : 'Leave blank to use the provider default.'
+            }
+            label="Model"
+            labelFor="ai-model"
+          >
+            {provider === 'openwebui' ? (
+              <div className="ai-model-controls">
+                <HTMLSelect
+                  disabled={!models.length}
+                  fill
+                  id="ai-model"
+                  onChange={(event) => setModel(event.target.value)}
+                  value={model}
+                >
+                  <option value="">Server default</option>
+                  {models.map((candidate) => (
+                    <option key={candidate.id} value={candidate.id}>
+                      {candidate.name}
+                      {candidate.name === candidate.id
+                        ? ''
+                        : ` (${candidate.id})`}
+                    </option>
+                  ))}
+                </HTMLSelect>
+                <Button
+                  icon="refresh"
+                  loading={modelsLoading}
+                  onClick={() => void discoverModels()}
+                >
+                  모델 목록 조회
+                </Button>
+              </div>
+            ) : (
+              <InputGroup
+                disabled={provider === '' || provider === 'mock'}
+                id="ai-model"
+                onChange={(event) => setModel(event.target.value)}
+                placeholder={
+                  provider === 'gemini'
+                    ? 'Server default (GEMINI_MODEL)'
+                    : 'Server default'
+                }
+                value={model}
+              />
+            )}
+          </FormGroup>
+        </div>
+
+        {modelsError && (
+          <Callout compact intent={Intent.DANGER} role="alert">
+            {modelsError}
+          </Callout>
+        )}
+        {provider === 'openwebui' && modelsLoaded && !models.length && (
+          <Callout compact icon="info-sign">
+            OpenWebUI returned no available models.
+          </Callout>
+        )}
+
+        <FormGroup label="System Prompt" labelFor="ai-system-prompt">
+          <TextArea
+            fill
+            id="ai-system-prompt"
+            onChange={(event) => setSystemPrompt(event.target.value)}
+            rows={3}
+            value={systemPrompt}
+          />
+        </FormGroup>
+
+        <FormGroup label="User Prompt" labelFor="ai-user-prompt">
+          <TextArea
+            fill
+            id="ai-user-prompt"
+            onChange={(event) => setUserPrompt(event.target.value)}
+            rows={5}
+            value={userPrompt}
+          />
+        </FormGroup>
+
+        <Checkbox
+          checked={cacheEnabled}
+          label="Cache enabled"
+          onChange={(event) => setCacheEnabled(event.currentTarget.checked)}
         />
+
+        <Button
+          alignText="left"
+          fill
+          icon={advancedOpen ? 'chevron-up' : 'chevron-down'}
+          onClick={() => setAdvancedOpen((open) => !open)}
+          variant="minimal"
+        >
+          Advanced
+        </Button>
+        <Collapse isOpen={advancedOpen}>
+          <div className="ai-advanced-fields">
+            <FormGroup label="Prompt version" labelFor="ai-prompt-version">
+              <InputGroup
+                id="ai-prompt-version"
+                onChange={(event) => setPromptVersion(event.target.value)}
+                value={promptVersion}
+              />
+            </FormGroup>
+            <FormGroup label="Temperature" labelFor="ai-temperature">
+              <NumericInput
+                allowNumericCharactersOnly
+                fill
+                id="ai-temperature"
+                majorStepSize={0.5}
+                max={2}
+                min={0}
+                minorStepSize={0.1}
+                onValueChange={(_value, valueAsString) =>
+                  setTemperature(valueAsString)
+                }
+                stepSize={0.1}
+                value={temperature}
+              />
+            </FormGroup>
+          </div>
+          <FormGroup
+            helperText="When set, this array replaces User Prompt."
+            label="Raw messages JSON"
+            labelFor="ai-raw-messages"
+          >
+            <TextArea
+              className={Classes.MONOSPACE_TEXT}
+              fill
+              id="ai-raw-messages"
+              onChange={(event) => setRawMessages(event.target.value)}
+              placeholder={'[{"role":"user","content":"Hello"}]'}
+              rows={6}
+              spellCheck={false}
+              value={rawMessages}
+            />
+          </FormGroup>
+        </Collapse>
+
         {error && (
           <Callout compact intent={Intent.DANGER} role="alert">
             {error}

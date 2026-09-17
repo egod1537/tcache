@@ -24,6 +24,7 @@ export interface RouteJobError {
     | 'INVALID_REQUEST'
     | 'CACHE_ERROR'
     | 'PROVIDER_ERROR'
+    | 'GOOGLE_ROUTES_ERROR'
     | 'ROUTE_PROVIDER_TIMEOUT'
     | 'JOB_NOT_FOUND'
     | 'JOB_CANCELLED'
@@ -51,6 +52,7 @@ export interface RouteJob {
   normalizedRequest?: NormalizedRouteRequest;
   cache?: RouteCacheMetadata;
   provider?: string;
+  providerLatencyMs?: number;
   result?: unknown;
   error?: RouteJobError;
 }
@@ -80,8 +82,14 @@ export function toJobStatus(job: RouteJob) {
     updatedAt: job.updatedAt,
     ...(job.completedAt ? { completedAt: job.completedAt } : {}),
     request: job.request,
+    ...(job.normalizedRequest
+      ? { normalizedRequest: job.normalizedRequest }
+      : {}),
     ...(job.cache ? { cache: job.cache } : {}),
     ...(job.provider ? { provider: job.provider } : {}),
+    ...(job.providerLatencyMs !== undefined
+      ? { providerLatencyMs: job.providerLatencyMs }
+      : {}),
     ...(job.error ? { error: job.error } : {}),
   };
 }

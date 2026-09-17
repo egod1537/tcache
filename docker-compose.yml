@@ -33,6 +33,10 @@ services:
       AI_PROVIDER_TIMEOUT_MS: ${AI_PROVIDER_TIMEOUT_MS:-120000}
       AI_PROVIDER: ${AI_PROVIDER:-gemini}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      OPENWEBUI_BASE_URL: ${OPENWEBUI_BASE_URL:-}
+      OPENWEBUI_API_KEY: ${OPENWEBUI_API_KEY:-}
+      OPENWEBUI_MODEL: ${OPENWEBUI_MODEL:-}
     ports:
       - '127.0.0.1:${TCACHE_PORT:-3200}:3200'
     depends_on:
@@ -57,6 +61,8 @@ services:
     build:
       context: .
       dockerfile: deploy/docker/testbed.Dockerfile
+      args:
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
     restart: unless-stopped
     ports:
       - '127.0.0.1:${TCACHE_TESTBED_PORT:-3201}:80'

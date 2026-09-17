@@ -6,6 +6,8 @@ export interface RouteProviderResult {
 }
 
 export interface RouteProvider {
+  /** Stable cache namespace. */
+  readonly providerName?: string;
   getRoute(
     request: NormalizedRouteRequest,
     signal: AbortSignal,

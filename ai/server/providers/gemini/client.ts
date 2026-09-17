@@ -3,6 +3,21 @@ import type { AiProvider, AiProviderResult } from '../provider.js';
 import { toGeminiRequest } from './mapper.js';
 import type { GeminiGenerateResponse } from './types.js';
 
+async function geminiErrorMessage(response: Response) {
+  let detail = '';
+  try {
+    const body = (await response.json()) as {
+      error?: { message?: unknown; status?: unknown };
+    };
+    if (typeof body.error?.status === 'string') {
+      detail = ` (${body.error.status.slice(0, 100)})`;
+    }
+  } catch {
+    // Preserve the HTTP status when Gemini returns an empty/non-JSON body.
+  }
+  return `Gemini request failed with HTTP ${response.status}${detail}`;
+}
+
 export class GeminiAiProvider implements AiProvider {
   readonly name = 'gemini';
 
@@ -31,7 +46,7 @@ export class GeminiAiProvider implements AiProvider {
       },
     );
     if (!response.ok) {
-      throw new Error(`Gemini request failed with HTTP ${response.status}`);
+      throw new Error(await geminiErrorMessage(response));
     }
     return {
       provider: this.name,

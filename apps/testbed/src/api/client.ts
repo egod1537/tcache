@@ -9,6 +9,68 @@ export interface RouteJobError {
   details?: unknown;
 }
 
+export type RouteTravelMode = 'DRIVING' | 'WALKING' | 'BICYCLING' | 'TRANSIT';
+
+export type RouteLocation =
+  | { type: 'address'; address: string }
+  | { type: 'coordinates'; latitude: number; longitude: number }
+  | { type: 'placeId'; placeId: string };
+
+export interface RouteRequest {
+  origin: RouteLocation;
+  intermediates: RouteLocation[];
+  destination: RouteLocation;
+  travelMode: RouteTravelMode;
+  computeAlternativeRoutes: boolean;
+  languageCode?: string;
+  regionCode?: string;
+  departureTime?: string;
+  routingPreference?: string;
+  units?: string;
+}
+
+export interface RouteCoordinate {
+  lat: number;
+  lng: number;
+}
+
+export interface NormalizedRouteLeg {
+  distanceMeters: number | null;
+  durationSeconds: number | null;
+  startLocation: RouteCoordinate | null;
+  endLocation: RouteCoordinate | null;
+  steps: unknown[];
+}
+
+export interface NormalizedRoute {
+  description: string;
+  routeLabels: string[];
+  distanceMeters: number | null;
+  durationSeconds: number | null;
+  encodedPolyline: string;
+  path: RouteCoordinate[];
+  bounds: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  } | null;
+  legs: NormalizedRouteLeg[];
+  warnings: string[];
+}
+
+export interface GoogleRouteProviderResult {
+  provider: 'google';
+  routes: NormalizedRoute[];
+  raw: unknown;
+  debug: {
+    request: unknown;
+    fieldMask: string;
+    httpStatus: number;
+    latencyMs: number;
+  };
+}
+
 export interface RouteJobView {
   jobId: string;
   status: RouteJobStatus;
@@ -18,9 +80,11 @@ export interface RouteJobView {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
-  request: unknown;
+  request: RouteRequest;
+  normalizedRequest?: RouteRequest & { waypoints?: RouteLocation[] };
   cache?: { hit: boolean; key: string; ttl: number };
   provider?: string;
+  providerLatencyMs?: number;
   error?: RouteJobError;
 }
 
@@ -29,6 +93,7 @@ export interface RouteJobResult {
   status: RouteJobStatus;
   cache?: { hit: boolean; key: string; ttl: number };
   provider?: string;
+  providerLatencyMs?: number;
   result?: unknown;
   error?: RouteJobError;
 }
@@ -193,8 +258,23 @@ export interface AiJobResult {
   cache?: { enabled: boolean; hit: boolean; key: string; ttl: number };
   provider: string;
   model: string;
+  request?: {
+    provider: string;
+    model: string;
+    systemPrompt?: string;
+    promptVersion?: string;
+    messages: Array<{ role: string; content: string }>;
+    options: Record<string, unknown>;
+    cache: { enabled: boolean };
+  };
+  text?: string;
   result?: unknown;
   error?: RouteJobError;
+}
+
+export interface OpenWebUIModel {
+  id: string;
+  name: string;
 }
 
 export interface CreateAiJobResponse {
@@ -209,6 +289,14 @@ export function createAiJob(request: unknown) {
     method: 'POST',
     body: JSON.stringify(request),
   });
+}
+
+export async function getOpenWebUIModels(signal?: AbortSignal) {
+  const response = await requestJson<{
+    provider: 'openwebui';
+    models: OpenWebUIModel[];
+  }>('/api/ai/providers/openwebui/models', signal ? { signal } : undefined);
+  return response.models;
 }
 
 export async function listAiJobs() {

@@ -8,6 +8,7 @@ export default defineConfig(({ mode }) => {
   const backend = `http://localhost:${serverPort}`;
 
   return {
+    envDir: '../../',
     plugins: [react()],
     resolve: {
       dedupe: [

@@ -10,8 +10,11 @@ import {
   Tag,
 } from '@blueprintjs/core';
 import type { ServiceStatus } from '@tcache/common';
+import { useEffect, useState } from 'react';
 
 import type {
+  GoogleRouteProviderResult,
+  NormalizedRoute,
   RouteJobResult,
   RouteJobStatus,
   RouteJobView,
@@ -20,6 +23,7 @@ import type { CheckState } from '../../apps/testbed/src/api/useTcacheStatus';
 import { JsonViewer } from '../../apps/testbed/src/components/common/JsonViewer';
 import { SectionHeader } from '../../apps/testbed/src/components/common/SectionHeader';
 import { HealthTag } from '../../apps/testbed/src/components/status/HealthTag';
+import { RouteMapPanel } from './components/RouteMapPanel';
 
 interface RouteDetailProps {
   job: RouteJobView | null;
@@ -51,6 +55,10 @@ export function RouteDetail({
   service,
   onCancel,
 }: RouteDetailProps) {
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
+
+  useEffect(() => setSelectedRouteIndex(0), [job?.jobId]);
+
   if (!job) {
     return (
       <Card className="route-detail-empty" compact elevation={1}>
@@ -72,6 +80,8 @@ export function RouteDetail({
         : serverState === 'checking'
           ? 'checking'
           : 'offline';
+  const googleResult = parseGoogleResult(result?.result);
+  const selectedRoute = googleResult?.routes[selectedRouteIndex];
 
   return (
     <div className="route-job-detail">
@@ -110,10 +120,39 @@ export function RouteDetail({
         )}
 
         {job.error && (
-          <Callout intent={Intent.DANGER} title={job.error.code}>
-            {job.error.message}
-          </Callout>
+          <Card className="detail-section" compact>
+            <Callout intent={Intent.DANGER} title={job.error.code}>
+              {job.error.message}
+            </Callout>
+            {job.error.details !== undefined && (
+              <JsonViewer
+                title="Upstream error details"
+                value={job.error.details}
+              />
+            )}
+          </Card>
         )}
+
+        <Card className="detail-section" compact>
+          <SectionHeader title="Overview" description={job.message} />
+          <dl className="fact-grid route-overview-facts">
+            <Fact label="Status" value={job.status} />
+            <Fact label="Stage" value={job.stage} />
+            <Fact label="Provider" value={job.provider ?? '—'} />
+            <Fact
+              label="Cache"
+              value={job.cache ? (job.cache.hit ? 'HIT' : 'MISS') : '—'}
+            />
+            <Fact
+              label="Route count"
+              value={googleResult?.routes.length ?? '—'}
+            />
+            <Fact
+              label="Selected route"
+              value={selectedRoute ? selectedRouteIndex + 1 : '—'}
+            />
+          </dl>
+        </Card>
 
         <Card className="detail-section" compact>
           <SectionHeader title="Progress" description={job.message} />
@@ -132,10 +171,7 @@ export function RouteDetail({
                 </Tag>
               </dd>
             </div>
-            <div>
-              <dt>Progress</dt>
-              <dd>{job.progress}%</dd>
-            </div>
+            <Fact label="Progress" value={`${job.progress}%`} />
             <div>
               <dt>Route module</dt>
               <dd>
@@ -173,10 +209,7 @@ export function RouteDetail({
                     </Tag>
                   </dd>
                 </div>
-                <div>
-                  <dt>TTL</dt>
-                  <dd>{job.cache.ttl}s</dd>
-                </div>
+                <Fact label="TTL" value={`${job.cache.ttl}s`} />
                 <div>
                   <dt>Key</dt>
                   <dd>
@@ -199,36 +232,182 @@ export function RouteDetail({
               description="Upstream route source"
             />
             <dl className="compact-facts">
-              <div>
-                <dt>Provider</dt>
-                <dd>{job.provider ?? '—'}</dd>
-              </div>
-              <div>
-                <dt>Created</dt>
-                <dd>{new Date(job.createdAt).toLocaleString()}</dd>
-              </div>
-              <div>
-                <dt>Updated</dt>
-                <dd>{new Date(job.updatedAt).toLocaleString()}</dd>
-              </div>
+              <Fact label="Provider" value={job.provider ?? '—'} />
+              <Fact
+                label="Latency"
+                value={
+                  job.providerLatencyMs === undefined
+                    ? '—'
+                    : `${job.providerLatencyMs}ms`
+                }
+              />
+              <Fact
+                label="Created"
+                value={new Date(job.createdAt).toLocaleString()}
+              />
+              <Fact
+                label="Updated"
+                value={new Date(job.updatedAt).toLocaleString()}
+              />
             </dl>
           </Card>
         </div>
 
         <Card className="detail-section" compact>
+          <SectionHeader
+            title="Route Result"
+            description="Normalized provider routes"
+          />
           {resultLoading ? (
             <Callout compact icon="time">
               Loading final result…
             </Callout>
+          ) : googleResult && googleResult.routes.length ? (
+            <>
+              <div
+                className="route-result-selector"
+                aria-label="Route selection"
+              >
+                {googleResult.routes.map((route, index) => (
+                  <button
+                    aria-pressed={selectedRouteIndex === index}
+                    className="route-result-option"
+                    key={`${index}-${route.encodedPolyline.slice(0, 16)}`}
+                    onClick={() => setSelectedRouteIndex(index)}
+                    type="button"
+                  >
+                    <strong>Route {index + 1}</strong>
+                    <span>{formatDuration(route.durationSeconds)}</span>
+                    <small>{formatDistance(route.distanceMeters)}</small>
+                  </button>
+                ))}
+              </div>
+              {selectedRoute && <RouteSummary route={selectedRoute} />}
+            </>
           ) : result?.result !== undefined ? (
-            <JsonViewer title="Result" value={result.result} />
+            <Callout compact icon="info-sign">
+              This provider result has no Google normalized routes. See Raw
+              JSON.
+            </Callout>
           ) : (
             <Callout compact icon="info-sign">
               The final result becomes available after the Job completes.
             </Callout>
           )}
         </Card>
+
+        {selectedRoute && (
+          <Card className="detail-section" compact>
+            <SectionHeader
+              title="Map"
+              description={`Route ${selectedRouteIndex + 1} polyline and stops`}
+            />
+            <RouteMapPanel route={selectedRoute} />
+          </Card>
+        )}
+
+        <Card className="detail-section route-debug-section" compact>
+          <SectionHeader
+            title="Debug"
+            description="Normalized and raw provider diagnostics (API keys are never included)"
+          />
+          <details>
+            <summary>Normalized request</summary>
+            <JsonViewer
+              title="Normalized request"
+              value={job.normalizedRequest ?? job.request}
+            />
+          </details>
+          {googleResult && (
+            <>
+              <details>
+                <summary>Normalized result</summary>
+                <JsonViewer
+                  title="Normalized result"
+                  value={googleResult.routes}
+                />
+              </details>
+              <details>
+                <summary>Provider request / latency</summary>
+                <JsonViewer title="Provider debug" value={googleResult.debug} />
+              </details>
+              <details>
+                <summary>Raw provider response</summary>
+                <JsonViewer
+                  title="Raw provider response"
+                  value={googleResult.raw}
+                />
+              </details>
+            </>
+          )}
+          {result?.result !== undefined && !googleResult && (
+            <JsonViewer title="Raw JSON" value={result.result} />
+          )}
+        </Card>
       </div>
     </div>
   );
+}
+
+function Fact({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div>
+      <dt>{label}</dt>
+      <dd>{value}</dd>
+    </div>
+  );
+}
+
+function RouteSummary({ route }: { route: NormalizedRoute }) {
+  return (
+    <div className="route-result-summary">
+      <dl className="fact-grid">
+        <Fact label="Distance" value={formatDistance(route.distanceMeters)} />
+        <Fact label="Duration" value={formatDuration(route.durationSeconds)} />
+        <Fact label="Path points" value={route.path.length} />
+        <Fact label="Legs" value={route.legs.length} />
+      </dl>
+      {route.description && <p>{route.description}</p>}
+      {route.legs.length > 0 && (
+        <details className="route-leg-details">
+          <summary>Leg details ({route.legs.length})</summary>
+          <ol>
+            {route.legs.map((leg, index) => (
+              <li key={index}>
+                <strong>Leg {index + 1}</strong> ·{' '}
+                {formatDistance(leg.distanceMeters)} ·{' '}
+                {formatDuration(leg.durationSeconds)} · {leg.steps.length} steps
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
+    </div>
+  );
+}
+
+function parseGoogleResult(value: unknown): GoogleRouteProviderResult | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const result = value as Partial<GoogleRouteProviderResult>;
+  return result.provider === 'google' && Array.isArray(result.routes)
+    ? (result as GoogleRouteProviderResult)
+    : null;
+}
+
+function formatDistance(value: number | null) {
+  if (value === null) return '—';
+  return value < 1_000
+    ? `${Math.round(value).toLocaleString()} m`
+    : `${(value / 1_000).toLocaleString(undefined, {
+        maximumFractionDigits: 1,
+      })} km`;
+}
+
+function formatDuration(value: number | null) {
+  if (value === null) return '—';
+  const minutes = Math.round(value / 60);
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return remainder ? `${hours} hr ${remainder} min` : `${hours} hr`;
 }

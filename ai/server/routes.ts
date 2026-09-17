@@ -7,6 +7,7 @@ import { registerCreateJob } from './api/create-job.js';
 import { registerJobEvents } from './api/events.js';
 import { registerGetJob } from './api/get-job.js';
 import { registerGetResult } from './api/get-result.js';
+import { registerOpenWebUIModels } from './api/openwebui-models.js';
 
 export interface AiCacheRoutesOptions {
   context?: AiApiContext;
@@ -27,4 +28,5 @@ export const aiCacheRoutes: FastifyPluginAsync<AiCacheRoutesOptions> = async (
   registerGetResult(app, options.context);
   registerJobEvents(app, options.context);
   registerCancelJob(app, options.context);
+  registerOpenWebUIModels(app, options.context);
 };

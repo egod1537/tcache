@@ -16,6 +16,8 @@ function delay(milliseconds: number, signal: AbortSignal) {
 }
 
 export class MockRouteProvider implements RouteProvider {
+  readonly providerName = 'mock';
+
   async getRoute(
     request: NormalizedRouteRequest,
     signal: AbortSignal,

@@ -1,37 +1,57 @@
-import type { NormalizedRouteRequest, RoutePoint } from '../../types/route.js';
+import type {
+  NormalizedRouteLocation,
+  NormalizedRouteRequest,
+  RouteJobRequest,
+  RouteTravelMode,
+} from '../../types/route.js';
+import { normalizeRouteRequest } from '../../types/route.js';
 import type { GoogleRoutesRequest, GoogleWaypoint } from './types.js';
 
-function toWaypoint(point: RoutePoint): GoogleWaypoint {
-  if (point.placeId) return { placeId: point.placeId };
-  if (point.address) return { address: point.address };
+const GOOGLE_TRAVEL_MODES: Record<
+  RouteTravelMode,
+  GoogleRoutesRequest['travelMode']
+> = {
+  DRIVING: 'DRIVE',
+  WALKING: 'WALK',
+  BICYCLING: 'BICYCLE',
+  TRANSIT: 'TRANSIT',
+};
+
+function toWaypoint(point: NormalizedRouteLocation): GoogleWaypoint {
+  if (point.type === 'placeId') return { placeId: point.placeId };
+  if (point.type === 'address') return { address: point.address };
   return {
     location: {
       latLng: {
-        latitude: point.latitude!,
-        longitude: point.longitude!,
+        latitude: point.latitude,
+        longitude: point.longitude,
       },
     },
   };
 }
 
 export function toGoogleRoutesRequest(
-  request: NormalizedRouteRequest,
+  request: NormalizedRouteRequest | RouteJobRequest,
 ): GoogleRoutesRequest {
-  const { options } = request;
+  const normalized = normalizeRouteRequest(request);
   return {
-    origin: toWaypoint(request.origin),
-    destination: toWaypoint(request.destination),
-    ...(request.waypoints.length
-      ? { intermediates: request.waypoints.map(toWaypoint) }
+    origin: toWaypoint(normalized.origin),
+    destination: toWaypoint(normalized.destination),
+    ...(normalized.intermediates.length
+      ? { intermediates: normalized.intermediates.map(toWaypoint) }
       : {}),
-    travelMode: request.travelMode,
-    ...(request.departureTime ? { departureTime: request.departureTime } : {}),
-    ...(typeof options.computeAlternativeRoutes === 'boolean'
-      ? { computeAlternativeRoutes: options.computeAlternativeRoutes }
+    travelMode: GOOGLE_TRAVEL_MODES[normalized.travelMode],
+    computeAlternativeRoutes: normalized.computeAlternativeRoutes,
+    ...(normalized.departureTime
+      ? { departureTime: normalized.departureTime }
       : {}),
-    ...(typeof options.languageCode === 'string'
-      ? { languageCode: options.languageCode }
+    ...(normalized.languageCode
+      ? { languageCode: normalized.languageCode }
       : {}),
-    ...(typeof options.units === 'string' ? { units: options.units } : {}),
+    ...(normalized.regionCode ? { regionCode: normalized.regionCode } : {}),
+    ...(normalized.routingPreference
+      ? { routingPreference: normalized.routingPreference }
+      : {}),
+    ...(normalized.units ? { units: normalized.units } : {}),
   };
 }

@@ -7,6 +7,8 @@ import { AiJobService } from '../../../ai/server/jobs/ai-job-service.js';
 import { RedisAiJobStore } from '../../../ai/server/jobs/ai-job-store.js';
 import { GeminiAiProvider } from '../../../ai/server/providers/gemini/client.js';
 import { MockAiProvider } from '../../../ai/server/providers/mock/client.js';
+import { OpenWebUIAiProvider } from '../../../ai/server/providers/openwebui/client.js';
+import { OpenWebUIModelService } from '../../../ai/server/providers/openwebui/models.js';
 import { AiProviderRegistry } from '../../../ai/server/providers/provider.js';
 import { createRouteCachePolicy } from '../../../route/server/cache/policy.js';
 import { RedisRouteCacheRepository } from '../../../route/server/cache/repository.js';
@@ -40,11 +42,16 @@ const routeJobs = new RouteJobService(routeJobStore, routeEvents, routeRunner);
 const aiJobStore = new RedisAiJobStore(redis, config.aiJobTtlSeconds);
 const aiEvents = new InMemoryAiJobEventBus();
 const aiCache = new RedisAiCacheRepository(redis);
-const aiProvider =
-  config.aiProvider === 'gemini'
-    ? new GeminiAiProvider(config.geminiApiKey)
-    : new MockAiProvider();
-const aiProviders = new AiProviderRegistry([aiProvider]);
+const aiProviders = new AiProviderRegistry([
+  new GeminiAiProvider(config.geminiApiKey),
+  new OpenWebUIAiProvider(config.openWebUIBaseUrl, config.openWebUIApiKey),
+  new MockAiProvider(),
+]);
+const openWebUIModels = new OpenWebUIModelService(
+  config.openWebUIBaseUrl,
+  config.openWebUIApiKey,
+  config.aiProviderTimeoutMs,
+);
 const aiRunner = new AiJobRunner({
   store: aiJobStore,
   events: aiEvents,
@@ -61,7 +68,19 @@ const app = buildApp({
   getRedisStatus: () => getRedisStatus(redis),
   logger: true,
   routeCache: { jobs: routeJobs, events: routeEvents },
-  aiCache: { jobs: aiJobs, events: aiEvents },
+  aiCache: {
+    jobs: aiJobs,
+    events: aiEvents,
+    requestDefaults: {
+      provider: config.aiProvider,
+      models: {
+        gemini: config.geminiModel,
+        openwebui: config.openWebUIModel,
+        mock: 'mock-ai-v1',
+      },
+    },
+    openWebUIModels,
+  },
 });
 
 redis.on('error', (error) => {
@@ -96,6 +115,13 @@ try {
   if (config.aiProvider === 'gemini' && !config.geminiApiKey) {
     app.log.warn(
       'AI_PROVIDER is gemini but GEMINI_API_KEY is not set; AI Jobs will fail',
+    );
+  } else if (
+    config.aiProvider === 'openwebui' &&
+    (!config.openWebUIBaseUrl || !config.openWebUIModel)
+  ) {
+    app.log.warn(
+      'AI_PROVIDER is openwebui but OPENWEBUI_BASE_URL or OPENWEBUI_MODEL is not set; default AI Jobs will fail',
     );
   } else if (config.aiProvider === 'mock') {
     app.log.warn('Using the mock AI provider');

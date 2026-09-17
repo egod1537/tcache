@@ -13,9 +13,17 @@ function stable(value: unknown): unknown {
   );
 }
 
-export function createRouteCacheKey(request: NormalizedRouteRequest): string {
+export function createRouteCacheKey(
+  request: NormalizedRouteRequest,
+  provider = 'unknown',
+): string {
+  const canonicalRequest = Object.fromEntries(
+    Object.entries(request).filter(
+      ([key]) => key !== 'waypoints' && key !== 'options',
+    ),
+  );
   const digest = createHash('sha256')
-    .update(JSON.stringify(stable(request)))
+    .update(JSON.stringify(stable({ provider, request: canonicalRequest })))
     .digest('hex');
-  return `route:v1:${digest}`;
+  return `route:v2:${digest}`;
 }

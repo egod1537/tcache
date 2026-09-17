@@ -151,11 +151,20 @@ export function AiDetail({
         </Card>
 
         <Card className="detail-section" compact>
-          <JsonViewer title="Request metadata" value={job.requestMetadata} />
-          <Callout compact icon="shield" intent={Intent.NONE}>
-            Raw prompts are intentionally omitted from Job status and SSE
-            payloads.
-          </Callout>
+          {result?.request ? (
+            <JsonViewer title="Request" value={result.request} />
+          ) : (
+            <>
+              <JsonViewer
+                title="Request metadata"
+                value={job.requestMetadata}
+              />
+              <Callout compact icon="shield" intent={Intent.NONE}>
+                Raw prompts are omitted from Job status and SSE payloads and
+                become visible here through the result endpoint.
+              </Callout>
+            </>
+          )}
         </Card>
 
         <div className="detail-section-grid">
@@ -229,7 +238,18 @@ export function AiDetail({
               Loading final result…
             </Callout>
           ) : result?.result !== undefined ? (
-            <JsonViewer title="Result" value={result.result} />
+            <>
+              {result.text && (
+                <div className="ai-result-text">
+                  <SectionHeader
+                    title="Response text"
+                    description="Normalized representative text"
+                  />
+                  <pre>{result.text}</pre>
+                </div>
+              )}
+              <JsonViewer title="Raw result" value={result.result} />
+            </>
           ) : (
             <Callout compact icon="info-sign">
               The final result becomes available after the Job completes.

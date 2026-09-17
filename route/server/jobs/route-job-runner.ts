@@ -48,7 +48,10 @@ export class RouteJobRunner {
 
       errorCode = 'INVALID_REQUEST';
       const normalizedRequest = normalizeRouteRequest(initial.request);
-      const cacheKey = createRouteCacheKey(normalizedRequest);
+      const cacheKey = createRouteCacheKey(
+        normalizedRequest,
+        this.options.provider.providerName ?? 'unknown',
+      );
 
       await this.transition(jobId, {
         stage: 'checking_cache',
@@ -98,15 +101,20 @@ export class RouteJobRunner {
         timedOut = true;
         controller.abort(new Error('Route provider timed out'));
       }, this.options.providerTimeoutMs);
+      const providerStartedAt = performance.now();
       const providerResult = await this.options.provider
         .getRoute(normalizedRequest, controller.signal)
         .finally(() => clearTimeout(timeout));
+      const providerLatencyMs = Math.round(
+        performance.now() - providerStartedAt,
+      );
 
       await this.transition(jobId, {
         stage: 'processing_provider_response',
         progress: 75,
         message: 'Provider 응답 처리 중',
         provider: providerResult.provider,
+        providerLatencyMs,
       });
 
       await this.transition(jobId, {
@@ -134,13 +142,19 @@ export class RouteJobRunner {
         return;
       }
 
+      const providerError = getStructuredProviderError(error);
       await this.fail(jobId, {
-        code: timedOut ? 'ROUTE_PROVIDER_TIMEOUT' : errorCode,
+        code: timedOut
+          ? 'ROUTE_PROVIDER_TIMEOUT'
+          : (providerError?.code ?? errorCode),
         message: timedOut
           ? `Route provider exceeded ${this.options.providerTimeoutMs}ms timeout`
           : error instanceof Error
             ? error.message
             : 'Unknown route job error',
+        ...(providerError?.details !== undefined
+          ? { details: providerError.details }
+          : {}),
       });
     } finally {
       this.controllers.delete(jobId);
@@ -263,4 +277,17 @@ export class RouteJobRunner {
       if (this.locks.get(jobId) === tail) this.locks.delete(jobId);
     }
   }
+}
+
+function getStructuredProviderError(error: unknown): {
+  code: RouteJobError['code'];
+  details?: unknown;
+} | null {
+  if (typeof error !== 'object' || error === null) return null;
+  const candidate = error as { code?: unknown; details?: unknown };
+  if (candidate.code !== 'GOOGLE_ROUTES_ERROR') return null;
+  return {
+    code: candidate.code,
+    ...(candidate.details !== undefined ? { details: candidate.details } : {}),
+  };
 }

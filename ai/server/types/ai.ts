@@ -19,6 +19,11 @@ export interface AiJobRequest {
 
 export type NormalizedAiRequest = AiJobRequest;
 
+export interface AiRequestDefaults {
+  provider: string;
+  models: Partial<Record<string, string>>;
+}
+
 export interface AiRequestMetadata {
   provider: string;
   model: string;
@@ -43,7 +48,10 @@ function requiredString(value: unknown, field: string) {
   return value.trim();
 }
 
-export function normalizeAiRequest(input: unknown): NormalizedAiRequest {
+export function normalizeAiRequest(
+  input: unknown,
+  defaults?: AiRequestDefaults,
+): NormalizedAiRequest {
   if (!isRecord(input)) throw new Error('Request body must be an object');
   if (!Array.isArray(input.messages) || input.messages.length === 0) {
     throw new Error('messages must be a non-empty array');
@@ -75,9 +83,26 @@ export function normalizeAiRequest(input: unknown): NormalizedAiRequest {
     throw new Error('cache.enabled must be a boolean');
   }
 
+  const requestedProvider =
+    typeof input.provider === 'string' && !input.provider.trim()
+      ? undefined
+      : input.provider;
+  const provider = requiredString(
+    requestedProvider ?? defaults?.provider,
+    'provider',
+  ).toLowerCase();
+  const requestedModel =
+    typeof input.model === 'string' && !input.model.trim()
+      ? undefined
+      : input.model;
+  const model = requiredString(
+    requestedModel ?? defaults?.models[provider],
+    `model (or the ${provider} provider default)`,
+  );
+
   return {
-    provider: requiredString(input.provider, 'provider').toLowerCase(),
-    model: requiredString(input.model, 'model'),
+    provider,
+    model,
     ...(typeof input.systemPrompt === 'string'
       ? { systemPrompt: input.systemPrompt }
       : {}),

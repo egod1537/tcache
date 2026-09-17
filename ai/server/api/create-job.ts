@@ -7,7 +7,7 @@ export function registerCreateJob(app: FastifyInstance, context: AiApiContext) {
   app.post<{ Body: unknown }>('/jobs', async (request, reply) => {
     let input;
     try {
-      input = normalizeAiRequest(request.body);
+      input = normalizeAiRequest(request.body, context.requestDefaults);
     } catch (error) {
       return reply.code(400).send({
         error: {

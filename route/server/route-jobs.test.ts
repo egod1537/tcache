@@ -1,7 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { buildApp } from '../../apps/server/src/app.js';
 import { createRouteCachePolicy } from './cache/policy.js';
+import { createRouteCacheKey } from './cache/key.js';
 import type { CachedRoute, RouteCacheRepository } from './cache/repository.js';
 import type { RouteJob } from './jobs/route-job.js';
 import { InMemoryRouteJobEventBus } from './jobs/route-job-events.js';
@@ -12,7 +13,18 @@ import type {
   RouteProvider,
   RouteProviderResult,
 } from './providers/provider.js';
-import type { NormalizedRouteRequest } from './types/route.js';
+import { GoogleRouteProvider } from './providers/google/client.js';
+import { toGoogleRoutesRequest } from './providers/google/mapper.js';
+import { parseGoogleRoutesResponse } from './providers/google/parser.js';
+import {
+  boundsFromPath,
+  decodeGooglePolyline,
+  encodeGooglePolyline,
+} from './providers/google/polyline.js';
+import {
+  normalizeRouteRequest,
+  type NormalizedRouteRequest,
+} from './types/route.js';
 
 class MemoryJobStore implements RouteJobStore {
   readonly jobs = new Map<string, RouteJob>();
@@ -123,6 +135,7 @@ async function waitForTerminal(
 }
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   await Promise.all(apps.splice(0).map((app) => app.close()));
 });
 
@@ -273,5 +286,347 @@ describe('route jobs', () => {
       status: 'completed',
       progress: 100,
     });
+  });
+});
+
+describe('Google route provider mapping and parsing', () => {
+  it('maps address, coordinates, place IDs, intermediates, and options', () => {
+    const normalized = normalizeRouteRequest({
+      origin: { type: 'address', address: ' 東京駅、日本 ' },
+      intermediates: [
+        { type: 'coordinates', latitude: 35.7148, longitude: 139.7967 },
+        { type: 'placeId', placeId: 'ChIJ-example' },
+      ],
+      destination: { latitude: 35.6586, longitude: 139.7454 },
+      travelMode: 'driving',
+      computeAlternativeRoutes: true,
+      languageCode: 'ja',
+      regionCode: 'JP',
+      routingPreference: 'TRAFFIC_AWARE',
+      departureTime: '2026-09-18T01:00:00.000Z',
+      units: 'METRIC',
+    });
+
+    expect(toGoogleRoutesRequest(normalized)).toEqual({
+      origin: { address: '東京駅、日本' },
+      intermediates: [
+        {
+          location: {
+            latLng: { latitude: 35.7148, longitude: 139.7967 },
+          },
+        },
+        { placeId: 'ChIJ-example' },
+      ],
+      destination: {
+        location: {
+          latLng: { latitude: 35.6586, longitude: 139.7454 },
+        },
+      },
+      travelMode: 'DRIVE',
+      computeAlternativeRoutes: true,
+      languageCode: 'ja',
+      regionCode: 'JP',
+      routingPreference: 'TRAFFIC_AWARE',
+      departureTime: '2026-09-18T01:00:00.000Z',
+      units: 'METRIC',
+    });
+  });
+
+  it.each([
+    ['DRIVING', 'DRIVE'],
+    ['WALKING', 'WALK'],
+    ['BICYCLING', 'BICYCLE'],
+    ['TRANSIT', 'TRANSIT'],
+  ] as const)('maps travel mode %s to %s', (travelMode, expected) => {
+    const normalized = normalizeRouteRequest({
+      origin: { address: 'A' },
+      destination: { address: 'B' },
+      travelMode,
+    });
+    expect(toGoogleRoutesRequest(normalized).travelMode).toBe(expected);
+  });
+
+  it('decodes encoded polylines and calculates fallback bounds', () => {
+    const path = decodeGooglePolyline('_p~iF~ps|U_ulLnnqC_mqNvxq`@');
+    expect(path).toEqual([
+      { lat: 38.5, lng: -120.2 },
+      { lat: 40.7, lng: -120.95 },
+      { lat: 43.252, lng: -126.453 },
+    ]);
+    expect(boundsFromPath(path)).toEqual({
+      north: 43.252,
+      south: 38.5,
+      east: -120.2,
+      west: -126.453,
+    });
+    expect(encodeGooglePolyline(path)).toBe('_p~iF~ps|U_ulLnnqC_mqNvxq`@');
+  });
+
+  it('normalizes routes, legs, paths, and prefers the Google viewport', () => {
+    const routes = parseGoogleRoutesResponse({
+      routes: [
+        {
+          description: 'Fast route',
+          routeLabels: ['DEFAULT_ROUTE'],
+          distanceMeters: 12_345,
+          duration: '2345.5s',
+          polyline: { encodedPolyline: '_p~iF~ps|U_ulLnnqC_mqNvxq`@' },
+          viewport: {
+            low: { latitude: 35, longitude: 139 },
+            high: { latitude: 36, longitude: 140 },
+          },
+          legs: [
+            {
+              distanceMeters: 12_345,
+              duration: '2345s',
+              startLocation: {
+                latLng: { latitude: 35.1, longitude: 139.1 },
+              },
+              endLocation: {
+                latLng: { latitude: 35.9, longitude: 139.9 },
+              },
+              steps: [
+                {
+                  distanceMeters: 100,
+                  staticDuration: '12s',
+                  travelMode: 'DRIVE',
+                  navigationInstruction: { instructions: 'Head east' },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(routes[0]).toMatchObject({
+      description: 'Fast route',
+      distanceMeters: 12_345,
+      durationSeconds: 2345.5,
+      bounds: { north: 36, south: 35, east: 140, west: 139 },
+      legs: [
+        {
+          durationSeconds: 2345,
+          startLocation: { lat: 35.1, lng: 139.1 },
+          steps: [
+            {
+              durationSeconds: 12,
+              travelMode: 'DRIVE',
+              instruction: 'Head east',
+            },
+          ],
+        },
+      ],
+    });
+    expect(routes[0]?.path).toHaveLength(3);
+  });
+
+  it('preserves Google HTTP error details without exposing the API key', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            error: {
+              code: 400,
+              status: 'INVALID_ARGUMENT',
+              message: 'Invalid origin',
+              debug: 'super-secret-key',
+            },
+          }),
+          { status: 400 },
+        ),
+    );
+    const provider = new GoogleRouteProvider('super-secret-key');
+    const normalized = normalizeRouteRequest({
+      origin: { address: 'A' },
+      destination: { address: 'B' },
+      travelMode: 'DRIVING',
+    });
+
+    await expect(
+      provider.getRoute(normalized, new AbortController().signal),
+    ).rejects.toMatchObject({
+      code: 'GOOGLE_ROUTES_ERROR',
+      message: 'Invalid origin',
+      details: {
+        upstream: {
+          httpStatus: 400,
+          status: 'INVALID_ARGUMENT',
+          message: 'Invalid origin',
+        },
+      },
+    });
+    await expect(
+      provider.getRoute(normalized, new AbortController().signal),
+    ).rejects.not.toHaveProperty('details.apiKey');
+
+    const { app } = createTestApp(provider);
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: {
+        origin: { address: 'A' },
+        destination: { address: 'B' },
+        travelMode: 'DRIVING',
+      },
+    });
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+    expect(job.error).toMatchObject({
+      code: 'GOOGLE_ROUTES_ERROR',
+      details: {
+        upstream: {
+          httpStatus: 400,
+          status: 'INVALID_ARGUMENT',
+        },
+      },
+    });
+    expect(JSON.stringify(job.error)).not.toContain('super-secret-key');
+  });
+
+  it('passes the Job AbortSignal through to fetch', async () => {
+    const controller = new AbortController();
+    vi.spyOn(globalThis, 'fetch').mockImplementation((_input, init) => {
+      expect(init?.signal).toBe(controller.signal);
+      return new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener(
+          'abort',
+          () => reject(init.signal?.reason),
+          { once: true },
+        );
+      });
+    });
+    const provider = new GoogleRouteProvider('backend-key');
+    const request = normalizeRouteRequest({
+      origin: { address: 'A' },
+      destination: { address: 'B' },
+      travelMode: 'WALKING',
+    });
+    const pending = provider.getRoute(request, controller.signal);
+    controller.abort(new Error('cancelled by test'));
+
+    await expect(pending).rejects.toThrow('cancelled by test');
+  });
+
+  it('queries and merges transit segments when intermediates are present', async () => {
+    const firstPath = [
+      { lat: 35, lng: 139 },
+      { lat: 35.5, lng: 139.5 },
+    ];
+    const secondPath = [
+      { lat: 35.5, lng: 139.5 },
+      { lat: 36, lng: 140 },
+    ];
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(async (_input, init) => {
+        const body = JSON.parse(String(init?.body)) as {
+          origin: { address: string };
+          destination: { address: string };
+          intermediates?: unknown[];
+        };
+        expect(body.intermediates).toBeUndefined();
+        const firstSegment = body.origin.address === 'A';
+        return new Response(
+          JSON.stringify({
+            routes: [
+              {
+                distanceMeters: firstSegment ? 100 : 200,
+                duration: firstSegment ? '60s' : '120s',
+                polyline: {
+                  encodedPolyline: encodeGooglePolyline(
+                    firstSegment ? firstPath : secondPath,
+                  ),
+                },
+                legs: [
+                  {
+                    distanceMeters: firstSegment ? 100 : 200,
+                    duration: firstSegment ? '60s' : '120s',
+                  },
+                ],
+              },
+            ],
+          }),
+          { status: 200 },
+        );
+      });
+    const provider = new GoogleRouteProvider('backend-key');
+    const request = normalizeRouteRequest({
+      origin: { address: 'A' },
+      intermediates: [{ address: 'B' }],
+      destination: { address: 'C' },
+      travelMode: 'TRANSIT',
+    });
+
+    const providerResult = await provider.getRoute(
+      request,
+      new AbortController().signal,
+    );
+    const result = providerResult.result as {
+      routes: Array<{
+        distanceMeters: number;
+        durationSeconds: number;
+        path: unknown[];
+        legs: unknown[];
+        warnings: string[];
+      }>;
+    };
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(result.routes[0]).toMatchObject({
+      distanceMeters: 300,
+      durationSeconds: 180,
+    });
+    expect(result.routes[0]?.path).toHaveLength(3);
+    expect(result.routes[0]?.legs).toHaveLength(2);
+    expect(result.routes[0]?.warnings[0]).toContain('separate segments');
+  });
+});
+
+describe('route cache keys', () => {
+  it('changes when provider or intermediate order changes', () => {
+    const first = normalizeRouteRequest({
+      origin: { address: 'A' },
+      intermediates: [{ address: 'B' }, { address: 'C' }],
+      destination: { address: 'D' },
+      travelMode: 'DRIVING',
+      computeAlternativeRoutes: false,
+    });
+    const reordered = normalizeRouteRequest({
+      origin: { address: 'A' },
+      intermediates: [{ address: 'C' }, { address: 'B' }],
+      destination: { address: 'D' },
+      travelMode: 'DRIVING',
+      computeAlternativeRoutes: false,
+    });
+    const alternatives = normalizeRouteRequest({
+      origin: { address: 'A' },
+      intermediates: [{ address: 'B' }, { address: 'C' }],
+      destination: { address: 'D' },
+      travelMode: 'DRIVING',
+      computeAlternativeRoutes: true,
+    });
+    const withDepartureTime = normalizeRouteRequest({
+      origin: { address: 'A' },
+      intermediates: [{ address: 'B' }, { address: 'C' }],
+      destination: { address: 'D' },
+      travelMode: 'DRIVING',
+      departureTime: '2026-09-18T01:00:00.000Z',
+    });
+
+    expect(createRouteCacheKey(first, 'google')).not.toBe(
+      createRouteCacheKey(reordered, 'google'),
+    );
+    expect(createRouteCacheKey(first, 'google')).not.toBe(
+      createRouteCacheKey(first, 'mock'),
+    );
+    expect(createRouteCacheKey(first, 'google')).not.toBe(
+      createRouteCacheKey(alternatives, 'google'),
+    );
+    expect(createRouteCacheKey(first, 'google')).not.toBe(
+      createRouteCacheKey(withDepartureTime, 'google'),
+    );
   });
 });

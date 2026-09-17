@@ -22,6 +22,7 @@ export function registerGetResult(
           status: job.status,
           cache: job.cache,
           provider: job.provider,
+          providerLatencyMs: job.providerLatencyMs,
           result: job.result,
         };
       }

@@ -11,8 +11,12 @@ export interface AppConfig {
   aiJobTtlSeconds: number;
   aiCacheTtlSeconds: number;
   aiProviderTimeoutMs: number;
-  aiProvider: 'gemini' | 'mock';
+  aiProvider: 'gemini' | 'openwebui' | 'mock';
   geminiApiKey: string;
+  geminiModel: string;
+  openWebUIBaseUrl: string;
+  openWebUIApiKey: string;
+  openWebUIModel: string;
 }
 
 function readPositiveInteger(
@@ -41,7 +45,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   const aiProvider =
     env.AI_PROVIDER?.trim().toLowerCase() ??
     (nodeEnv === 'production' ? 'gemini' : 'mock');
-  if (aiProvider !== 'gemini' && aiProvider !== 'mock') {
+  if (
+    aiProvider !== 'gemini' &&
+    aiProvider !== 'openwebui' &&
+    aiProvider !== 'mock'
+  ) {
     throw new Error(`Invalid AI_PROVIDER: ${aiProvider}`);
   }
 
@@ -84,5 +92,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     ),
     aiProvider,
     geminiApiKey: env.GEMINI_API_KEY?.trim() ?? '',
+    geminiModel: env.GEMINI_MODEL?.trim() || 'gemini-2.5-flash',
+    openWebUIBaseUrl: env.OPENWEBUI_BASE_URL?.trim() ?? '',
+    openWebUIApiKey: env.OPENWEBUI_API_KEY?.trim() ?? '',
+    openWebUIModel: env.OPENWEBUI_MODEL?.trim() ?? '',
   };
 }
