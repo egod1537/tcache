@@ -1,0 +1,269 @@
+import type { PingResponse, ServiceStatus } from '@tcache/common';
+
+export type RouteJobStatus =
+  'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+export interface RouteJobError {
+  code: string;
+  message: string;
+  details?: unknown;
+}
+
+export interface RouteJobView {
+  jobId: string;
+  status: RouteJobStatus;
+  stage: string;
+  progress: number;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  request: unknown;
+  cache?: { hit: boolean; key: string; ttl: number };
+  provider?: string;
+  error?: RouteJobError;
+}
+
+export interface RouteJobResult {
+  jobId: string;
+  status: RouteJobStatus;
+  cache?: { hit: boolean; key: string; ttl: number };
+  provider?: string;
+  result?: unknown;
+  error?: RouteJobError;
+}
+
+export interface CreateRouteJobResponse {
+  jobId: string;
+  status: 'queued';
+  eventsUrl: string;
+  resultUrl: string;
+}
+
+async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(path, {
+    cache: 'no-store',
+    ...(signal ? { signal } : {}),
+  });
+  if (!response.ok)
+    throw new Error(`HTTP ${response.status} ${response.statusText}`);
+  return (await response.json()) as T;
+}
+
+export async function checkHealth(signal?: AbortSignal) {
+  const body = await getJson<{ status: string }>('/health', signal);
+  if (body.status !== 'ok') throw new Error('Unexpected health response');
+  return body;
+}
+
+export function getServiceStatus(signal?: AbortSignal) {
+  return getJson<ServiceStatus>('/api/status', signal);
+}
+
+export function pingRouteCache(signal?: AbortSignal) {
+  return getJson<PingResponse>('/api/route/ping', signal);
+}
+
+export function pingAiCache(signal?: AbortSignal) {
+  return getJson<PingResponse>('/api/ai/ping', signal);
+}
+
+async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, {
+    cache: 'no-store',
+    ...init,
+    headers: {
+      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...init?.headers,
+    },
+  });
+  const body = (await response.json()) as T & {
+    error?: { message?: string };
+  };
+  if (!response.ok) {
+    throw new Error(body.error?.message ?? `HTTP ${response.status}`);
+  }
+  return body;
+}
+
+export function createRouteJob(request: unknown) {
+  return requestJson<CreateRouteJobResponse>('/api/route/jobs', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+export async function listRouteJobs() {
+  const response = await requestJson<{ jobs: RouteJobView[] }>(
+    '/api/route/jobs?limit=50',
+  );
+  return response.jobs;
+}
+
+export function getRouteJob(jobId: string) {
+  return requestJson<RouteJobView>(
+    `/api/route/jobs/${encodeURIComponent(jobId)}`,
+  );
+}
+
+export async function getRouteJobResult(jobId: string) {
+  const response = await fetch(
+    `/api/route/jobs/${encodeURIComponent(jobId)}/result`,
+    { cache: 'no-store' },
+  );
+  const body = (await response.json()) as RouteJobResult;
+  if (!response.ok && response.status !== 409) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+  return body;
+}
+
+export function cancelRouteJob(jobId: string) {
+  return requestJson<{ jobId: string; status: RouteJobStatus }>(
+    `/api/route/jobs/${encodeURIComponent(jobId)}/cancel`,
+    { method: 'POST' },
+  );
+}
+
+export function subscribeRouteJob(
+  jobId: string,
+  onEvent: (job: RouteJobView) => void,
+  onConnectionError: () => void,
+) {
+  const source = new EventSource(
+    `/api/route/jobs/${encodeURIComponent(jobId)}/events`,
+  );
+  const eventNames = [
+    'snapshot',
+    'progress',
+    'completed',
+    'failed',
+    'cancelled',
+  ] as const;
+
+  for (const eventName of eventNames) {
+    source.addEventListener(eventName, (event) => {
+      const job = JSON.parse(
+        (event as MessageEvent<string>).data,
+      ) as RouteJobView;
+      onEvent(job);
+      if (['completed', 'failed', 'cancelled'].includes(eventName))
+        source.close();
+    });
+  }
+  source.onerror = onConnectionError;
+  return () => source.close();
+}
+
+export type AiJobStatus =
+  'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+export interface AiRequestMetadata {
+  provider: string;
+  model: string;
+  messageCount: number;
+  promptHash: string;
+  promptVersion?: string;
+  hasSystemPrompt: boolean;
+  optionKeys: string[];
+  toolCount: number;
+  hasResponseSchema: boolean;
+  cacheEnabled: boolean;
+}
+
+export interface AiJobView {
+  jobId: string;
+  status: AiJobStatus;
+  stage: string;
+  progress: number;
+  provider: string;
+  model: string;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  requestMetadata: AiRequestMetadata;
+  cache?: { enabled: boolean; hit: boolean; key: string; ttl: number };
+  error?: RouteJobError;
+}
+
+export interface AiJobResult {
+  jobId: string;
+  status: AiJobStatus;
+  cache?: { enabled: boolean; hit: boolean; key: string; ttl: number };
+  provider: string;
+  model: string;
+  result?: unknown;
+  error?: RouteJobError;
+}
+
+export interface CreateAiJobResponse {
+  jobId: string;
+  status: 'queued';
+  eventsUrl: string;
+  resultUrl: string;
+}
+
+export function createAiJob(request: unknown) {
+  return requestJson<CreateAiJobResponse>('/api/ai/jobs', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+export async function listAiJobs() {
+  const response = await requestJson<{ jobs: AiJobView[] }>(
+    '/api/ai/jobs?limit=50',
+  );
+  return response.jobs;
+}
+
+export function getAiJob(jobId: string) {
+  return requestJson<AiJobView>(`/api/ai/jobs/${encodeURIComponent(jobId)}`);
+}
+
+export async function getAiJobResult(jobId: string) {
+  const response = await fetch(
+    `/api/ai/jobs/${encodeURIComponent(jobId)}/result`,
+    { cache: 'no-store' },
+  );
+  const body = (await response.json()) as AiJobResult;
+  if (!response.ok && response.status !== 409) {
+    throw new Error(`HTTP ${response.status}`);
+  }
+  return body;
+}
+
+export function cancelAiJob(jobId: string) {
+  return requestJson<{ jobId: string; status: AiJobStatus }>(
+    `/api/ai/jobs/${encodeURIComponent(jobId)}/cancel`,
+    { method: 'POST' },
+  );
+}
+
+export function subscribeAiJob(
+  jobId: string,
+  onEvent: (job: AiJobView) => void,
+  onConnectionError: () => void,
+) {
+  const source = new EventSource(
+    `/api/ai/jobs/${encodeURIComponent(jobId)}/events`,
+  );
+  const eventNames = [
+    'snapshot',
+    'progress',
+    'completed',
+    'failed',
+    'cancelled',
+  ] as const;
+  for (const eventName of eventNames) {
+    source.addEventListener(eventName, (event) => {
+      const job = JSON.parse((event as MessageEvent<string>).data) as AiJobView;
+      onEvent(job);
+      if (['completed', 'failed', 'cancelled'].includes(eventName))
+        source.close();
+    });
+  }
+  source.onerror = onConnectionError;
+  return () => source.close();
+}

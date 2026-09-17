@@ -66,32 +66,93 @@ Compose는 `tcache-server`, `tcache-testbed`, `redis`를 실행합니다. server
 
 ## 환경 변수
 
-| 변수                  | 기본값                   | 설명                         |
-| --------------------- | ------------------------ | ---------------------------- |
-| `NODE_ENV`            | `development`            | 실행 환경                    |
-| `TCACHE_PORT`         | `3200`                   | 로컬 server/host 포트        |
-| `TCACHE_TESTBED_PORT` | `3201`                   | 로컬 testbed/host 포트       |
-| `REDIS_URL`           | `redis://localhost:6379` | Redis 연결 주소              |
-| `GIT_COMMIT_SHA`      | `dev`                    | `/status`에 노출할 배포 버전 |
-| `GOOGLE_MAPS_API_KEY` | 비어 있음                | 향후 Route Cache용           |
-| `GEMINI_API_KEY`      | 비어 있음                | 향후 AI Cache용              |
+| 변수                           | 기본값                   | 설명                          |
+| ------------------------------ | ------------------------ | ----------------------------- |
+| `NODE_ENV`                     | `development`            | 실행 환경                     |
+| `TCACHE_PORT`                  | `3200`                   | 로컬 server/host 포트         |
+| `TCACHE_TESTBED_PORT`          | `3201`                   | 로컬 testbed/host 포트        |
+| `REDIS_URL`                    | `redis://localhost:6379` | Redis 연결 주소               |
+| `GIT_COMMIT_SHA`               | `dev`                    | `/status`에 노출할 배포 버전  |
+| `ROUTE_JOB_TTL_SECONDS`        | `86400`                  | Route Job 기록 보존 시간      |
+| `ROUTE_CACHE_TTL_SECONDS`      | `3600`                   | Route 결과 cache TTL          |
+| `ROUTE_PROVIDER_TIMEOUT_MS`    | `30000`                  | Route provider 요청 제한 시간 |
+| `ROUTE_PROVIDER`               | `mock`                   | `mock` 또는 `google`          |
+| `GOOGLE_MAPS_API_KEY`          | 비어 있음                | Google Routes API key         |
+| `AI_JOB_TTL_SECONDS`           | `86400`                  | AI Job 기록 보존 시간         |
+| `AI_CACHE_DEFAULT_TTL_SECONDS` | `3600`                   | AI 응답 cache TTL             |
+| `AI_PROVIDER_TIMEOUT_MS`       | `120000`                 | AI provider 요청 제한 시간    |
+| `AI_PROVIDER`                  | `mock`                   | `mock` 또는 `gemini`          |
+| `GEMINI_API_KEY`               | 비어 있음                | Gemini API key                |
 
 `.env`와 tunnel credential은 Git에 커밋하지 않습니다. Docker 환경에서는 server가 내부 주소 `redis://redis:6379`를 사용합니다.
 
 ## URL 구조
 
-| URL               | 용도                                          |
-| ----------------- | --------------------------------------------- |
-| `/`               | testbed 홈                                    |
-| `/route`          | Route Cache testbed                           |
-| `/ai`             | AI Cache testbed                              |
-| `/status`         | 배포 상태 UI                                  |
-| `/health`         | server/container health check                 |
-| `/api/route/ping` | Route Cache placeholder API                   |
-| `/api/ai/ping`    | AI Cache placeholder API                      |
-| `/api/status`     | UI에서 server `/status`를 조회하는 proxy 경로 |
+| URL                                  | 용도                                          |
+| ------------------------------------ | --------------------------------------------- |
+| `/`                                  | testbed 홈                                    |
+| `/route`                             | Route Job testbed                             |
+| `/ai`                                | AI Job testbed                                |
+| `/status`                            | 배포 상태 UI                                  |
+| `/health`                            | server/container health check                 |
+| `/api/route/ping`                    | Route Cache health                            |
+| `POST /api/route/jobs`               | 비동기 Route Job 생성                         |
+| `GET /api/route/jobs/:jobId`         | Route Job 상태 polling                        |
+| `GET /api/route/jobs/:jobId/events`  | Route Job SSE progress stream                 |
+| `GET /api/route/jobs/:jobId/result`  | 완료 결과 조회                                |
+| `POST /api/route/jobs/:jobId/cancel` | Route Job 취소                                |
+| `/api/ai/ping`                       | AI Cache health                               |
+| `POST /api/ai/jobs`                  | 비동기 AI Job 생성                            |
+| `GET /api/ai/jobs/:jobId`            | AI Job 상태 polling                           |
+| `GET /api/ai/jobs/:jobId/events`     | AI Job SSE progress stream                    |
+| `GET /api/ai/jobs/:jobId/result`     | AI Job 완료 결과 조회                         |
+| `POST /api/ai/jobs/:jobId/cancel`    | AI Job 취소                                   |
+| `/api/status`                        | UI에서 server `/status`를 조회하는 proxy 경로 |
 
 server의 `GET /status`는 service, commit SHA, environment, uptime, Redis 상태를 JSON으로 반환합니다. 외부 `/status`는 같은 정보를 표시하는 React 화면이므로 Nginx/Vite가 `/api/status`를 server의 `/status`로 변환합니다.
+
+## Route Job API
+
+Route 요청은 `202 Accepted`와 `route_` prefix Job ID를 즉시 반환하고 Redis에서 상태를 관리합니다. 클라이언트는 callback URL을 제공하지 않으며, 반환된 `eventsUrl`에 직접 SSE 연결을 열어 `snapshot`, `progress`, `completed`, `failed`, `cancelled` 이벤트를 받습니다. 연결이 끊겨도 Job은 계속 실행되며 재연결 시 최신 Redis snapshot이 먼저 전송됩니다.
+
+```bash
+curl -X POST http://localhost:3200/api/route/jobs \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "origin":{"address":"Seoul Station"},
+    "destination":{"address":"Gangnam Station"},
+    "waypoints":[],
+    "travelMode":"TRANSIT",
+    "options":{"languageCode":"ko"}
+  }'
+
+curl -N http://localhost:3200/api/route/jobs/<jobId>/events
+curl http://localhost:3200/api/route/jobs/<jobId>/result
+```
+
+로컬 `.env.example`은 실제 비용 없이 Job·cache·SSE 흐름을 검증하도록 `ROUTE_PROVIDER=mock`을 사용합니다. Compose의 환경 변수 기본값은 운영 안전을 위해 `google`이며, 이때 `GOOGLE_MAPS_API_KEY`가 없으면 가짜 결과를 반환하지 않고 Job이 `PROVIDER_ERROR`로 실패합니다. provider는 Job 상태를 직접 다루지 않으며 timeout과 progress stage는 runner가 관리합니다.
+
+## AI Job API
+
+AI 요청도 `202 Accepted`와 `ai_` prefix Job ID를 즉시 반환합니다. Redis가 상태의 source of truth이고 SSE 연결 종료와 Job 실행은 분리됩니다. 공개 Job 상태와 SSE에는 raw system prompt/message 대신 prompt hash, 메시지 수, option key 같은 metadata만 포함됩니다.
+
+```bash
+curl -X POST http://localhost:3200/api/ai/jobs \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "provider":"mock",
+    "model":"mock-ai-v1",
+    "systemPrompt":"You are a concise assistant.",
+    "messages":[{"role":"user","content":"Summarize this request."}],
+    "options":{"temperature":0.2},
+    "cache":{"enabled":true}
+  }'
+
+curl -N http://localhost:3200/api/ai/jobs/<jobId>/events
+curl http://localhost:3200/api/ai/jobs/<jobId>/result
+```
+
+로컬 `.env.example`은 `AI_PROVIDER=mock`을 사용합니다. Compose와 production의 기본 provider는 `gemini`이며 `GEMINI_API_KEY`가 없으면 mock으로 fallback하지 않고 Job이 `AI_PROVIDER_ERROR`로 실패합니다. 현재 Gemini REST provider와 mock provider가 구현되어 있고 provider registry를 통해 Qwen/OpenAI 구현을 독립적으로 추가할 수 있습니다. AI token streaming은 Job progress SSE와 분리된 후속 범위입니다.
 
 ## 배포 구조
 
@@ -116,8 +177,10 @@ Mac mini에는 다음 사전 구성이 필요합니다.
 1. GitHub self-hosted runner에 `macOS` label과 Docker 접근 권한 설정
 2. repository Environment `production` 생성
 3. 필요하면 Actions variable `TCACHE_PORT` 설정(기본 `3200`)
-4. `cloudflared`를 시스템 서비스로 등록하고 `tcache.mangagaki.net` 연결
+4. production Environment에 `ROUTE_PROVIDER=google`, `AI_PROVIDER=gemini` variable 설정
+5. production Environment에 `GOOGLE_MAPS_API_KEY`, `GEMINI_API_KEY` secret 설정
+6. `cloudflared`를 시스템 서비스로 등록하고 `tcache.mangagaki.net` 연결
 
 ## 현재 범위
 
-현재는 health/status와 Route/AI ping endpoint, placeholder testbed만 제공합니다. 실제 Maps/AI provider 연동, cache key와 TTL 정책, Bloom Filter, 인증, 고급 eviction, 통계 dashboard는 후속 작업 범위입니다.
+현재 Route Cache와 AI Cache는 각각 독립된 Redis-backed 비동기 Job, SSE progress, polling/result/cancel API, 결과 cache와 Job testbed를 제공합니다. Route는 Google/mock provider, AI는 Gemini/mock provider를 지원합니다. Bloom Filter, 인증, 고급 eviction, token streaming, 통계 dashboard는 후속 작업 범위입니다.

@@ -45,6 +45,10 @@ jobs:
       GIT_COMMIT_SHA: ${{ github.sha }}
       TCACHE_PORT: ${{ vars.TCACHE_PORT || '3200' }}
       TCACHE_TESTBED_PORT: ${{ vars.TCACHE_TESTBED_PORT || '3201' }}
+      ROUTE_PROVIDER: ${{ vars.ROUTE_PROVIDER || 'google' }}
+      GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+      AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
     steps:
       - uses: actions/checkout@v7
         with:

@@ -1,0 +1,266 @@
+import type { RouteCachePolicy } from '../cache/policy.js';
+import { createRouteCacheKey } from '../cache/key.js';
+import type { RouteCacheRepository } from '../cache/repository.js';
+import type { RouteProvider } from '../providers/provider.js';
+import { normalizeRouteRequest } from '../types/route.js';
+import {
+  isTerminalStatus,
+  type RouteJob,
+  type RouteJobError,
+  type RouteJobEventType,
+} from './route-job.js';
+import type { RouteJobEventBus } from './route-job-events.js';
+import type { RouteJobStore } from './route-job-store.js';
+
+class RouteJobStoppedError extends Error {}
+
+export interface RouteJobRunnerOptions {
+  store: RouteJobStore;
+  events: RouteJobEventBus;
+  cache: RouteCacheRepository;
+  cachePolicy: RouteCachePolicy;
+  provider: RouteProvider;
+  providerTimeoutMs: number;
+}
+
+export class RouteJobRunner {
+  private readonly controllers = new Map<string, AbortController>();
+  private readonly locks = new Map<string, Promise<void>>();
+
+  constructor(private readonly options: RouteJobRunnerOptions) {}
+
+  async run(jobId: string): Promise<void> {
+    const initial = await this.options.store.get(jobId);
+    if (!initial || isTerminalStatus(initial.status)) return;
+
+    const controller = new AbortController();
+    this.controllers.set(jobId, controller);
+    let errorCode: RouteJobError['code'] = 'INTERNAL_ERROR';
+    let timedOut = false;
+
+    try {
+      await this.transition(jobId, {
+        status: 'running',
+        stage: 'normalizing_request',
+        progress: 5,
+        message: 'Route 요청 정규화 중',
+      });
+
+      errorCode = 'INVALID_REQUEST';
+      const normalizedRequest = normalizeRouteRequest(initial.request);
+      const cacheKey = createRouteCacheKey(normalizedRequest);
+
+      await this.transition(jobId, {
+        stage: 'checking_cache',
+        progress: 10,
+        message: 'Route cache 조회 중',
+        normalizedRequest,
+      });
+
+      errorCode = 'CACHE_ERROR';
+      const cached = await this.options.cache.get(cacheKey);
+      if (cached) {
+        await this.transition(jobId, {
+          stage: 'cache_hit',
+          progress: 100,
+          message: 'Route cache hit',
+          cache: {
+            hit: true,
+            key: cacheKey,
+            ttl: this.options.cachePolicy.ttlSeconds,
+          },
+          provider: cached.provider,
+          result: cached.result,
+        });
+        await this.complete(jobId, 'Cached route result ready');
+        return;
+      }
+
+      await this.transition(jobId, {
+        stage: 'cache_miss',
+        progress: 20,
+        message: 'Route cache miss',
+        cache: {
+          hit: false,
+          key: cacheKey,
+          ttl: this.options.cachePolicy.ttlSeconds,
+        },
+      });
+
+      await this.transition(jobId, {
+        stage: 'calling_provider',
+        progress: 40,
+        message: 'Route provider 호출 중',
+      });
+
+      errorCode = 'PROVIDER_ERROR';
+      const timeout = setTimeout(() => {
+        timedOut = true;
+        controller.abort(new Error('Route provider timed out'));
+      }, this.options.providerTimeoutMs);
+      const providerResult = await this.options.provider
+        .getRoute(normalizedRequest, controller.signal)
+        .finally(() => clearTimeout(timeout));
+
+      await this.transition(jobId, {
+        stage: 'processing_provider_response',
+        progress: 75,
+        message: 'Provider 응답 처리 중',
+        provider: providerResult.provider,
+      });
+
+      await this.transition(jobId, {
+        stage: 'writing_cache',
+        progress: 90,
+        message: 'Route cache 저장 중',
+      });
+
+      errorCode = 'CACHE_ERROR';
+      await this.options.cache.set(
+        cacheKey,
+        providerResult,
+        this.options.cachePolicy.ttlSeconds,
+      );
+
+      await this.complete(jobId, 'Route job completed', {
+        result: providerResult.result,
+      });
+    } catch (error) {
+      const current = await this.options.store.get(jobId);
+      if (
+        error instanceof RouteJobStoppedError ||
+        current?.status === 'cancelled'
+      ) {
+        return;
+      }
+
+      await this.fail(jobId, {
+        code: timedOut ? 'ROUTE_PROVIDER_TIMEOUT' : errorCode,
+        message: timedOut
+          ? `Route provider exceeded ${this.options.providerTimeoutMs}ms timeout`
+          : error instanceof Error
+            ? error.message
+            : 'Unknown route job error',
+      });
+    } finally {
+      this.controllers.delete(jobId);
+    }
+  }
+
+  async cancel(jobId: string): Promise<RouteJob | null> {
+    const cancelled = await this.withJobLock(jobId, async () => {
+      const current = await this.options.store.get(jobId);
+      if (!current || isTerminalStatus(current.status)) return current;
+
+      const now = new Date().toISOString();
+      const next: RouteJob = {
+        ...current,
+        status: 'cancelled',
+        stage: 'cancelled',
+        message: 'Route job cancelled',
+        updatedAt: now,
+        completedAt: now,
+        error: {
+          code: 'JOB_CANCELLED',
+          message: 'The route job was cancelled',
+        },
+      };
+      await this.options.store.save(next);
+      return next;
+    });
+
+    if (cancelled?.status === 'cancelled') {
+      this.controllers.get(jobId)?.abort(new Error('Route job cancelled'));
+      await this.options.events.publish(jobId, {
+        type: 'cancelled',
+        job: cancelled,
+      });
+    }
+    return cancelled;
+  }
+
+  private async complete(
+    jobId: string,
+    message: string,
+    patch: Partial<RouteJob> = {},
+  ) {
+    await this.transition(
+      jobId,
+      {
+        ...patch,
+        status: 'completed',
+        stage: 'completed',
+        progress: 100,
+        message,
+        completedAt: new Date().toISOString(),
+      },
+      'completed',
+    );
+  }
+
+  private async fail(jobId: string, error: RouteJobError) {
+    try {
+      await this.transition(
+        jobId,
+        {
+          status: 'failed',
+          stage: 'failed',
+          message: error.message,
+          completedAt: new Date().toISOString(),
+          error,
+        },
+        'failed',
+      );
+    } catch (transitionError) {
+      if (!(transitionError instanceof RouteJobStoppedError))
+        throw transitionError;
+    }
+  }
+
+  private async transition(
+    jobId: string,
+    patch: Partial<RouteJob>,
+    eventType: RouteJobEventType = 'progress',
+  ) {
+    const job = await this.withJobLock(jobId, async () => {
+      const current = await this.options.store.get(jobId);
+      if (!current || isTerminalStatus(current.status)) {
+        throw new RouteJobStoppedError();
+      }
+      const next: RouteJob = {
+        ...current,
+        ...patch,
+        jobId: current.jobId,
+        request: current.request,
+        createdAt: current.createdAt,
+        updatedAt: new Date().toISOString(),
+      };
+      await this.options.store.save(next);
+      return next;
+    });
+
+    await this.options.events.publish(jobId, { type: eventType, job });
+    return job;
+  }
+
+  private async withJobLock<T>(
+    jobId: string,
+    action: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.locks.get(jobId) ?? Promise.resolve();
+    let release = () => {};
+    const current = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const tail = previous.then(() => current);
+    this.locks.set(jobId, tail);
+    await previous;
+
+    try {
+      return await action();
+    } finally {
+      release();
+      if (this.locks.get(jobId) === tail) this.locks.delete(jobId);
+    }
+  }
+}
