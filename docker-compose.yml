@@ -1,0 +1,64 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - tcache-internal
+
+  tcache-server:
+    build:
+      context: .
+      dockerfile: deploy/docker/server.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      TCACHE_PORT: 3200
+      REDIS_URL: redis://redis:6379
+      GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-dev}
+    ports:
+      - '127.0.0.1:${TCACHE_PORT:-3200}:3200'
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:3200/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - tcache-internal
+
+  tcache-testbed:
+    build:
+      context: .
+      dockerfile: deploy/docker/testbed.Dockerfile
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:${TCACHE_TESTBED_PORT:-3201}:80'
+    depends_on:
+      tcache-server:
+        condition: service_healthy
+    networks:
+      - tcache-internal
+
+volumes:
+  redis-data:
+
+networks:
+  tcache-internal:
+    driver: bridge

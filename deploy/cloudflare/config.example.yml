@@ -1,0 +1,8 @@
+# Store the real credentials file outside this repository.
+tunnel: <TUNNEL_ID>
+credentials-file: /absolute/path/to/<TUNNEL_ID>.json
+
+ingress:
+  - hostname: tcache.mangagaki.net
+    service: http://localhost:3201
+  - service: http_status:404
