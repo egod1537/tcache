@@ -17,6 +17,23 @@ import type { AiJobStore } from './ai-job-store.js';
 
 class AiJobStoppedError extends Error {}
 
+/**
+ * Node's fetch reports network failures as a bare "fetch failed" and keeps the
+ * useful reason (for example ECONNREFUSED) on `cause.code`. Surface that code
+ * only, never the cause message, which may include request details.
+ */
+function describeError(error: unknown) {
+  if (!(error instanceof Error)) return 'Unknown AI job error';
+  const cause: unknown = error.cause;
+  const causeCode =
+    cause && typeof cause === 'object' && 'code' in cause
+      ? cause.code
+      : undefined;
+  return typeof causeCode === 'string'
+    ? `${error.message} (${causeCode})`
+    : error.message;
+}
+
 export interface AiJobRunnerOptions {
   store: AiJobStore;
   events: AiJobEventBus;
@@ -160,9 +177,7 @@ export class AiJobRunner {
         code: timedOut ? 'AI_PROVIDER_TIMEOUT' : errorCode,
         message: timedOut
           ? `AI provider exceeded ${this.options.providerTimeoutMs}ms timeout`
-          : error instanceof Error
-            ? error.message
-            : 'Unknown AI job error',
+          : describeError(error),
       });
     } finally {
       this.controllers.delete(jobId);
