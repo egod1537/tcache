@@ -544,29 +544,71 @@ export function cancelAiJob(jobId: string) {
   );
 }
 
+export type AiJobStreamState = 'connected' | 'reconnecting' | 'disconnected';
+
+export type AiJobStreamEventType =
+  'snapshot' | 'progress' | 'completed' | 'failed' | 'cancelled';
+
+export const AI_JOB_STREAM_EVENT_TYPES: readonly AiJobStreamEventType[] = [
+  'snapshot',
+  'progress',
+  'completed',
+  'failed',
+  'cancelled',
+];
+
+export function isTerminalAiEvent(eventType: AiJobStreamEventType) {
+  return (
+    eventType === 'completed' ||
+    eventType === 'failed' ||
+    eventType === 'cancelled'
+  );
+}
+
+/**
+ * Subscribes to one AI Job's SSE stream. `payload` is the parsed event data
+ * exactly as received so the Testbed can show it as raw JSON.
+ * The returned function closes the EventSource.
+ */
 export function subscribeAiJob(
   jobId: string,
-  onEvent: (job: AiJobView) => void,
-  onConnectionError: () => void,
+  onEvent: (
+    job: AiJobView,
+    eventType: AiJobStreamEventType,
+    payload: unknown,
+  ) => void,
+  onConnectionState: (state: AiJobStreamState) => void,
 ) {
   const source = new EventSource(
     `/api/ai/jobs/${encodeURIComponent(jobId)}/events`,
   );
-  const eventNames = [
-    'snapshot',
-    'progress',
-    'completed',
-    'failed',
-    'cancelled',
-  ] as const;
-  for (const eventName of eventNames) {
+
+  source.onopen = () => onConnectionState('connected');
+
+  for (const eventName of AI_JOB_STREAM_EVENT_TYPES) {
     source.addEventListener(eventName, (event) => {
-      const job = JSON.parse((event as MessageEvent<string>).data) as AiJobView;
-      onEvent(job);
-      if (['completed', 'failed', 'cancelled'].includes(eventName))
+      let payload: unknown;
+      try {
+        payload = JSON.parse((event as MessageEvent<string>).data);
+      } catch {
+        return;
+      }
+      onEvent(payload as AiJobView, eventName, payload);
+      if (isTerminalAiEvent(eventName)) {
         source.close();
+        onConnectionState('disconnected');
+      }
     });
   }
-  source.onerror = onConnectionError;
+
+  // EventSource retries on its own while readyState is CONNECTING. A CLOSED
+  // source (e.g. HTTP error response) will not retry. Neither says anything
+  // about the Job itself, so callers must not treat this as a Job failure.
+  source.onerror = () =>
+    onConnectionState(
+      source.readyState === EventSource.CLOSED
+        ? 'disconnected'
+        : 'reconnecting',
+    );
   return () => source.close();
 }

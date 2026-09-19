@@ -6,7 +6,6 @@ import {
   getAiJob,
   getAiJobResult,
   listAiJobs,
-  subscribeAiJob,
   type AiJobResult,
   type AiJobView,
 } from '../../apps/testbed/src/api/client';
@@ -15,6 +14,7 @@ import { Workspace } from '../../apps/testbed/src/components/layout/Workspace';
 import { AiDetail } from './AiDetail';
 import { AiSidebar } from './AiSidebar';
 import { NewAiJobDialog } from './components/NewAiJobDialog';
+import { useAiJobStream } from './useAiJobStream';
 
 const SELECTED_JOB_KEY = 'tcache.ai.selectedJobId';
 
@@ -38,7 +38,6 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
   const [result, setResult] = useState<AiJobResult | null>(null);
   const [refreshing, setRefreshing] = useState(true);
   const [refreshError, setRefreshError] = useState(false);
-  const [streamError, setStreamError] = useState(false);
   const [resultLoading, setResultLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -52,9 +51,12 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
   function selectJob(jobId: string) {
     setSelectedJobId(jobId);
     setResult(null);
-    setStreamError(false);
     window.localStorage.setItem(SELECTED_JOB_KEY, jobId);
   }
+
+  const stream = useAiJobStream(selectedJob?.jobId ?? null, (job) =>
+    setJobs((current) => upsertJob(current, job)),
+  );
 
   async function loadResult(jobId: string) {
     setResultLoading(true);
@@ -96,23 +98,6 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
     if (['completed', 'failed', 'cancelled'].includes(selectedJob.status)) {
       void loadResult(selectedJob.jobId);
     }
-  }, [selectedJob?.jobId, selectedJob?.status]);
-
-  useEffect(() => {
-    if (
-      !selectedJob ||
-      ['completed', 'failed', 'cancelled'].includes(selectedJob.status)
-    ) {
-      return;
-    }
-    return subscribeAiJob(
-      selectedJob.jobId,
-      (job) => {
-        setStreamError(false);
-        setJobs((current) => upsertJob(current, job));
-      },
-      () => setStreamError(true),
-    );
   }, [selectedJob?.jobId, selectedJob?.status]);
 
   async function create(request: unknown) {
@@ -158,11 +143,12 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
           cancelling={cancelling}
           job={selectedJob}
           onCancel={(jobId) => void cancel(jobId)}
-          result={result}
+          // A slow result response for a previously selected Job must not show.
+          result={result?.jobId === selectedJob?.jobId ? result : null}
           resultLoading={resultLoading}
           serverState={status.server}
           service={status.service}
-          streamError={streamError}
+          stream={stream}
           systemState={status.aiCache}
         />
       </Workspace>
