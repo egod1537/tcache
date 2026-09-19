@@ -14,14 +14,18 @@ import {
   NumericInput,
   TextArea,
 } from '@blueprintjs/core';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import {
   getOpenWebUIModels,
   type OpenWebUIModel,
 } from '../../../apps/testbed/src/api/client';
-
-type Provider = '' | 'gemini' | 'openwebui' | 'mock';
+import { JsonViewer } from '../../../apps/testbed/src/components/common/JsonViewer';
+import {
+  buildAiJobRequest,
+  topPOptionKey,
+  type AiProviderChoice as Provider,
+} from '../ai-request-builder';
 
 interface NewAiJobDialogProps {
   dark: boolean;
@@ -48,6 +52,8 @@ export function NewAiJobDialog({
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [promptVersion, setPromptVersion] = useState('v1');
   const [temperature, setTemperature] = useState('0.2');
+  const [topP, setTopP] = useState('');
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [rawMessages, setRawMessages] = useState('');
   const [models, setModels] = useState<OpenWebUIModel[]>([]);
   const [modelsLoaded, setModelsLoaded] = useState(false);
@@ -83,52 +89,39 @@ export function NewAiJobDialog({
     }
   }
 
+  const built = useMemo(
+    () =>
+      buildAiJobRequest({
+        provider,
+        model,
+        systemPrompt,
+        userPrompt,
+        promptVersion,
+        temperature,
+        topP,
+        rawMessages,
+        cacheEnabled,
+      }),
+    [
+      provider,
+      model,
+      systemPrompt,
+      userPrompt,
+      promptVersion,
+      temperature,
+      topP,
+      rawMessages,
+      cacheEnabled,
+    ],
+  );
+  const topPKey = topPOptionKey(provider);
+
   async function submit() {
-    let messages: Array<{ role: string; content: string }>;
-    try {
-      if (rawMessages.trim()) {
-        const parsed = JSON.parse(rawMessages) as unknown;
-        if (!Array.isArray(parsed)) {
-          throw new Error('Raw messages JSON must be an array.');
-        }
-        messages = parsed as Array<{ role: string; content: string }>;
-      } else {
-        if (!userPrompt.trim()) throw new Error('User Prompt is required.');
-        messages = [{ role: 'user', content: userPrompt.trim() }];
-      }
-    } catch (parseError) {
-      setError(
-        parseError instanceof Error
-          ? parseError.message
-          : 'Raw messages must be valid JSON.',
-      );
+    if (!built.ok) {
+      setError(built.error);
       return;
     }
-
-    const numericTemperature = temperature.trim()
-      ? Number(temperature)
-      : undefined;
-    if (
-      numericTemperature !== undefined &&
-      !Number.isFinite(numericTemperature)
-    ) {
-      setError('Temperature must be a number.');
-      return;
-    }
-
-    const request = {
-      ...(provider ? { provider } : {}),
-      ...(provider && model.trim() ? { model: model.trim() } : {}),
-      ...(systemPrompt ? { systemPrompt } : {}),
-      ...(promptVersion.trim() ? { promptVersion: promptVersion.trim() } : {}),
-      messages,
-      options: {
-        ...(numericTemperature !== undefined
-          ? { temperature: numericTemperature }
-          : {}),
-      },
-      cache: { enabled: cacheEnabled },
-    };
+    const request = built.request;
 
     setError('');
     try {
@@ -301,6 +294,31 @@ export function NewAiJobDialog({
                 value={temperature}
               />
             </FormGroup>
+            <FormGroup
+              helperText={
+                topPKey
+                  ? `Optional, 0–1. Sent as "${topPKey}" for this provider.`
+                  : 'Optional, 0–1. Select a provider first: the option name is provider-specific.'
+              }
+              label="Top-P"
+              labelFor="ai-top-p"
+            >
+              <NumericInput
+                allowNumericCharactersOnly
+                fill
+                id="ai-top-p"
+                majorStepSize={0.1}
+                max={1}
+                min={0}
+                minorStepSize={0.01}
+                onValueChange={(_value, valueAsString) =>
+                  setTopP(valueAsString)
+                }
+                placeholder="Provider default"
+                stepSize={0.05}
+                value={topP}
+              />
+            </FormGroup>
           </div>
           <FormGroup
             helperText="When set, this array replaces User Prompt."
@@ -318,6 +336,28 @@ export function NewAiJobDialog({
               value={rawMessages}
             />
           </FormGroup>
+        </Collapse>
+
+        <Button
+          alignText="left"
+          fill
+          icon={previewOpen ? 'chevron-up' : 'chevron-down'}
+          onClick={() => setPreviewOpen((open) => !open)}
+          variant="minimal"
+        >
+          Request preview
+        </Button>
+        <Collapse isOpen={previewOpen}>
+          {built.ok ? (
+            <JsonViewer
+              title="Request body (POST /api/ai/jobs)"
+              value={built.request}
+            />
+          ) : (
+            <Callout compact intent={Intent.WARNING} role="status">
+              {built.error}
+            </Callout>
+          )}
         </Collapse>
 
         {error && (
