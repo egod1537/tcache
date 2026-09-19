@@ -9,6 +9,7 @@ export interface AiRequestDraft {
   temperature: string;
   topP: string;
   rawMessages: string;
+  contextJson: string;
   cacheEnabled: boolean;
 }
 
@@ -46,6 +47,35 @@ function parseOptionalNumber(
   return value;
 }
 
+/** Prefix of the explicit message the Testbed builds from Context JSON. */
+export const CONTEXT_MESSAGE_PREFIX = 'Context JSON:\n';
+
+/**
+ * Testbed-only request composition: Context JSON is not a backend field. It
+ * becomes one ordinary, visible `user` message placed before all other
+ * messages. Empty input adds nothing.
+ */
+function parseContextMessage(raw: string) {
+  const text = raw.trim();
+  if (!text) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(text);
+  } catch (error) {
+    throw new Error(
+      `Context JSON must be valid JSON${
+        error instanceof Error ? `: ${error.message}` : '.'
+      }`,
+    );
+  }
+  return [
+    {
+      role: 'user',
+      content: `${CONTEXT_MESSAGE_PREFIX}${JSON.stringify(parsed, null, 2)}`,
+    },
+  ];
+}
+
 function parseMessages(draft: AiRequestDraft) {
   if (draft.rawMessages.trim()) {
     let parsed: unknown;
@@ -66,7 +96,10 @@ function parseMessages(draft: AiRequestDraft) {
 /** Builds the exact body POSTed to /api/ai/jobs; empty optional values are omitted. */
 export function buildAiJobRequest(draft: AiRequestDraft): AiRequestBuildResult {
   try {
-    const messages = parseMessages(draft);
+    const messages = [
+      ...parseContextMessage(draft.contextJson),
+      ...parseMessages(draft),
+    ];
     const temperature = parseOptionalNumber(
       draft.temperature,
       'Temperature',

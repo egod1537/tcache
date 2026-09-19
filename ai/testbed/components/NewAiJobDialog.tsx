@@ -55,6 +55,7 @@ export function NewAiJobDialog({
   const [topP, setTopP] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [rawMessages, setRawMessages] = useState('');
+  const [contextJson, setContextJson] = useState('');
   const [models, setModels] = useState<OpenWebUIModel[]>([]);
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [modelsLoading, setModelsLoading] = useState(false);
@@ -100,6 +101,7 @@ export function NewAiJobDialog({
         temperature,
         topP,
         rawMessages,
+        contextJson,
         cacheEnabled,
       }),
     [
@@ -111,6 +113,7 @@ export function NewAiJobDialog({
       temperature,
       topP,
       rawMessages,
+      contextJson,
       cacheEnabled,
     ],
   );
@@ -251,6 +254,23 @@ export function NewAiJobDialog({
             onChange={(event) => setUserPrompt(event.target.value)}
             rows={5}
             value={userPrompt}
+          />
+        </FormGroup>
+
+        <FormGroup
+          helperText='Optional. Sent as an explicit first "user" message ("Context JSON:" + formatted JSON), before all other messages. Check Request preview.'
+          label="Context JSON"
+          labelFor="ai-context-json"
+        >
+          <TextArea
+            className={Classes.MONOSPACE_TEXT}
+            fill
+            id="ai-context-json"
+            onChange={(event) => setContextJson(event.target.value)}
+            placeholder={'{"destination":"Tokyo","days":3}'}
+            rows={4}
+            spellCheck={false}
+            value={contextJson}
           />
         </FormGroup>
 

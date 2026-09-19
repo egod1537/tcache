@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { createAiCacheKey } from '../server/cache/key';
+import { toJobStatus, type AiJob } from '../server/jobs/ai-job';
 import { toGeminiRequest } from '../server/providers/gemini/mapper';
 import { toOpenWebUIRequest } from '../server/providers/openwebui/mapper';
-import { normalizeAiRequest } from '../server/types/ai';
+import { normalizeAiRequest, toAiRequestMetadata } from '../server/types/ai';
 import {
   buildAiJobRequest,
+  CONTEXT_MESSAGE_PREFIX,
   topPOptionKey,
   type AiRequestDraft,
 } from './ai-request-builder';
@@ -19,6 +21,7 @@ const draft = (overrides: Partial<AiRequestDraft> = {}): AiRequestDraft => ({
   temperature: '0.2',
   topP: '',
   rawMessages: '',
+  contextJson: '',
   cacheEnabled: true,
   ...overrides,
 });
@@ -184,5 +187,198 @@ describe('Top-P reaches each provider request shape', () => {
       createAiCacheKey(normalizeAiRequest(build({ topP })));
     expect(key('0.9')).not.toBe(key('0.5'));
     expect(key('0.9')).not.toBe(key(''));
+  });
+});
+
+describe('Context JSON composition (Testbed only)', () => {
+  const contextMessage = (json: string) => ({
+    role: 'user',
+    content: `${CONTEXT_MESSAGE_PREFIX}${json}`,
+  });
+  const promptMessage = { role: 'user', content: 'Create a short itinerary.' };
+
+  it('leaves the request byte-identical when Context JSON is empty', () => {
+    const base = draft({ userPrompt: 'Create a short itinerary.' });
+    const withoutField = buildAiJobRequest(base);
+    for (const contextJson of ['', '   ', '\n\t ']) {
+      const result = buildAiJobRequest({ ...base, contextJson });
+      expect(JSON.stringify(result)).toBe(JSON.stringify(withoutField));
+    }
+    expect(build({ userPrompt: 'Create a short itinerary.' })).toMatchObject({
+      messages: [promptMessage],
+    });
+  });
+
+  it('renders an object as one explicit user message before the prompt', () => {
+    const messages = (
+      build({
+        userPrompt: 'Create a short itinerary.',
+        contextJson: '{"destination":"Tokyo","days":3}',
+      }) as { messages: unknown[] }
+    ).messages;
+    expect(messages).toEqual([
+      {
+        role: 'user',
+        content: 'Context JSON:\n{\n  "destination": "Tokyo",\n  "days": 3\n}',
+      },
+      promptMessage,
+    ]);
+  });
+
+  it('accepts arrays and primitive JSON values', () => {
+    const first = (contextJson: string) =>
+      (
+        build({
+          userPrompt: 'Create a short itinerary.',
+          contextJson,
+        }) as { messages: unknown[] }
+      ).messages[0];
+    expect(first('[1,{"a":true}]')).toEqual(
+      contextMessage('[\n  1,\n  {\n    "a": true\n  }\n]'),
+    );
+    expect(first('"plain text"')).toEqual(contextMessage('"plain text"'));
+    expect(first('42')).toEqual(contextMessage('42'));
+    expect(first('true')).toEqual(contextMessage('true'));
+    expect(first('null')).toEqual(contextMessage('null'));
+  });
+
+  it('blocks request creation on invalid JSON', () => {
+    const error = buildError({ contextJson: '{"destination": ' });
+    expect(error).toMatch(/^Context JSON must be valid JSON/);
+    expect(buildAiJobRequest(draft({ contextJson: "{'a':1}" })).ok).toBe(false);
+  });
+
+  it('places the context message before Raw messages JSON, unchanged', () => {
+    const raw = [
+      { role: 'user', content: 'Hi' },
+      { role: 'assistant', content: 'Hello' },
+      { role: 'user', content: 'Again' },
+    ];
+    expect(
+      (
+        build({
+          contextJson: '{"k":1}',
+          rawMessages: JSON.stringify(raw),
+          userPrompt: 'ignored while raw messages are set',
+        }) as { messages: unknown[] }
+      ).messages,
+    ).toEqual([contextMessage('{\n  "k": 1\n}'), ...raw]);
+  });
+
+  it('still requires a User Prompt or raw messages', () => {
+    expect(buildError({ contextJson: '{"k":1}', userPrompt: ' ' })).toBe(
+      'User Prompt is required.',
+    );
+  });
+
+  it('does not change provider, model, options, cache or system prompt', () => {
+    const base = draft({
+      provider: 'openwebui',
+      model: 'qwen-test',
+      topP: '0.5',
+    });
+    const plain = build({
+      provider: 'openwebui',
+      model: 'qwen-test',
+      topP: '0.5',
+    });
+    const withContext = build({
+      provider: 'openwebui',
+      model: 'qwen-test',
+      topP: '0.5',
+      contextJson: '{"k":1}',
+      cacheEnabled: base.cacheEnabled,
+    });
+    const { messages: plainMessages, ...plainRest } = plain as {
+      messages: unknown[];
+    };
+    const { messages: contextMessages, ...contextRest } = withContext as {
+      messages: unknown[];
+    };
+    expect(contextRest).toEqual(plainRest);
+    expect(contextRest).not.toHaveProperty('context');
+    expect(contextMessages).toEqual([
+      contextMessage('{\n  "k": 1\n}'),
+      ...plainMessages,
+    ]);
+    expect(JSON.stringify(contextRest)).not.toContain('Context JSON');
+  });
+
+  it('is accepted unchanged by normalizeAiRequest and reaches provider requests as messages', () => {
+    const request = build({
+      provider: 'openwebui',
+      model: 'qwen-test',
+      userPrompt: 'Create a short itinerary.',
+      contextJson: '{"destination":"Tokyo"}',
+    });
+    const normalized = normalizeAiRequest(request);
+    expect(normalized.messages).toEqual(
+      (request as { messages: unknown[] }).messages,
+    );
+    expect(normalized).not.toHaveProperty('context');
+    expect(toOpenWebUIRequest(normalized).messages).toEqual([
+      { role: 'system', content: 'You are a concise assistant.' },
+      ...(request as { messages: unknown[] }).messages,
+    ]);
+    const gemini = toGeminiRequest(
+      normalizeAiRequest({ ...request, provider: 'gemini' }),
+    );
+    expect(gemini.contents[0]).toEqual({
+      role: 'user',
+      parts: [{ text: 'Context JSON:\n{\n  "destination": "Tokyo"\n}' }],
+    });
+  });
+
+  it('changes promptHash and the cache key because context is part of messages', () => {
+    const normalize = (contextJson: string) =>
+      normalizeAiRequest(build({ contextJson }));
+    const none = normalize('');
+    const a = normalize('{"k":1}');
+    const b = normalize('{"k":2}');
+    const hash = (r: typeof none) => toAiRequestMetadata(r).promptHash;
+    expect(hash(a)).not.toBe(hash(none));
+    expect(hash(a)).not.toBe(hash(b));
+    expect(createAiCacheKey(a)).not.toBe(createAiCacheKey(none));
+    expect(createAiCacheKey(a)).not.toBe(createAiCacheKey(b));
+    // Formatting-only differences render to the same message, so they share a key.
+    expect(createAiCacheKey(normalize('{ "k" :   1 }'))).toBe(
+      createAiCacheKey(a),
+    );
+    expect(toAiRequestMetadata(a).messageCount).toBe(2);
+  });
+
+  it('keeps context content out of Job status / SSE payloads', () => {
+    const secret = 'CTX-SECRET-VALUE';
+    const request = normalizeAiRequest(
+      build({ contextJson: JSON.stringify({ note: secret }) }),
+    );
+    const now = new Date().toISOString();
+    const job: AiJob = {
+      jobId: 'ai_ctx',
+      status: 'running',
+      stage: 'calling_provider',
+      progress: 40,
+      provider: request.provider,
+      model: request.model,
+      message: 'AI provider 응답 대기 중',
+      createdAt: now,
+      updatedAt: now,
+      request,
+      requestMetadata: toAiRequestMetadata(request),
+    };
+    // toJobStatus is what both GET /jobs/:id and every SSE event serialize.
+    const publicView = JSON.stringify(toJobStatus(job));
+    expect(publicView).not.toContain(secret);
+    expect(publicView).not.toContain('Context JSON');
+    // The result endpoint echoes job.request, which is where it stays visible.
+    expect(JSON.stringify(job.request)).toContain(secret);
+  });
+
+  it('preview and submit use one request object', () => {
+    const input = draft({ contextJson: '{"k":1}', topP: '0.5' });
+    const preview = buildAiJobRequest(input);
+    const submitted = buildAiJobRequest({ ...input });
+    expect(preview).toEqual(submitted);
+    expect(JSON.stringify(preview)).toBe(JSON.stringify(submitted));
   });
 });
