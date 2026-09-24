@@ -36,6 +36,8 @@ export interface RouteRequestDatabaseRow {
   day_type: RouteRequestDayType;
   time_bucket: string;
   provider: string | null;
+  country_code: string | null;
+  provider_selection_source: string | null;
   cache_hit: boolean | null;
   total_latency_ms: number | null;
   provider_latency_ms: number | null;

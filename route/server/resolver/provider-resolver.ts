@@ -6,21 +6,51 @@ import {
   type RouteProviderName,
 } from '../providers/provider.js';
 import type { NormalizedRouteRequest } from '../types/route.js';
+import {
+  BUILT_IN_ROUTE_PROVIDER_POLICY,
+  countryModeKey,
+  type RouteProviderPolicy,
+  type RouteProviderPolicySource,
+} from './provider-policy.js';
+
+export type RouteProviderSelectionSource =
+  | 'request-override'
+  | 'global-force'
+  | 'country-mode'
+  | 'country-default'
+  | 'mode-default'
+  | 'global-default'
+  | 'legacy';
+
+export interface RouteProviderResolutionContext {
+  policySource?: RouteProviderPolicySource;
+}
 
 export interface RouteProviderSelection {
   provider: RouteProviderName;
   reason: string;
+  source: RouteProviderSelectionSource;
   capabilities?: RouteProviderCapabilities;
   available?: boolean;
   unavailableReason?: string;
 }
 
 export interface RouteProviderResolver {
-  resolve(request: NormalizedRouteRequest): RouteProviderSelection;
+  resolve(
+    request: NormalizedRouteRequest,
+    context?: RouteProviderResolutionContext,
+  ): RouteProviderSelection;
 }
 
 export class RouteProviderResolutionError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly code:
+      | 'ROUTE_PROVIDER_RESOLUTION_ERROR'
+      | 'PROVIDER_NOT_CONFIGURED'
+      | 'UNSUPPORTED_PROVIDER_CAPABILITY' = 'ROUTE_PROVIDER_RESOLUTION_ERROR',
+    readonly details?: unknown,
+  ) {
     super(message);
     this.name = 'RouteProviderResolutionError';
   }
@@ -48,6 +78,8 @@ export class RouteProviderRegistry {
     if (!provider) {
       throw new RouteProviderResolutionError(
         `Route provider is not configured: ${name}`,
+        'PROVIDER_NOT_CONFIGURED',
+        { provider: name },
       );
     }
     return provider;
@@ -91,22 +123,40 @@ export class RouteProviderRegistry {
   }
 }
 
-export interface DefaultRouteProviderResolverOptions {
+export interface RouteProviderPolicyResolverOptions {
   registry: RouteProviderRegistry;
+  policy?: RouteProviderPolicy;
+  policySource?: RouteProviderPolicySource;
+  legacyCountryModes?: string[];
   allowOverride?: boolean;
   fixedProvider?: RouteProviderName;
-  japanTransitProvider?: Extract<
-    RouteProviderName,
-    'ekispert' | 'navitime' | 'otp'
-  >;
 }
 
-export class DefaultRouteProviderResolver implements RouteProviderResolver {
-  constructor(private readonly options: DefaultRouteProviderResolverOptions) {}
+export class RouteProviderPolicyResolver implements RouteProviderResolver {
+  private readonly policy: RouteProviderPolicy;
+  private readonly legacyCountryModes: Set<string>;
+
+  constructor(private readonly options: RouteProviderPolicyResolverOptions) {
+    this.policy =
+      options.policy ?? structuredClone(BUILT_IN_ROUTE_PROVIDER_POLICY);
+    this.legacyCountryModes = new Set(options.legacyCountryModes ?? []);
+  }
 
   resolve(request: NormalizedRouteRequest): RouteProviderSelection {
     const selection = this.select(request);
     const adapter = this.options.registry.require(selection.provider);
+    if (adapter.available === false) {
+      throw new RouteProviderResolutionError(
+        `Route provider is not configured: ${selection.provider}${adapter.unavailableReason ? ` (${adapter.unavailableReason})` : ''}`,
+        'PROVIDER_NOT_CONFIGURED',
+        {
+          provider: selection.provider,
+          ...(adapter.unavailableReason
+            ? { reason: adapter.unavailableReason }
+            : {}),
+        },
+      );
+    }
     validateRouteProviderCapabilities(
       request,
       selection.provider,
@@ -115,7 +165,7 @@ export class DefaultRouteProviderResolver implements RouteProviderResolver {
     validateRouteRequestForProvider(request, selection.provider);
     return {
       ...selection,
-      available: adapter.available !== false,
+      available: true,
       ...(adapter.unavailableReason
         ? { unavailableReason: adapter.unavailableReason }
         : {}),
@@ -131,6 +181,19 @@ export class DefaultRouteProviderResolver implements RouteProviderResolver {
   }
 
   private select(request: NormalizedRouteRequest): RouteProviderSelection {
+    if (this.options.fixedProvider) {
+      if (request.provider) {
+        throw new RouteProviderResolutionError(
+          'Route provider override is not allowed when ROUTE_PROVIDER is forced',
+        );
+      }
+      return {
+        provider: this.options.fixedProvider,
+        reason: `global force -> ${this.options.fixedProvider}`,
+        source: 'global-force',
+      };
+    }
+
     if (request.provider) {
       if (!this.options.allowOverride) {
         throw new RouteProviderResolutionError(
@@ -139,36 +202,51 @@ export class DefaultRouteProviderResolver implements RouteProviderResolver {
       }
       return {
         provider: toProviderName(request.provider),
-        reason: `override -> ${request.provider}`,
+        reason: `request override -> ${request.provider}`,
+        source: 'request-override',
       };
     }
 
-    if (this.options.fixedProvider) {
+    const countryCode = request.countryCode;
+    const countryPolicy = countryCode
+      ? this.policy.countries[countryCode]
+      : undefined;
+    const exactProvider = countryPolicy?.modes?.[request.travelMode];
+    if (countryCode && exactProvider) {
+      const legacy = this.legacyCountryModes.has(
+        countryModeKey(countryCode, request.travelMode),
+      );
       return {
-        provider: this.options.fixedProvider,
-        reason: `configured -> ${this.options.fixedProvider}`,
+        provider: exactProvider,
+        reason: `${legacy ? 'legacy ' : ''}${countryCode} + ${request.travelMode} -> ${exactProvider}`,
+        source: legacy ? 'legacy' : 'country-mode',
       };
     }
-
-    if (request.countryCode === 'JP') {
-      const provider =
-        request.travelMode === 'TRANSIT'
-          ? (this.options.japanTransitProvider ?? 'ekispert')
-          : 'google';
+    if (countryCode && countryPolicy?.defaultProvider) {
       return {
-        provider,
-        reason: `JP + ${request.travelMode} -> ${provider}`,
+        provider: countryPolicy.defaultProvider,
+        reason: `${countryCode} default -> ${countryPolicy.defaultProvider}`,
+        source: 'country-default',
       };
     }
-    if (request.countryCode === 'KR') {
-      const provider =
-        request.travelMode === 'DRIVING' ? 'kakao-mobility' : 'kakao-maps';
+    const modeDefault = this.policy.modeDefaults?.[request.travelMode];
+    if (modeDefault) {
       return {
-        provider,
-        reason: `KR + ${request.travelMode} -> ${provider}`,
+        provider: modeDefault,
+        reason: `${request.travelMode} default -> ${modeDefault}`,
+        source: 'mode-default',
       };
     }
-    return { provider: 'google', reason: 'default -> google' };
+    if (this.policy.defaultProvider) {
+      return {
+        provider: this.policy.defaultProvider,
+        reason: `global default -> ${this.policy.defaultProvider}`,
+        source: 'global-default',
+      };
+    }
+    throw new RouteProviderResolutionError(
+      `No route provider policy matches ${countryCode ?? '(no country)'} + ${request.travelMode}`,
+    );
   }
 }
 
@@ -237,6 +315,8 @@ export function validateRouteProviderCapabilities(
 function mismatch(provider: RouteProviderName, message: string) {
   return new RouteProviderResolutionError(
     `Route provider capability mismatch (${provider}): ${message}`,
+    'UNSUPPORTED_PROVIDER_CAPABILITY',
+    { provider, reason: message },
   );
 }
 

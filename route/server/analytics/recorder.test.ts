@@ -33,6 +33,8 @@ const completedJob: RouteJob = {
   },
   cache: { hit: false, key: 'route:v4:key', ttl: 3_600 },
   provider: 'google',
+  countryCode: 'JP',
+  providerSelectionSource: 'country-mode',
   providerLatencyMs: 800,
 };
 
@@ -81,6 +83,8 @@ describe('route analytics recorder', () => {
         dayType: 'saturday',
         timeBucket: '14:20',
         provider: 'google',
+        countryCode: 'JP',
+        providerSelectionSource: 'country-mode',
         cacheKey: 'route:v4:key',
       }),
     );

@@ -22,8 +22,15 @@ export class KakaoMapsRouteProvider implements RouteProvider {
       TRANSIT: { supportsWaypoints: false, maxLocations: 2 },
     },
   };
+  readonly available: boolean;
+  readonly unavailableReason?: string;
 
-  constructor(private readonly apiKey: string) {}
+  constructor(private readonly apiKey: string) {
+    this.available = Boolean(apiKey);
+    if (!this.available) {
+      this.unavailableReason = 'KAKAO_REST_API_KEY is not configured';
+    }
+  }
 
   getDebugRequest(request: NormalizedRouteRequest) {
     return debugRequest(toKakaoMapsRequest(request));

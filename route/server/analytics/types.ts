@@ -13,6 +13,8 @@ export interface RouteAnalyticsStartedRecord {
   dayType: RouteRequestDayType;
   timeBucket: string;
   provider: string;
+  countryCode: string | null;
+  providerSelectionSource: string;
   cacheKey: string;
   requestVersion: number;
 }

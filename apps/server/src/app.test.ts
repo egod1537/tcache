@@ -52,6 +52,19 @@ describe('tcache server', () => {
     expect(loadConfig({ NODE_ENV: 'production' })).toMatchObject({
       routeProvider: 'auto',
       japanTransitProvider: 'ekispert',
+      routeProviderPolicySource: 'built-in',
+      routeProviderPolicy: {
+        countries: {
+          JP: { modes: { TRANSIT: 'ekispert', DRIVING: 'google' } },
+          KR: {
+            modes: {
+              DRIVING: 'kakao-mobility',
+              TRANSIT: 'kakao-maps',
+            },
+          },
+        },
+        defaultProvider: 'google',
+      },
       routeProviderOverrideEnabled: false,
       routeProviderRawDebugEnabled: false,
     });
@@ -108,12 +121,78 @@ describe('tcache server', () => {
     ).toMatchObject({
       routeProvider: 'ekispert',
       japanTransitProvider: 'navitime',
+      routeProviderPolicyLegacyCountryModes: ['JP:TRANSIT'],
+      routeProviderPolicy: {
+        countries: { JP: { modes: { TRANSIT: 'navitime' } } },
+      },
       ekispertApiKey: 'trial-key',
       ekispertApiBaseUrl: 'https://ekispert.example.test/',
     });
     expect(() =>
       loadConfig({ JAPAN_TRANSIT_PROVIDER: 'silent-fallback' }),
     ).toThrow('Invalid JAPAN_TRANSIT_PROVIDER');
+  });
+
+  it('parses policy JSON and lets an exact rule override the legacy setting', () => {
+    expect(
+      loadConfig({
+        JAPAN_TRANSIT_PROVIDER: 'navitime',
+        ROUTE_PROVIDER_POLICY_JSON: JSON.stringify({
+          countries: {
+            jp: { modes: { transit: 'ekispert', driving: 'google' } },
+          },
+          modeDefaults: { TRANSIT: 'google' },
+          defaultProvider: 'mock',
+        }),
+      }),
+    ).toMatchObject({
+      routeProviderPolicySource: 'env-json',
+      routeProviderPolicyLegacyCountryModes: [],
+      routeProviderPolicy: {
+        countries: {
+          JP: {
+            modes: { TRANSIT: 'ekispert', DRIVING: 'google' },
+          },
+        },
+        modeDefaults: { TRANSIT: 'google' },
+        defaultProvider: 'mock',
+      },
+    });
+  });
+
+  it('injects the legacy Japan transit setting only when JSON omits it', () => {
+    expect(
+      loadConfig({
+        JAPAN_TRANSIT_PROVIDER: 'otp',
+        ROUTE_PROVIDER_POLICY_JSON: JSON.stringify({
+          countries: { KR: { defaultProvider: 'kakao-maps' } },
+          defaultProvider: 'google',
+        }),
+      }),
+    ).toMatchObject({
+      routeProviderPolicyLegacyCountryModes: ['JP:TRANSIT'],
+      routeProviderPolicy: {
+        countries: { JP: { modes: { TRANSIT: 'otp' } } },
+      },
+    });
+  });
+
+  it.each([
+    ['{', 'malformed JSON'],
+    [JSON.stringify({ countries: { JPN: {} } }), 'country: JPN'],
+    [JSON.stringify({ countries: { ZZ: {} } }), 'country: ZZ'],
+    [
+      JSON.stringify({ countries: {}, modeDefaults: { FLYING: 'google' } }),
+      'mode: FLYING',
+    ],
+    [
+      JSON.stringify({ countries: {}, defaultProvider: 'unknown' }),
+      'provider: unknown',
+    ],
+  ])('rejects invalid provider policy configuration', (value, message) => {
+    expect(() => loadConfig({ ROUTE_PROVIDER_POLICY_JSON: value })).toThrow(
+      message,
+    );
   });
 
   it('loads disabled-by-default OTP provider and dataset identity', () => {

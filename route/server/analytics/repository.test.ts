@@ -16,6 +16,8 @@ const startedRecord: RouteAnalyticsStartedRecord = {
   dayType: 'weekday',
   timeBucket: '14:20',
   provider: 'google',
+  countryCode: 'JP',
+  providerSelectionSource: 'country-mode',
   cacheKey: 'route:v4:test',
   requestVersion: 1,
 };
@@ -49,9 +51,11 @@ describe('PostgresRouteAnalyticsRepository', () => {
     const [sql, values] = query.mock.calls[0] as [string, unknown[]];
     expect(sql).toContain("'queued'");
     expect(sql).toContain('ON CONFLICT (job_id) DO UPDATE');
+    expect(sql).toContain('provider_selection_source');
     expect(sql).not.toContain('status = EXCLUDED.status');
     expect(sql).not.toContain(startedRecord.jobId);
     expect(values).toContain(startedRecord.jobId);
+    expect(values).toContain('country-mode');
   });
 
   it('upserts terminal cache and latency metadata', async () => {

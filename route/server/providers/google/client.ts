@@ -53,8 +53,15 @@ export class GoogleRouteProvider implements RouteProvider {
     maxLocations: 27,
     supportsDepartureTime: true,
   };
+  readonly available: boolean;
+  readonly unavailableReason?: string;
 
-  constructor(private readonly apiKey: string) {}
+  constructor(private readonly apiKey: string) {
+    this.available = Boolean(apiKey);
+    if (!this.available) {
+      this.unavailableReason = 'GOOGLE_MAPS_API_KEY is not configured';
+    }
+  }
 
   getDebugRequest(request: NormalizedRouteRequest) {
     if (request.travelMode === 'TRANSIT' && request.intermediates.length) {

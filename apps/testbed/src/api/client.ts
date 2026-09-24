@@ -10,6 +10,14 @@ export interface RouteJobError {
 }
 
 export type RouteTravelMode = 'DRIVING' | 'WALKING' | 'BICYCLING' | 'TRANSIT';
+export type RouteProviderSelectionSource =
+  | 'request-override'
+  | 'global-force'
+  | 'country-mode'
+  | 'country-default'
+  | 'mode-default'
+  | 'global-default'
+  | 'legacy';
 
 export interface RouteLocation {
   coordinates?: { latitude: number; longitude: number };
@@ -164,6 +172,7 @@ export interface RoutePlaygroundResponse {
   provider: string;
   selectedProvider?: string;
   providerSelectionReason?: string;
+  providerSelectionSource?: RouteProviderSelectionSource;
   providerCapabilities?: RouteProviderCapabilities;
   providerAvailable?: boolean;
   providerUnavailableReason?: string;
@@ -216,6 +225,32 @@ export interface RouteProviderDiagnostics {
   coreHealthAffected: false;
 }
 
+export interface RouteProviderPolicyResponse {
+  routeProviderMode: string;
+  policySource: 'built-in' | 'env-json';
+  legacyCompatibilityApplied: boolean;
+  providerOverrideEnabled: boolean;
+  policy: {
+    countries: Record<
+      string,
+      {
+        modes?: Partial<Record<RouteTravelMode, string>>;
+        defaultProvider?: string;
+      }
+    >;
+    modeDefaults?: Partial<Record<RouteTravelMode, string>>;
+    defaultProvider?: string;
+  };
+  assignments: Array<{
+    countryCode: string | null;
+    mode: RouteTravelMode | null;
+    provider: string;
+    source: RouteProviderSelectionSource;
+    available: boolean;
+    unavailableReason?: string;
+  }>;
+}
+
 export interface RouteJobView {
   jobId: string;
   status: RouteJobStatus;
@@ -239,6 +274,7 @@ export interface RouteJobView {
   cache?: { hit: boolean; key: string; ttl: number };
   selectedProvider?: string;
   providerSelectionReason?: string;
+  providerSelectionSource?: RouteProviderSelectionSource;
   providerCapabilities?: RouteProviderCapabilities;
   providerAvailable?: boolean;
   providerUnavailableReason?: string;
@@ -457,6 +493,13 @@ export function getRouteProviderCatalog(signal?: AbortSignal) {
 export function getRouteProviderDiagnostics(signal?: AbortSignal) {
   return requestJson<RouteProviderDiagnostics>(
     '/api/route/providers/diagnostics',
+    signal ? { signal } : undefined,
+  );
+}
+
+export function getRouteProviderPolicy(signal?: AbortSignal) {
+  return requestJson<RouteProviderPolicyResponse>(
+    '/api/route/providers/policy',
     signal ? { signal } : undefined,
   );
 }

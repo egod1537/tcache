@@ -19,8 +19,15 @@ export class KakaoMobilityRouteProvider implements RouteProvider {
     maxLocations: 7,
     requiresCoordinates: true,
   };
+  readonly available: boolean;
+  readonly unavailableReason?: string;
 
-  constructor(private readonly apiKey: string) {}
+  constructor(private readonly apiKey: string) {
+    this.available = Boolean(apiKey);
+    if (!this.available) {
+      this.unavailableReason = 'KAKAO_MOBILITY_API_KEY is not configured';
+    }
+  }
 
   getDebugRequest(request: NormalizedRouteRequest) {
     return debugRequest(toKakaoMobilityRequest(request));

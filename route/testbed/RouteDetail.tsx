@@ -173,6 +173,10 @@ export function RouteDetail({
               label="선택 사유"
               value={job.providerSelectionReason ?? '—'}
             />
+            <Fact
+              label="선택 출처"
+              value={job.providerSelectionSource ?? '—'}
+            />
             <Fact label="국가" value={job.countryCode ?? '기본 정책'} />
             <Fact
               label="이동 수단"
@@ -402,6 +406,7 @@ export function RouteDetail({
                 )}
               />
               <Fact label="Reason" value={job.providerSelectionReason ?? '—'} />
+              <Fact label="Source" value={job.providerSelectionSource ?? '—'} />
               <Fact
                 label="Modes"
                 value={job.providerCapabilities?.modes.join(', ') ?? '—'}

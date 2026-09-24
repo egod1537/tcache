@@ -228,6 +228,9 @@ async function executeRouteJob(
       ...(job.providerSelectionReason
         ? { providerSelectionReason: job.providerSelectionReason }
         : {}),
+      ...(job.providerSelectionSource
+        ? { providerSelectionSource: job.providerSelectionSource }
+        : {}),
       ...(job.providerCapabilities
         ? { providerCapabilities: job.providerCapabilities }
         : {}),

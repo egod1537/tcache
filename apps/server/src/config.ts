@@ -1,4 +1,9 @@
 import { DEFAULT_EKISPERT_API_BASE_URL } from '../../../route/server/providers/ekispert/mapper.js';
+import {
+  loadRouteProviderPolicy,
+  type RouteProviderPolicy,
+  type RouteProviderPolicySource,
+} from '../../../route/server/resolver/provider-policy.js';
 
 export interface AppConfig {
   nodeEnv: string;
@@ -20,6 +25,10 @@ export interface AppConfig {
     | 'otp'
     | 'mock';
   japanTransitProvider: 'ekispert' | 'navitime' | 'otp';
+  japanTransitProviderExplicit: boolean;
+  routeProviderPolicy: RouteProviderPolicy;
+  routeProviderPolicySource: RouteProviderPolicySource;
+  routeProviderPolicyLegacyCountryModes: string[];
   routeProviderOverrideEnabled: boolean;
   routeProviderRawDebugEnabled: boolean;
   routeTimeZone: string;
@@ -111,6 +120,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
   ) {
     throw new Error(`Invalid JAPAN_TRANSIT_PROVIDER: ${japanTransitProvider}`);
   }
+  const loadedRouteProviderPolicy = loadRouteProviderPolicy(
+    env.ROUTE_PROVIDER_POLICY_JSON,
+    japanTransitProvider,
+    env.JAPAN_TRANSIT_PROVIDER !== undefined,
+  );
   const aiProvider =
     env.AI_PROVIDER?.trim().toLowerCase() ??
     (nodeEnv === 'production' ? 'gemini' : 'mock');
@@ -150,6 +164,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     ),
     routeProvider,
     japanTransitProvider,
+    japanTransitProviderExplicit: env.JAPAN_TRANSIT_PROVIDER !== undefined,
+    routeProviderPolicy: loadedRouteProviderPolicy.policy,
+    routeProviderPolicySource: loadedRouteProviderPolicy.source,
+    routeProviderPolicyLegacyCountryModes:
+      loadedRouteProviderPolicy.legacyCountryModes,
     routeProviderOverrideEnabled: readBoolean(
       'ROUTE_PROVIDER_OVERRIDE_ENABLED',
       env.ROUTE_PROVIDER_OVERRIDE_ENABLED,

@@ -12,7 +12,7 @@ import {
 } from './providers/navitime/mapper.js';
 import { parseNavitimeTransitResponse } from './providers/navitime/parser.js';
 import {
-  DefaultRouteProviderResolver,
+  RouteProviderPolicyResolver,
   RouteProviderRegistry,
 } from './resolver/provider-resolver.js';
 import {
@@ -221,9 +221,11 @@ describe('NAVITIME request mapping', () => {
 
   it('enforces the official ten-waypoint limit through capabilities', () => {
     const provider = new NavitimeRouteProvider('test-key');
-    const resolver = new DefaultRouteProviderResolver({
+    const resolver = new RouteProviderPolicyResolver({
       registry: new RouteProviderRegistry([provider]),
-      japanTransitProvider: 'navitime',
+      policy: {
+        countries: { JP: { modes: { TRANSIT: 'navitime' } } },
+      },
     });
     const value = normalizeRouteRequest({
       origin: { latitude: 35.6, longitude: 139.6 },

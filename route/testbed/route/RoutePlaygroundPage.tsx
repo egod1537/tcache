@@ -17,6 +17,7 @@ import { buildRouteRequest, parseRawRouteRequest } from './playground-types';
 import { RouteRequestPanel } from './RouteRequestPanel';
 import { RouteResultPanel } from './RouteResultPanel';
 import { useRoutePlayground } from './useRoutePlayground';
+import { ProviderPolicyPanel } from './ProviderPolicyPanel';
 
 export function RoutePlaygroundPage() {
   const playground = useRoutePlayground();
@@ -136,6 +137,8 @@ export function RoutePlaygroundPage() {
           </p>
         </div>
       </div>
+
+      <ProviderPolicyPanel />
 
       <div className="route-playground-grid">
         <RouteRequestPanel

@@ -87,6 +87,7 @@ export class RouteResolver {
     return {
       provider: provider as RouteProviderSelection['provider'],
       reason: `configured -> ${provider}`,
+      source: 'global-force',
       available: this.options.provider?.available !== false,
       ...(this.options.provider?.unavailableReason
         ? { unavailableReason: this.options.provider.unavailableReason }

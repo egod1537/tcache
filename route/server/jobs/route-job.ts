@@ -7,6 +7,7 @@ import type {
   RouteProviderCapabilities,
   RouteProviderName,
 } from '../providers/provider.js';
+import type { RouteProviderSelectionSource } from '../resolver/provider-resolver.js';
 
 export type RouteJobStatus =
   'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
@@ -76,6 +77,7 @@ export interface RouteJob {
   cache?: RouteCacheMetadata;
   selectedProvider?: RouteProviderName;
   providerSelectionReason?: string;
+  providerSelectionSource?: RouteProviderSelectionSource;
   providerCapabilities?: RouteProviderCapabilities;
   providerAvailable?: boolean;
   providerUnavailableReason?: string;
@@ -127,6 +129,9 @@ export function toJobStatus(job: RouteJob) {
     ...(job.selectedProvider ? { selectedProvider: job.selectedProvider } : {}),
     ...(job.providerSelectionReason
       ? { providerSelectionReason: job.providerSelectionReason }
+      : {}),
+    ...(job.providerSelectionSource
+      ? { providerSelectionSource: job.providerSelectionSource }
       : {}),
     ...(job.providerCapabilities
       ? { providerCapabilities: job.providerCapabilities }

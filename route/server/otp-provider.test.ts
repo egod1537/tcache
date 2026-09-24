@@ -17,7 +17,7 @@ import { toOtpTransitRequest } from './providers/otp/mapper.js';
 import { parseOtpTransitResponse } from './providers/otp/parser.js';
 import { OtpRouteProvider } from './providers/otp/provider.js';
 import {
-  DefaultRouteProviderResolver,
+  RouteProviderPolicyResolver,
   RouteProviderRegistry,
 } from './resolver/provider-resolver.js';
 import { normalizeRouteRequest } from './types/route.js';
@@ -72,7 +72,7 @@ describe('OpenTripPlanner request mapping and capability', () => {
 
   it('requires coordinates and rejects waypoints through capabilities', () => {
     const provider = new OtpRouteProvider({ enabled: true });
-    const resolver = new DefaultRouteProviderResolver({
+    const resolver = new RouteProviderPolicyResolver({
       registry: new RouteProviderRegistry([provider]),
       allowOverride: true,
     });

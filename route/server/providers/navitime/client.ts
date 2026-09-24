@@ -27,11 +27,18 @@ export class NavitimeRouteProvider implements RouteProvider {
     supportsDepartureTime: true,
     requiresDepartureTime: true,
   };
+  readonly available: boolean;
+  readonly unavailableReason?: string;
 
   constructor(
     private readonly apiKey: string,
     private readonly apiBaseUrl = DEFAULT_NAVITIME_API_BASE_URL,
-  ) {}
+  ) {
+    this.available = Boolean(apiKey);
+    if (!this.available) {
+      this.unavailableReason = 'NAVITIME_API_KEY is not configured';
+    }
+  }
 
   getDebugRequest(request: NormalizedRouteRequest) {
     return debugRequest(toNavitimeTransitRequest(request, this.apiBaseUrl));

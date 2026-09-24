@@ -123,6 +123,7 @@ export class RouteJobRunner {
               },
               selectedProvider: selection.provider,
               providerSelectionReason: selection.reason,
+              providerSelectionSource: selection.source,
               ...(selection.capabilities
                 ? { providerCapabilities: selection.capabilities }
                 : {}),

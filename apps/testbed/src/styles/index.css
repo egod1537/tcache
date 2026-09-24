@@ -730,6 +730,17 @@ body {
   gap: 16px;
 }
 
+.route-provider-policy {
+  margin-bottom: 16px;
+}
+
+.route-provider-policy-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .route-playground-request-panel {
   min-width: 0;
   min-height: 680px;

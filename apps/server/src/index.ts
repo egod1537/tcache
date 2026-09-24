@@ -26,10 +26,11 @@ import { MockRouteProvider } from '../../../route/server/providers/mock/client.j
 import { NavitimeRouteProvider } from '../../../route/server/providers/navitime/client.js';
 import { EkispertRouteProvider } from '../../../route/server/providers/ekispert/provider.js';
 import { OtpRouteProvider } from '../../../route/server/providers/otp/provider.js';
+import type { RouteProviderName } from '../../../route/server/providers/provider.js';
 import { RouteResolver } from '../../../route/server/resolver/route-resolver.js';
 import {
-  DefaultRouteProviderResolver,
   RouteProviderRegistry,
+  RouteProviderPolicyResolver,
 } from '../../../route/server/resolver/provider-resolver.js';
 import { RedisMatrixJobStore } from '../../../route/server/matrix/matrix-job-store.js';
 import { InMemoryMatrixJobEventBus } from '../../../route/server/matrix/matrix-job-events.js';
@@ -95,10 +96,12 @@ const routeProviders = new RouteProviderRegistry([
   otpRouteProvider,
   mockRouteProvider,
 ]);
-const routeProviderResolver = new DefaultRouteProviderResolver({
+const routeProviderResolver = new RouteProviderPolicyResolver({
   registry: routeProviders,
+  policy: config.routeProviderPolicy,
+  policySource: config.routeProviderPolicySource,
+  legacyCountryModes: config.routeProviderPolicyLegacyCountryModes,
   allowOverride: config.routeProviderOverrideEnabled,
-  japanTransitProvider: config.japanTransitProvider,
   ...(config.routeProvider === 'auto'
     ? {}
     : { fixedProvider: config.routeProvider }),
@@ -183,6 +186,10 @@ const app = buildApp({
     matrix: { jobs: matrixJobs, events: matrixEvents },
     providerCatalog: {
       registry: routeProviders,
+      routeProviderMode: config.routeProvider,
+      policy: config.routeProviderPolicy,
+      policySource: config.routeProviderPolicySource,
+      legacyCountryModes: config.routeProviderPolicyLegacyCountryModes,
       overrideEnabled: config.routeProviderOverrideEnabled,
       rawProviderResponseEnabled: config.routeProviderRawDebugEnabled,
     },
@@ -259,63 +266,26 @@ try {
   }
   const resumedAiJobs = await aiJobs.resumePending();
   if (resumedAiJobs) app.log.info({ resumedAiJobs }, 'Resumed pending AI Jobs');
-  if (
-    (config.routeProvider === 'auto' || config.routeProvider === 'google') &&
-    !config.googleMapsApiKey
-  ) {
-    app.log.warn(
-      'Google route provider is enabled but GOOGLE_MAPS_API_KEY is not set; Google Route Jobs will fail',
-    );
-  } else if (config.routeProvider === 'mock') {
+  if (config.routeProvider === 'mock') {
     app.log.warn('Using the mock route provider');
   }
-  if (
-    (config.routeProvider === 'otp' ||
-      (config.routeProvider === 'auto' &&
-        config.japanTransitProvider === 'otp')) &&
-    !config.otpProviderEnabled
-  ) {
+  if (config.japanTransitProviderExplicit) {
     app.log.warn(
-      'OTP route provider is selected but OTP_PROVIDER_ENABLED is false; JP transit Route Jobs will fail without fallback',
+      {
+        legacyPolicyApplied:
+          config.routeProviderPolicyLegacyCountryModes.includes('JP:TRANSIT'),
+      },
+      'JAPAN_TRANSIT_PROVIDER is deprecated; use ROUTE_PROVIDER_POLICY_JSON',
     );
   }
-  if (
-    (config.routeProvider === 'navitime' ||
-      (config.routeProvider === 'auto' &&
-        config.japanTransitProvider === 'navitime')) &&
-    !config.navitimeApiKey
-  ) {
-    app.log.warn(
-      'NAVITIME route provider is enabled but NAVITIME_API_KEY is not set; JP transit Route Jobs will fail',
-    );
-  }
-  if (
-    (config.routeProvider === 'ekispert' ||
-      (config.routeProvider === 'auto' &&
-        config.japanTransitProvider === 'ekispert')) &&
-    !config.ekispertApiKey
-  ) {
-    app.log.warn(
-      'Ekispert route provider is selected but EKISPERT_API_KEY is not set; JP transit Route Jobs will fail without fallback',
-    );
-  }
-  if (
-    (config.routeProvider === 'auto' ||
-      config.routeProvider === 'kakao-mobility') &&
-    !config.kakaoMobilityApiKey
-  ) {
-    app.log.warn(
-      'Kakao Mobility route provider is enabled but KAKAO_MOBILITY_API_KEY is not set; KR driving Route Jobs will fail',
-    );
-  }
-  if (
-    (config.routeProvider === 'auto' ||
-      config.routeProvider === 'kakao-maps') &&
-    !config.kakaoRestApiKey
-  ) {
-    app.log.warn(
-      'Kakao Maps route provider is enabled but KAKAO_REST_API_KEY is not set; KR transit, walking, and bicycle Route Jobs will fail',
-    );
+  for (const providerName of configuredProviderNames(config)) {
+    const adapter = routeProviders.get(providerName);
+    if (adapter?.available === false) {
+      app.log.warn(
+        { provider: providerName, reason: adapter.unavailableReason },
+        'A configured route provider is unavailable; requests will fail without fallback',
+      );
+    }
   }
   if (config.aiProvider === 'gemini' && !config.geminiApiKey) {
     app.log.warn(
@@ -338,4 +308,28 @@ try {
   await closeDatabasePool(database).catch(() => undefined);
   if (redis.isOpen) await redis.quit().catch(() => undefined);
   process.exitCode = 1;
+}
+
+function configuredProviderNames(configValue: typeof config) {
+  if (configValue.routeProvider !== 'auto') {
+    return [configValue.routeProvider];
+  }
+  const providers = new Set<RouteProviderName>();
+  for (const country of Object.values(
+    configValue.routeProviderPolicy.countries,
+  )) {
+    if (country.defaultProvider) providers.add(country.defaultProvider);
+    for (const provider of Object.values(country.modes ?? {})) {
+      if (provider) providers.add(provider);
+    }
+  }
+  for (const provider of Object.values(
+    configValue.routeProviderPolicy.modeDefaults ?? {},
+  )) {
+    if (provider) providers.add(provider);
+  }
+  if (configValue.routeProviderPolicy.defaultProvider) {
+    providers.add(configValue.routeProviderPolicy.defaultProvider);
+  }
+  return [...providers];
 }

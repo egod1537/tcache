@@ -30,8 +30,9 @@ export class PostgresRouteAnalyticsRepository
     await this.database.query(
       `INSERT INTO route_requests (
          created_at, job_id, from_key, to_key, mode, day_type,
-         time_bucket, provider, status, cache_key, request_version
-       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'queued', $9, $10)
+         time_bucket, provider, status, cache_key, request_version,
+         country_code, provider_selection_source
+       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'queued', $9, $10, $11, $12)
        ON CONFLICT (job_id) DO UPDATE SET
          created_at = EXCLUDED.created_at,
          from_key = EXCLUDED.from_key,
@@ -40,6 +41,8 @@ export class PostgresRouteAnalyticsRepository
          day_type = EXCLUDED.day_type,
          time_bucket = EXCLUDED.time_bucket,
          provider = EXCLUDED.provider,
+         country_code = EXCLUDED.country_code,
+         provider_selection_source = EXCLUDED.provider_selection_source,
          cache_key = EXCLUDED.cache_key,
          request_version = EXCLUDED.request_version`,
       baseValues(record),
@@ -52,10 +55,11 @@ export class PostgresRouteAnalyticsRepository
       `INSERT INTO route_requests (
          created_at, completed_at, job_id, from_key, to_key, mode, day_type,
          time_bucket, provider, cache_hit, total_latency_ms,
-         provider_latency_ms, status, error_code, cache_key, request_version
+         provider_latency_ms, status, error_code, cache_key, request_version,
+         country_code, provider_selection_source
        ) VALUES (
-         $1, $11, $2, $3, $4, $5, $6, $7,
-         $8, $12, $13, $14, $15, $16, $9, $10
+         $1, $13, $2, $3, $4, $5, $6, $7,
+         $8, $14, $15, $16, $17, $18, $9, $10, $11, $12
        )
        ON CONFLICT (job_id) DO UPDATE SET
          created_at = EXCLUDED.created_at,
@@ -66,6 +70,8 @@ export class PostgresRouteAnalyticsRepository
          day_type = EXCLUDED.day_type,
          time_bucket = EXCLUDED.time_bucket,
          provider = EXCLUDED.provider,
+         country_code = EXCLUDED.country_code,
+         provider_selection_source = EXCLUDED.provider_selection_source,
          cache_hit = EXCLUDED.cache_hit,
          total_latency_ms = EXCLUDED.total_latency_ms,
          provider_latency_ms = EXCLUDED.provider_latency_ms,
@@ -341,6 +347,8 @@ function baseValues(record: RouteAnalyticsStartedRecord) {
     record.provider,
     record.cacheKey,
     record.requestVersion,
+    record.countryCode,
+    record.providerSelectionSource,
   ];
 }
 

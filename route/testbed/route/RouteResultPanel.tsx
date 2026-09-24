@@ -236,6 +236,7 @@ function RequestTabPanel({
                 selectedProvider:
                   response.selectedProvider ?? response.provider,
                 reason: response.providerSelectionReason,
+                source: response.providerSelectionSource,
                 capabilities: response.providerCapabilities,
                 available: response.providerAvailable,
                 unavailableReason: response.providerUnavailableReason,
@@ -302,6 +303,10 @@ function DebugTabPanel({
         <Fact
           label="선택 사유"
           value={response?.providerSelectionReason ?? '—'}
+        />
+        <Fact
+          label="선택 출처"
+          value={response?.providerSelectionSource ?? '—'}
         />
         <Fact label="Job ID" value={response?.jobId ?? '—'} />
         <Fact

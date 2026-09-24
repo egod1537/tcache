@@ -63,6 +63,21 @@ describe('Route Provider Catalog API', () => {
           provider('ekispert'),
           provider('otp'),
         ]),
+        routeProviderMode: 'auto',
+        policySource: 'env-json',
+        legacyCountryModes: [],
+        policy: {
+          countries: {
+            JP: {
+              modes: {
+                TRANSIT: 'ekispert',
+                DRIVING: 'google',
+              },
+            },
+          },
+          modeDefaults: { TRANSIT: 'google' },
+          defaultProvider: 'google',
+        },
         overrideEnabled: false,
         rawProviderResponseEnabled: false,
       },
@@ -117,6 +132,34 @@ describe('Route Provider Catalog API', () => {
           configured: true,
           reachable: false,
           endpoint: 'http://otp:8080',
+        },
+      ]),
+    });
+
+    const policy = await app.inject({
+      method: 'GET',
+      url: '/api/route/providers/policy',
+    });
+    expect(policy.statusCode).toBe(200);
+    expect(policy.json()).toMatchObject({
+      routeProviderMode: 'auto',
+      policySource: 'env-json',
+      legacyCompatibilityApplied: false,
+      assignments: expect.arrayContaining([
+        {
+          countryCode: 'JP',
+          mode: 'TRANSIT',
+          provider: 'ekispert',
+          source: 'country-mode',
+          available: false,
+          unavailableReason: 'EKISPERT_API_KEY is not configured',
+        },
+        {
+          countryCode: null,
+          mode: 'TRANSIT',
+          provider: 'google',
+          source: 'mode-default',
+          available: true,
         },
       ]),
     });

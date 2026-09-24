@@ -297,6 +297,7 @@ describe('route jobs', () => {
       provider: 'test',
       selectedProvider: 'unknown',
       providerSelectionReason: 'configured -> unknown',
+      providerSelectionSource: 'global-force',
       countryCode: 'KR',
       mode: 'TRANSIT',
       requestMetadata: {
