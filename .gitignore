@@ -7,3 +7,13 @@ coverage/
 *.log
 .DS_Store
 .vite/
+
+# OpenTripPlanner Tokyo PoC generated data and reports
+otp/data/tokyo/*.osm.pbf
+otp/data/tokyo/*-gtfs.zip
+otp/data/tokyo/graph.obj
+otp/data/tokyo/build-report/
+otp/data/tokyo/*.log
+otp/data/tokyo/data-metadata.json
+otp/results/*
+!otp/results/.gitkeep

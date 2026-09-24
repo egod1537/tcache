@@ -1,7 +1,12 @@
 import type {
   NormalizedRouteRequest,
   RouteRequestInput,
+  RouteTravelMode,
 } from '../types/route.js';
+import type {
+  RouteProviderCapabilities,
+  RouteProviderName,
+} from '../providers/provider.js';
 
 export type RouteJobStatus =
   'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
@@ -22,10 +27,17 @@ export type RouteJobStage =
 export interface RouteJobError {
   code:
     | 'INVALID_REQUEST'
+    | 'PROVIDER_NOT_CONFIGURED'
     | 'CACHE_ERROR'
     | 'PROVIDER_ERROR'
     | 'GOOGLE_ROUTES_ERROR'
+    | 'ROUTE_PROVIDER_AUTH_ERROR'
+    | 'ROUTE_PROVIDER_RATE_LIMITED'
     | 'ROUTE_PROVIDER_TIMEOUT'
+    | 'ROUTE_PROVIDER_BAD_REQUEST'
+    | 'ROUTE_PROVIDER_NO_ROUTE'
+    | 'ROUTE_PROVIDER_UNAVAILABLE'
+    | 'ROUTE_PROVIDER_INVALID_DATA'
     | 'JOB_NOT_FOUND'
     | 'JOB_CANCELLED'
     | 'INTERNAL_ERROR';
@@ -45,6 +57,7 @@ export interface RouteRequestMetadata {
   intermediateKeys: string[];
   dayType: 'weekday' | 'saturday' | 'sunday' | 'holiday';
   timeBucket: string;
+  timeZone: string;
 }
 
 export interface RouteJob {
@@ -57,9 +70,21 @@ export interface RouteJob {
   updatedAt: string;
   completedAt?: string;
   request: RouteRequestInput | NormalizedRouteRequest;
+  clientRequest?: unknown;
   normalizedRequest?: NormalizedRouteRequest;
   requestMetadata?: RouteRequestMetadata;
   cache?: RouteCacheMetadata;
+  selectedProvider?: RouteProviderName;
+  providerSelectionReason?: string;
+  providerCapabilities?: RouteProviderCapabilities;
+  providerAvailable?: boolean;
+  providerUnavailableReason?: string;
+  fallbackPolicy?: 'disabled';
+  providerRequest?: unknown;
+  rawProviderResponse?: unknown;
+  rawProviderResponseExposed?: boolean;
+  countryCode?: string;
+  mode?: RouteTravelMode;
   provider?: string;
   providerLatencyMs?: number;
   result?: unknown;
@@ -91,11 +116,39 @@ export function toJobStatus(job: RouteJob) {
     updatedAt: job.updatedAt,
     ...(job.completedAt ? { completedAt: job.completedAt } : {}),
     request: job.request,
+    ...(job.clientRequest !== undefined
+      ? { clientRequest: job.clientRequest }
+      : {}),
     ...(job.normalizedRequest
       ? { normalizedRequest: job.normalizedRequest }
       : {}),
     ...(job.requestMetadata ? { requestMetadata: job.requestMetadata } : {}),
     ...(job.cache ? { cache: job.cache } : {}),
+    ...(job.selectedProvider ? { selectedProvider: job.selectedProvider } : {}),
+    ...(job.providerSelectionReason
+      ? { providerSelectionReason: job.providerSelectionReason }
+      : {}),
+    ...(job.providerCapabilities
+      ? { providerCapabilities: job.providerCapabilities }
+      : {}),
+    ...(job.providerAvailable !== undefined
+      ? { providerAvailable: job.providerAvailable }
+      : {}),
+    ...(job.providerUnavailableReason
+      ? { providerUnavailableReason: job.providerUnavailableReason }
+      : {}),
+    ...(job.fallbackPolicy ? { fallbackPolicy: job.fallbackPolicy } : {}),
+    ...(job.providerRequest !== undefined
+      ? { providerRequest: job.providerRequest }
+      : {}),
+    ...(job.rawProviderResponse !== undefined
+      ? { rawProviderResponse: job.rawProviderResponse }
+      : {}),
+    ...(job.rawProviderResponseExposed !== undefined
+      ? { rawProviderResponseExposed: job.rawProviderResponseExposed }
+      : {}),
+    ...(job.countryCode ? { countryCode: job.countryCode } : {}),
+    ...(job.mode ? { mode: job.mode } : {}),
     ...(job.provider ? { provider: job.provider } : {}),
     ...(job.providerLatencyMs !== undefined
       ? { providerLatencyMs: job.providerLatencyMs }

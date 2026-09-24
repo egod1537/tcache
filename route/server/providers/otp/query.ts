@@ -1,0 +1,37 @@
+export const OTP_PLAN_QUERY = `query PlanTokyo(
+  $origin: PlanLabeledLocationInput!
+  $destination: PlanLabeledLocationInput!
+  $dateTime: PlanDateTimeInput!
+  $first: Int!
+) {
+  planConnection(
+    origin: $origin
+    destination: $destination
+    dateTime: $dateTime
+    first: $first
+    searchWindow: "PT2H"
+    modes: {
+      transitOnly: true
+      transit: { access: [WALK], egress: [WALK], transfer: [WALK] }
+    }
+  ) {
+    searchDateTime
+    routingErrors { code description inputField }
+    edges {
+      node {
+        start end duration walkTime walkDistance numberOfTransfers
+        legs {
+          mode transitLeg duration distance
+          start { scheduledTime }
+          end { scheduledTime }
+          from { name lat lon stop { gtfsId name platformCode } }
+          to { name lat lon stop { gtfsId name platformCode } }
+          agency { gtfsId name }
+          route { gtfsId shortName longName }
+          headsign
+          legGeometry { length points }
+        }
+      }
+    }
+  }
+}`;

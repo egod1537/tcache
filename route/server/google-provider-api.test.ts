@@ -11,11 +11,19 @@ import type { NormalizedRouteRequest } from './types/route.js';
 
 const apps: ReturnType<typeof buildApp>[] = [];
 
-function createApp(provider: RouteProvider, timeoutMs = 1_000) {
+function createApp(
+  provider: RouteProvider,
+  timeoutMs = 1_000,
+  exposeRawProviderResponse = true,
+) {
   const context = {
     jobs: {},
     events: {},
-    googleProviderDebug: { provider, timeoutMs },
+    googleProviderDebug: {
+      provider,
+      timeoutMs,
+      exposeRawProviderResponse,
+    },
   } as RouteApiContext;
   const app = buildApp({ routeCache: context });
   apps.push(app);
@@ -72,11 +80,13 @@ describe('Google provider debug API', () => {
     expect(response.statusCode).toBe(200);
     expect(getRoute).toHaveBeenCalledTimes(1);
     expect(getRoute.mock.calls[0]?.[0]).toMatchObject({
-      origin: { type: 'address', address: '東京駅、日本' },
+      origin: { address: '東京駅、日本' },
       intermediates: [
-        { type: 'coordinates', latitude: 35.7148, longitude: 139.7967 },
+        { coordinates: { latitude: 35.7148, longitude: 139.7967 } },
       ],
-      destination: { type: 'placeId', placeId: 'destination-place' },
+      destination: {
+        externalIds: { googlePlaceId: 'destination-place' },
+      },
       travelMode: 'DRIVING',
       computeAlternativeRoutes: true,
     });
@@ -128,6 +138,37 @@ describe('Google provider debug API', () => {
       },
     });
     expect(response.body).not.toContain('stack');
+  });
+
+  it('removes raw and debug provider payloads when production exposure is disabled', async () => {
+    const provider: RouteProvider = {
+      providerName: 'google',
+      getRoute: vi.fn().mockResolvedValue({
+        provider: 'google',
+        result: {
+          provider: 'google',
+          routes: [],
+          raw: { apiKey: 'provider-secret' },
+          debug: { headers: { Authorization: 'provider-secret' } },
+        },
+      }),
+    };
+    const response = await createApp(provider, 1_000, false).inject({
+      method: 'POST',
+      url: '/api/route/provider/google/compute',
+      payload: {
+        origin: { address: 'Tokyo' },
+        destination: { address: 'Kyoto' },
+        travelMode: 'DRIVING',
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().result).toEqual({
+      provider: 'google',
+      routes: [],
+    });
+    expect(response.body).not.toContain('provider-secret');
   });
 
   it('aborts a provider call when the debug timeout expires', async () => {

@@ -31,7 +31,7 @@ const completedJob: RouteJob = {
     travelMode: 'TRANSIT',
     departureTime: '2026-09-19T05:27:00.000Z',
   },
-  cache: { hit: false, key: 'route:v3:key', ttl: 3_600 },
+  cache: { hit: false, key: 'route:v4:key', ttl: 3_600 },
   provider: 'google',
   providerLatencyMs: 800,
 };
@@ -39,18 +39,17 @@ const completedJob: RouteJob = {
 describe('route analytics recorder', () => {
   it('shares location, day type, and time bucket canonicalization with cache', () => {
     expect(
-      canonicalizeRouteLocation({ type: 'placeId', placeId: ' ChIJ123 ' }),
-    ).toBe('place:ChIJ123');
+      canonicalizeRouteLocation({
+        externalIds: { googlePlaceId: ' ChIJ123 ' },
+      }),
+    ).toBe('external:google:ChIJ123');
     expect(
       canonicalizeRouteLocation({
-        type: 'coordinates',
-        latitude: 35.681236,
-        longitude: 139.767123,
+        coordinates: { latitude: 35.681236, longitude: 139.767123 },
       }),
     ).toBe('coord:35.68124,139.76712');
     expect(
       canonicalizeRouteLocation({
-        type: 'address',
         address: '  東京駅、  日本  ',
       }),
     ).toBe('address:東京駅、 日本');
@@ -69,20 +68,20 @@ describe('route analytics recorder', () => {
 
     await recorder.started(completedJob, {
       provider: 'google',
-      cacheKey: 'route:v3:key',
+      cacheKey: 'route:v4:key',
     });
     await recorder.completed(completedJob, { provider: 'google' });
 
     expect(repository.started).toHaveBeenCalledWith(
       expect.objectContaining({
         jobId: 'route_123',
-        fromKey: 'place:origin-place',
+        fromKey: 'external:google:origin-place',
         toKey: 'coord:35.60000,139.70000',
         mode: 'TRANSIT',
         dayType: 'saturday',
         timeBucket: '14:20',
         provider: 'google',
-        cacheKey: 'route:v3:key',
+        cacheKey: 'route:v4:key',
       }),
     );
     expect(repository.finished).toHaveBeenCalledWith(
@@ -94,6 +93,29 @@ describe('route analytics recorder', () => {
         status: 'completed',
         errorCode: null,
       }),
+    );
+  });
+
+  it('records the actual Kakao adapter name for provider filtering', async () => {
+    const repository = createRepository();
+    const recorder = new RepositoryRouteAnalyticsRecorder(repository);
+
+    await recorder.completed(
+      {
+        ...completedJob,
+        provider: 'kakao-mobility',
+        request: {
+          ...completedJob.request,
+          origin: { latitude: 37.5665, longitude: 126.978 },
+          destination: { latitude: 35.1796, longitude: 129.0756 },
+          countryCode: 'KR',
+        },
+      },
+      { provider: 'kakao-mobility' },
+    );
+
+    expect(repository.finished).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: 'kakao-mobility' }),
     );
   });
 

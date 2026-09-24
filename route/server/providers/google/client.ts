@@ -1,5 +1,10 @@
 import type { NormalizedRouteRequest } from '../../types/route.js';
-import type { RouteProvider, RouteProviderResult } from '../provider.js';
+import type {
+  RouteProvider,
+  RouteProviderCapabilities,
+  RouteProviderResult,
+} from '../provider.js';
+import { validateRouteRequestForProvider } from '../location-validation.js';
 import { createGoogleUpstreamError, GoogleRoutesError } from './errors.js';
 import { toGoogleRoutesRequest } from './mapper.js';
 import { parseGoogleRoutesResponse } from './parser.js';
@@ -41,13 +46,33 @@ export const GOOGLE_ROUTES_FIELD_MASK = [
 
 export class GoogleRouteProvider implements RouteProvider {
   readonly providerName = 'google';
+  readonly adapterVersion = '1';
+  readonly capabilities: RouteProviderCapabilities = {
+    modes: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'],
+    supportsWaypoints: true,
+    maxLocations: 27,
+    supportsDepartureTime: true,
+  };
 
   constructor(private readonly apiKey: string) {}
+
+  getDebugRequest(request: NormalizedRouteRequest) {
+    if (request.travelMode === 'TRANSIT' && request.intermediates.length) {
+      return {
+        strategy: 'segmented-transit',
+        requests: createTransitSegmentRequests(request).map(
+          toGoogleRoutesRequest,
+        ),
+      };
+    }
+    return toGoogleRoutesRequest(request);
+  }
 
   async getRoute(
     request: NormalizedRouteRequest,
     signal: AbortSignal,
   ): Promise<RouteProviderResult> {
+    validateRouteRequestForProvider(request, this.providerName);
     if (request.travelMode === 'TRANSIT' && request.intermediates.length) {
       return this.getTransitRoute(request, signal);
     }
@@ -125,26 +150,21 @@ export class GoogleRouteProvider implements RouteProvider {
         latencyMs: Math.round(performance.now() - startedAt),
       },
     };
-    return { provider: 'google', result };
+    return {
+      provider: 'google',
+      result,
+      debug: {
+        providerRequest: upstreamRequest,
+        rawProviderResponse: raw,
+      },
+    };
   }
 
   private async getTransitRoute(
     request: NormalizedRouteRequest,
     signal: AbortSignal,
   ): Promise<RouteProviderResult> {
-    const locations = [
-      request.origin,
-      ...request.intermediates,
-      request.destination,
-    ];
-    const segmentRequests = locations.slice(1).map((destination, index) => ({
-      ...request,
-      origin: locations[index]!,
-      destination,
-      intermediates: [],
-      waypoints: [],
-      computeAlternativeRoutes: false,
-    }));
+    const segmentRequests = createTransitSegmentRequests(request);
     const controller = new AbortController();
     const combinedSignal = AbortSignal.any([signal, controller.signal]);
     const startedAt = performance.now();
@@ -192,11 +212,34 @@ export class GoogleRouteProvider implements RouteProvider {
           latencyMs: Math.round(performance.now() - startedAt),
         },
       };
-      return { provider: 'google', result };
+      return {
+        provider: 'google',
+        result,
+        debug: {
+          providerRequest: this.getDebugRequest(request),
+          rawProviderResponse: result.raw,
+        },
+      };
     } finally {
       controller.abort(new Error('Transit segment group finished'));
     }
   }
+}
+
+function createTransitSegmentRequests(request: NormalizedRouteRequest) {
+  const locations = [
+    request.origin,
+    ...request.intermediates,
+    request.destination,
+  ];
+  return locations.slice(1).map((destination, index) => ({
+    ...request,
+    origin: locations[index]!,
+    destination,
+    intermediates: [],
+    waypoints: [],
+    computeAlternativeRoutes: false,
+  }));
 }
 
 function mergeTransitRoutes(

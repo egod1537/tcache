@@ -3,6 +3,8 @@ import type { RouteJobService } from '../jobs/route-job-service.js';
 import type { RouteAnalyticsReader } from '../analytics/query-types.js';
 import type { RouteCacheInspector } from '../cache/inspector.js';
 import type { GoogleProviderDebugContext } from './google-provider.js';
+import type { MatrixApiContext } from './matrix-context.js';
+import type { RouteProviderCatalogContext } from './provider-catalog.js';
 
 export interface RouteApiContext {
   jobs: RouteJobService;
@@ -10,6 +12,8 @@ export interface RouteApiContext {
   analytics?: RouteAnalyticsReader;
   cacheInspector?: RouteCacheInspector;
   googleProviderDebug?: GoogleProviderDebugContext;
+  matrix?: MatrixApiContext;
+  providerCatalog?: RouteProviderCatalogContext;
 }
 
 export function notFound(jobId: string) {

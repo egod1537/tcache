@@ -78,16 +78,17 @@ export class RepositoryRouteAnalyticsRecorder implements RouteAnalyticsRecorder 
       fallbackTime: createdAt,
       timeZone: this.timeZone,
       isHoliday: this.isHoliday,
+      provider: context.provider,
     });
     return {
       createdAt,
       jobId: job.jobId,
       fromKey:
         job.requestMetadata?.fromKey ??
-        canonicalizeRouteLocation(request.origin),
+        canonicalizeRouteLocation(request.origin, context.provider),
       toKey:
         job.requestMetadata?.toKey ??
-        canonicalizeRouteLocation(request.destination),
+        canonicalizeRouteLocation(request.destination, context.provider),
       mode: request.travelMode,
       dayType: job.requestMetadata?.dayType ?? temporal.dayType,
       timeBucket: job.requestMetadata?.timeBucket ?? temporal.timeBucket,
@@ -99,6 +100,7 @@ export class RepositoryRouteAnalyticsRecorder implements RouteAnalyticsRecorder 
           fallbackTime: createdAt,
           timeZone: this.timeZone,
           isHoliday: this.isHoliday,
+          provider: context.provider,
         }),
       requestVersion: 1,
     };

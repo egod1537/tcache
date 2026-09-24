@@ -405,6 +405,26 @@ body {
   gap: 8px;
 }
 
+.route-location-debug-fields {
+  min-width: 0;
+  grid-column: 1 / -1;
+  padding-top: 2px;
+}
+
+.route-location-debug-fields > summary {
+  cursor: pointer;
+  color: var(--bp-typography-color-muted);
+  font-size: 11px;
+}
+
+.route-location-debug-grid,
+.route-playground-location-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding-top: 8px;
+}
+
 .route-coordinate-inputs,
 .route-advanced-grid {
   display: grid;
@@ -492,6 +512,31 @@ body {
 
 .route-request-json .json-viewer {
   margin-top: 10px;
+}
+
+.route-transformation-flow {
+  margin-top: 14px;
+}
+
+.route-transformation-flow .route-request-json {
+  margin-top: 0;
+}
+
+.route-transformation-arrow {
+  padding: 5px 12px;
+  color: var(--bp-typography-color-muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.route-cache-key-debug {
+  min-width: 0;
+}
+
+.route-cache-key-debug code {
+  display: block;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
 }
 
 .route-result-selector {
@@ -1134,6 +1179,332 @@ body {
   margin-top: 20px;
 }
 
+.matrix-query-workspace {
+  gap: 14px;
+}
+
+.matrix-health-strip,
+.matrix-health-strip > span,
+.matrix-status-heading,
+.matrix-progress-caption,
+.matrix-location-id-row,
+.matrix-history-list button > span:first-child {
+  display: flex;
+  align-items: center;
+}
+
+.matrix-health-strip {
+  flex-wrap: wrap;
+  gap: 10px 22px;
+}
+
+.matrix-health-strip > span {
+  gap: 7px;
+  color: var(--bp-typography-color-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.matrix-query-grid {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(380px, 450px) minmax(0, 1fr);
+  align-items: start;
+  gap: 16px;
+}
+
+.matrix-request-panel {
+  min-width: 0;
+  max-height: calc(100vh - 150px);
+  padding: 16px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: sticky;
+  top: calc(var(--header-height) + 12px);
+}
+
+.matrix-location-list {
+  max-height: 390px;
+  margin: 0 0 8px;
+  padding: 2px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.matrix-location-row {
+  margin-bottom: 8px;
+  padding: 8px 5px;
+  border: 1px solid var(--bp-surface-border-color-default);
+  border-radius: 3px;
+  background: var(--bp-surface-layer-color-default);
+  display: grid;
+  grid-template-columns: 24px 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 5px;
+}
+
+.matrix-location-row.is-dragging {
+  border-color: var(--bp-intent-primary-rest);
+  opacity: 0.55;
+}
+
+.matrix-drag-handle {
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bp-typography-color-muted);
+  cursor: grab;
+  letter-spacing: -5px;
+}
+
+.matrix-drag-handle:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.matrix-location-content {
+  min-width: 0;
+}
+
+.matrix-location-place-name {
+  margin: 0 0 5px 2px;
+  overflow: hidden;
+  color: var(--bp-typography-color-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matrix-location-id-row {
+  margin-bottom: 6px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px;
+}
+
+.matrix-location-content .bp6-form-group {
+  margin-bottom: 0;
+}
+
+.matrix-options {
+  padding-block: 8px;
+  border-block: 1px solid var(--bp-surface-border-color-default);
+}
+
+.matrix-options > summary,
+.matrix-raw-section > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.matrix-options-grid {
+  padding-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 8px;
+}
+
+.matrix-job-detail {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.matrix-detail-empty {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+}
+
+.matrix-status-heading {
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.matrix-status-heading h2,
+.matrix-status-heading code {
+  display: block;
+  margin: 0;
+}
+
+.matrix-status-heading h2 {
+  font-size: 16px;
+}
+
+.matrix-status-heading code {
+  max-width: min(55vw, 620px);
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matrix-progress-caption {
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 7px;
+  font-size: 12px;
+}
+
+.matrix-status-facts {
+  margin: 16px 0 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+  gap: 12px;
+}
+
+.matrix-status-facts dt {
+  margin-bottom: 4px;
+  color: var(--bp-typography-color-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.matrix-status-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.matrix-table-wrap,
+.matrix-pair-table-wrap {
+  max-width: 100%;
+  overflow: auto;
+}
+
+.matrix-table {
+  min-width: 100%;
+  table-layout: fixed;
+  text-align: center;
+}
+
+.matrix-table th,
+.matrix-table td {
+  min-width: 88px;
+  vertical-align: middle;
+}
+
+.matrix-table td strong,
+.matrix-table td small {
+  display: block;
+}
+
+.matrix-table td small {
+  margin-top: 2px;
+  color: var(--bp-typography-color-muted);
+  font-size: 10px;
+}
+
+.matrix-table .matrix-diagonal {
+  background: var(--bp-surface-layer-color-primary);
+}
+
+.matrix-pair-note {
+  margin-bottom: 10px;
+}
+
+.matrix-pair-table {
+  width: 100%;
+}
+
+.matrix-pair-table-wrap {
+  max-height: 320px;
+}
+
+.matrix-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.matrix-compatibility-list {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+.matrix-timeline {
+  max-height: 360px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.matrix-timeline li {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--bp-surface-border-color-default);
+  display: grid;
+  grid-template-columns: 100px 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.matrix-timeline time {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+  color: var(--bp-typography-color-muted);
+}
+
+.matrix-raw-section {
+  border-top: 1px solid var(--bp-surface-border-color-default);
+  padding-block: 9px;
+}
+
+.matrix-raw-section .json-viewer {
+  margin-top: 8px;
+}
+
+.matrix-history-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 8px;
+}
+
+.matrix-history-list button {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--bp-surface-border-color-default);
+  border-radius: 3px;
+  background: var(--bp-surface-layer-color-default);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  text-align: left;
+}
+
+.matrix-history-list button:hover,
+.matrix-history-list button[aria-pressed='true'] {
+  border-color: var(--bp-intent-primary-rest);
+}
+
+.matrix-history-list button > span:first-child {
+  min-width: 0;
+  max-width: 100%;
+  gap: 6px;
+}
+
+.matrix-history-list code {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matrix-history-list button > span:not(:first-child),
+.matrix-history-list time {
+  color: var(--bp-typography-color-muted);
+  font-size: 11px;
+}
+
 .route-analytics-workspace {
   width: min(1440px, 100%);
   margin: 0 auto;
@@ -1535,6 +1906,15 @@ body {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .matrix-query-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .matrix-request-panel {
+    max-height: none;
+    position: static;
+  }
+
   .route-playground-request-panel {
     min-height: auto;
   }
@@ -1582,6 +1962,7 @@ body {
   }
 
   .detail-section-grid,
+  .matrix-detail-grid,
   .service-grid,
   .analytics-chart-grid,
   .route-playground-json-grid {
@@ -1601,6 +1982,7 @@ body {
   }
 
   .route-overview-facts,
+  .matrix-status-facts,
   .route-request-facts,
   .route-sse-facts,
   .route-playground-result-facts,
@@ -1649,10 +2031,14 @@ body {
   }
 
   .route-location-editor,
+  .matrix-options-grid,
+  .matrix-status-facts,
   .route-coordinate-inputs,
   .route-advanced-grid,
   .route-job-options,
   .route-playground-location,
+  .route-location-debug-grid,
+  .route-playground-location-fields,
   .route-playground-coordinates,
   .route-playground-inline-fields,
   .route-overview-facts,

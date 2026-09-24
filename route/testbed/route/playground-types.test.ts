@@ -6,13 +6,25 @@ import {
   createLocationDraft,
   createRouteDraftLocation,
   parseRawRouteRequest,
+  createRoutePresetDraft,
+  ROUTE_PLAYGROUND_PRESETS,
 } from './playground-types.js';
 
 describe('Route Playground request builder', () => {
   it('builds the default ordered location request', () => {
     expect(buildRouteRequest(createDefaultRouteDraft())).toMatchObject({
-      locations: [{ address: '東京駅、日本' }, { address: '東京タワー、日本' }],
+      locations: [
+        {
+          name: 'Tokyo Station',
+          coordinates: { latitude: 35.681236, longitude: 139.767125 },
+        },
+        {
+          name: 'Shibuya',
+          coordinates: { latitude: 35.658034, longitude: 139.701636 },
+        },
+      ],
       mode: 'DRIVING',
+      countryCode: 'JP',
       departureTime: expect.stringMatching(/Z$/),
     });
   });
@@ -35,11 +47,52 @@ describe('Route Playground request builder', () => {
       locations: [
         { address: 'Tokyo' },
         { address: 'Asakusa' },
-        { latitude: 35.6762, longitude: 139.6503 },
+        { coordinates: { latitude: 35.6762, longitude: 139.6503 } },
         { address: 'Tokyo Tower' },
       ],
       mode: 'DRIVING',
     });
+  });
+
+  it('provides Japan and Korea presets with country, mode, and coordinates', () => {
+    expect(ROUTE_PLAYGROUND_PRESETS.map((preset) => preset.label)).toEqual([
+      'Japan · Tokyo driving',
+      'Japan · Tokyo walking',
+      'Japan · Tokyo Station → Shibuya transit',
+      'Japan · Tokyo Station → Tokyo Tower transit',
+      'Japan · Shinjuku → Asakusa transit',
+      'Japan · Tokyo Station → Asakusa → Shibuya transit',
+      'Korea · Seoul driving',
+      'Korea · Seoul walking',
+      'Korea · Seoul transit',
+    ]);
+    const request = buildRouteRequest(
+      createRoutePresetDraft(ROUTE_PLAYGROUND_PRESETS[8]!),
+    );
+    expect(request).toMatchObject({
+      mode: 'TRANSIT',
+      countryCode: 'KR',
+      locations: [
+        {
+          name: 'Seoul Station',
+          coordinates: { latitude: 37.554722, longitude: 126.970833 },
+        },
+        {
+          name: 'Gangnam Station',
+          coordinates: { latitude: 37.497942, longitude: 127.027621 },
+        },
+      ],
+      departureTime: expect.stringMatching(/Z$/),
+    });
+    for (const preset of ROUTE_PLAYGROUND_PRESETS.filter(
+      ({ countryCode, mode }) => countryCode === 'JP' && mode === 'TRANSIT',
+    )) {
+      expect(buildRouteRequest(createRoutePresetDraft(preset))).toMatchObject({
+        countryCode: 'JP',
+        mode: 'TRANSIT',
+        departureTime: expect.stringMatching(/Z$/),
+      });
+    }
   });
 
   it('rejects too few locations, empty rows, invalid coordinates, and invalid raw JSON', () => {

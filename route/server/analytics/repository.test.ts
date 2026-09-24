@@ -16,7 +16,7 @@ const startedRecord: RouteAnalyticsStartedRecord = {
   dayType: 'weekday',
   timeBucket: '14:20',
   provider: 'google',
-  cacheKey: 'route:v3:test',
+  cacheKey: 'route:v4:test',
   requestVersion: 1,
 };
 

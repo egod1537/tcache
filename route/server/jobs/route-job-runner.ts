@@ -1,15 +1,20 @@
-import type { RouteCachePolicy } from '../cache/policy.js';
-import { createRouteCacheKey } from '../cache/key.js';
-import type { RouteCacheRepository } from '../cache/repository.js';
 import {
   canonicalizeRouteLocation,
   getRouteTemporalMetadata,
+  resolveRouteTimeZone,
 } from '../cache/canonical.js';
 import type {
   RouteAnalyticsContext,
   RouteAnalyticsRecorder,
 } from '../analytics/recorder.js';
-import type { RouteProvider } from '../providers/provider.js';
+import {
+  RouteProviderTimeoutError,
+  type RouteResolver,
+} from '../resolver/route-resolver.js';
+import { KAKAO_ROUTE_ERROR_CODES } from '../providers/kakao/errors.js';
+import { NAVITIME_ROUTE_ERROR_CODES } from '../providers/navitime/errors.js';
+import { EKISPERT_ROUTE_ERROR_CODES } from '../providers/ekispert/errors.js';
+import { OTP_ROUTE_ERROR_CODES } from '../providers/otp/errors.js';
 import { normalizeRouteRequest } from '../types/route.js';
 import {
   isTerminalStatus,
@@ -27,12 +32,10 @@ type RouteAnalyticsEvent = keyof RouteAnalyticsRecorder;
 export interface RouteJobRunnerOptions {
   store: RouteJobStore;
   events: RouteJobEventBus;
-  cache: RouteCacheRepository;
-  cachePolicy: RouteCachePolicy;
-  provider: RouteProvider;
-  providerTimeoutMs: number;
+  resolver: RouteResolver;
   analytics?: RouteAnalyticsRecorder;
   routeTimeZone?: string;
+  exposeRawProviderResponse?: boolean;
   isHoliday?: (date: Date) => boolean;
   onAnalyticsError?: (
     error: unknown,
@@ -47,6 +50,10 @@ export class RouteJobRunner {
 
   constructor(private readonly options: RouteJobRunnerOptions) {}
 
+  validateRequest(request: ReturnType<typeof normalizeRouteRequest>) {
+    return this.options.resolver.validateRequest(request);
+  }
+
   async run(jobId: string): Promise<void> {
     const initial = await this.options.store.get(jobId);
     if (!initial || isTerminalStatus(initial.status)) return;
@@ -54,7 +61,6 @@ export class RouteJobRunner {
     const controller = new AbortController();
     this.controllers.set(jobId, controller);
     let errorCode: RouteJobError['code'] = 'INTERNAL_ERROR';
-    let timedOut = false;
     let startedAnalytics: Promise<void> | undefined;
 
     try {
@@ -67,8 +73,10 @@ export class RouteJobRunner {
 
       errorCode = 'INVALID_REQUEST';
       const normalizedRequest = normalizeRouteRequest(initial.request);
+      const selection = this.options.resolver.selectProvider(normalizedRequest);
       const canonicalizationOptions = {
         fallbackTime: new Date(initial.createdAt),
+        provider: selection.provider,
         ...(this.options.routeTimeZone
           ? { timeZone: this.options.routeTimeZone }
           : {}),
@@ -80,105 +88,143 @@ export class RouteJobRunner {
         normalizedRequest,
         canonicalizationOptions,
       );
-      const cacheKey = createRouteCacheKey(
+      let cacheKey = '';
+      const resolution = await this.options.resolver.resolve(
         normalizedRequest,
-        this.options.provider.providerName ?? 'unknown',
+        controller.signal,
         canonicalizationOptions,
-      );
-
-      const checkingCache = await this.transition(jobId, {
-        stage: 'checking_cache',
-        progress: 10,
-        message: 'Route cache 조회 중',
-        normalizedRequest,
-        requestMetadata: {
-          fromKey: canonicalizeRouteLocation(normalizedRequest.origin),
-          toKey: canonicalizeRouteLocation(normalizedRequest.destination),
-          intermediateKeys: normalizedRequest.intermediates.map(
-            canonicalizeRouteLocation,
-          ),
-          dayType: temporal.dayType,
-          timeBucket: temporal.timeBucket,
-        },
-      });
-      startedAnalytics = this.recordAnalytics('started', checkingCache, {
-        provider: this.providerName,
-        cacheKey,
-      });
-
-      errorCode = 'CACHE_ERROR';
-      const cached = await this.options.cache.get(cacheKey);
-      if (cached) {
-        await this.transition(jobId, {
-          stage: 'cache_hit',
-          progress: 100,
-          message: 'Route cache hit',
-          cache: {
-            hit: true,
-            key: cacheKey,
-            ttl: this.options.cachePolicy.ttlSeconds,
+        {
+          checkingCache: async (key) => {
+            cacheKey = key;
+            const checkingCache = await this.transition(jobId, {
+              stage: 'checking_cache',
+              progress: 10,
+              message: 'Route cache 조회 중',
+              normalizedRequest,
+              requestMetadata: {
+                fromKey: canonicalizeRouteLocation(
+                  normalizedRequest.origin,
+                  selection.provider,
+                ),
+                toKey: canonicalizeRouteLocation(
+                  normalizedRequest.destination,
+                  selection.provider,
+                ),
+                intermediateKeys: normalizedRequest.intermediates.map(
+                  (location) =>
+                    canonicalizeRouteLocation(location, selection.provider),
+                ),
+                dayType: temporal.dayType,
+                timeBucket: temporal.timeBucket,
+                timeZone: resolveRouteTimeZone(
+                  normalizedRequest,
+                  this.options.routeTimeZone,
+                ),
+              },
+              selectedProvider: selection.provider,
+              providerSelectionReason: selection.reason,
+              ...(selection.capabilities
+                ? { providerCapabilities: selection.capabilities }
+                : {}),
+              ...(selection.available !== undefined
+                ? { providerAvailable: selection.available }
+                : {}),
+              ...(selection.unavailableReason
+                ? { providerUnavailableReason: selection.unavailableReason }
+                : {}),
+              fallbackPolicy: 'disabled',
+              ...(normalizedRequest.countryCode
+                ? { countryCode: normalizedRequest.countryCode }
+                : {}),
+              mode: normalizedRequest.travelMode,
+            });
+            startedAnalytics = this.recordAnalytics('started', checkingCache, {
+              provider: selection.provider,
+              cacheKey: key,
+            });
+            errorCode = 'CACHE_ERROR';
           },
-          provider: cached.provider,
-          result: cached.result,
-        });
-        await this.complete(jobId, 'Cached route result ready');
-        return;
-      }
-
-      await this.transition(jobId, {
-        stage: 'cache_miss',
-        progress: 20,
-        message: 'Route cache miss',
-        cache: {
-          hit: false,
-          key: cacheKey,
-          ttl: this.options.cachePolicy.ttlSeconds,
+          cacheHit: async () => {
+            await this.transition(jobId, {
+              stage: 'cache_hit',
+              progress: 100,
+              message: 'Route cache hit',
+              cache: {
+                hit: true,
+                key: cacheKey,
+                ttl: 0,
+              },
+            });
+          },
+          cacheMiss: async () => {
+            await this.transition(jobId, {
+              stage: 'cache_miss',
+              progress: 20,
+              message: 'Route cache miss',
+              cache: {
+                hit: false,
+                key: cacheKey,
+                ttl: 0,
+              },
+            });
+          },
+          callingProvider: async () => {
+            errorCode = 'PROVIDER_ERROR';
+            await this.transition(jobId, {
+              stage: 'calling_provider',
+              progress: 40,
+              message: 'Route provider 호출 중',
+            });
+          },
+          providerResponded: async (provider, providerLatencyMs) => {
+            await this.transition(jobId, {
+              stage: 'processing_provider_response',
+              progress: 75,
+              message: 'Provider 응답 처리 중',
+              provider,
+              providerLatencyMs,
+            });
+          },
+          writingCache: async () => {
+            errorCode = 'CACHE_ERROR';
+            await this.transition(jobId, {
+              stage: 'writing_cache',
+              progress: 90,
+              message: 'Route cache 저장 중',
+            });
+          },
         },
-      });
-
-      await this.transition(jobId, {
-        stage: 'calling_provider',
-        progress: 40,
-        message: 'Route provider 호출 중',
-      });
-
-      errorCode = 'PROVIDER_ERROR';
-      const timeout = setTimeout(() => {
-        timedOut = true;
-        controller.abort(new Error('Route provider timed out'));
-      }, this.options.providerTimeoutMs);
-      const providerStartedAt = performance.now();
-      const providerResult = await this.options.provider
-        .getRoute(normalizedRequest, controller.signal)
-        .finally(() => clearTimeout(timeout));
-      const providerLatencyMs = Math.round(
-        performance.now() - providerStartedAt,
+        selection,
       );
 
-      await this.transition(jobId, {
-        stage: 'processing_provider_response',
-        progress: 75,
-        message: 'Provider 응답 처리 중',
-        provider: providerResult.provider,
-        providerLatencyMs,
-      });
-
-      await this.transition(jobId, {
-        stage: 'writing_cache',
-        progress: 90,
-        message: 'Route cache 저장 중',
-      });
-
-      errorCode = 'CACHE_ERROR';
-      await this.options.cache.set(
-        cacheKey,
-        providerResult,
-        this.options.cachePolicy.ttlSeconds,
+      await this.complete(
+        jobId,
+        resolution.cacheHit
+          ? 'Cached route result ready'
+          : 'Route job completed',
+        {
+          cache: {
+            hit: resolution.cacheHit,
+            key: resolution.cacheKey,
+            ttl: resolution.cacheTtlSeconds,
+          },
+          provider: resolution.provider,
+          ...(resolution.providerRequest !== undefined
+            ? { providerRequest: resolution.providerRequest }
+            : {}),
+          rawProviderResponseExposed: Boolean(
+            this.options.exposeRawProviderResponse,
+          ),
+          ...(this.options.exposeRawProviderResponse &&
+          resolution.rawProviderResponse !== undefined
+            ? { rawProviderResponse: resolution.rawProviderResponse }
+            : {}),
+          ...(resolution.providerLatencyMs !== undefined
+            ? { providerLatencyMs: resolution.providerLatencyMs }
+            : {}),
+          result: resolution.result,
+        },
       );
-
-      await this.complete(jobId, 'Route job completed', {
-        result: providerResult.result,
-      });
     } catch (error) {
       const current = await this.options.store.get(jobId);
       if (
@@ -190,14 +236,16 @@ export class RouteJobRunner {
 
       const providerError = getStructuredProviderError(error);
       await this.fail(jobId, {
-        code: timedOut
-          ? 'ROUTE_PROVIDER_TIMEOUT'
-          : (providerError?.code ?? errorCode),
-        message: timedOut
-          ? `Route provider exceeded ${this.options.providerTimeoutMs}ms timeout`
-          : error instanceof Error
+        code:
+          error instanceof RouteProviderTimeoutError
+            ? 'ROUTE_PROVIDER_TIMEOUT'
+            : (providerError?.code ?? errorCode),
+        message:
+          error instanceof RouteProviderTimeoutError
             ? error.message
-            : 'Unknown route job error',
+            : error instanceof Error
+              ? error.message
+              : 'Unknown route job error',
         ...(providerError?.details !== undefined
           ? { details: providerError.details }
           : {}),
@@ -284,18 +332,17 @@ export class RouteJobRunner {
   private async recordAnalytics(
     event: RouteAnalyticsEvent,
     job: RouteJob,
-    context: RouteAnalyticsContext = { provider: this.providerName },
+    context?: RouteAnalyticsContext,
   ) {
     if (!this.options.analytics) return;
+    const analyticsContext = context ?? {
+      provider: job.selectedProvider ?? job.provider ?? 'unknown',
+    };
     try {
-      await this.options.analytics[event](job, context);
+      await this.options.analytics[event](job, analyticsContext);
     } catch (error) {
       this.options.onAnalyticsError?.(error, event, job);
     }
-  }
-
-  private get providerName() {
-    return this.options.provider.providerName ?? 'unknown';
   }
 
   private async transition(
@@ -352,9 +399,25 @@ function getStructuredProviderError(error: unknown): {
 } | null {
   if (typeof error !== 'object' || error === null) return null;
   const candidate = error as { code?: unknown; details?: unknown };
-  if (candidate.code !== 'GOOGLE_ROUTES_ERROR') return null;
+  if (
+    candidate.code !== 'GOOGLE_ROUTES_ERROR' &&
+    !KAKAO_ROUTE_ERROR_CODES.includes(
+      candidate.code as (typeof KAKAO_ROUTE_ERROR_CODES)[number],
+    ) &&
+    !NAVITIME_ROUTE_ERROR_CODES.includes(
+      candidate.code as (typeof NAVITIME_ROUTE_ERROR_CODES)[number],
+    ) &&
+    !EKISPERT_ROUTE_ERROR_CODES.includes(
+      candidate.code as (typeof EKISPERT_ROUTE_ERROR_CODES)[number],
+    ) &&
+    !OTP_ROUTE_ERROR_CODES.includes(
+      candidate.code as (typeof OTP_ROUTE_ERROR_CODES)[number],
+    )
+  ) {
+    return null;
+  }
   return {
-    code: candidate.code,
+    code: candidate.code as RouteJobError['code'],
     ...(candidate.details !== undefined ? { details: candidate.details } : {}),
   };
 }

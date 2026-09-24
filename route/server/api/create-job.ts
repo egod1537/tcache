@@ -9,8 +9,10 @@ export function registerCreateJob(
 ) {
   app.post<{ Body: unknown }>('/jobs', async (request, reply) => {
     let input;
+    let selection;
     try {
       input = normalizePublicRouteRequest(request.body);
+      selection = context.jobs.selectProvider(input);
     } catch (error) {
       return reply.code(400).send({
         error: {
@@ -21,7 +23,11 @@ export function registerCreateJob(
       });
     }
 
-    const job = await context.jobs.create(input);
+    const job = await context.jobs.create(
+      input,
+      selection,
+      redactClientRequest(request.body),
+    );
     return reply.code(202).send({
       jobId: job.jobId,
       status: job.status,
@@ -29,4 +35,25 @@ export function registerCreateJob(
       resultUrl: `/api/route/jobs/${job.jobId}/result`,
     });
   });
+}
+
+function redactClientRequest(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return value
+      .replace(/\b(Bearer|KakaoAK)\s+\S+/gi, '$1 [REDACTED]')
+      .replace(
+        /([?&](?:api[-_]?key|token|secret|password)=)[^&#\s]*/gi,
+        '$1[REDACTED]',
+      );
+  }
+  if (Array.isArray(value)) return value.map(redactClientRequest);
+  if (typeof value !== 'object' || value === null) return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>).map(([key, child]) => [
+      key,
+      /authorization|api[-_]?key|token|secret|password/i.test(key)
+        ? '[REDACTED]'
+        : redactClientRequest(child),
+    ]),
+  );
 }

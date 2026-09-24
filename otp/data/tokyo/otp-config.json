@@ -1,0 +1,7 @@
+{
+  "otpFeatures": {
+    "ActuatorAPI": true,
+    "GtfsGraphQlApi": true,
+    "ReportApi": true
+  }
+}

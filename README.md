@@ -65,61 +65,85 @@ Compose는 `tcache-server`, `tcache-testbed`, `redis`, `postgres`를 실행합�
 
 ## 환경 변수
 
-| 변수                           | 기본값                   | 설명                           |
-| ------------------------------ | ------------------------ | ------------------------------ |
-| `NODE_ENV`                     | `development`            | 실행 환경                      |
-| `TCACHE_PORT`                  | `3200`                   | 로컬 server/host 포트          |
-| `TCACHE_TESTBED_PORT`          | `3201`                   | 로컬 testbed/host 포트         |
-| `REDIS_URL`                    | `redis://localhost:6379` | Redis 연결 주소                |
-| `POSTGRES_PASSWORD`            | 비어 있음                | Compose PostgreSQL 사용자 암호 |
-| `DATABASE_URL`                 | 비어 있음                | PostgreSQL 연결 문자열         |
-| `GIT_COMMIT_SHA`               | `dev`                    | `/status`에 노출할 배포 버전   |
-| `ROUTE_JOB_TTL_SECONDS`        | `86400`                  | Route Job 기록 보존 시간       |
-| `ROUTE_CACHE_TTL_SECONDS`      | `3600`                   | Route 결과 cache TTL           |
-| `ROUTE_PROVIDER_TIMEOUT_MS`    | `30000`                  | Route provider 요청 제한 시간  |
-| `ROUTE_PROVIDER`               | `mock`                   | `mock` 또는 `google`           |
-| `ROUTE_TIME_ZONE`              | `Asia/Seoul`             | Route day/bucket 계산 timezone |
-| `GOOGLE_MAPS_API_KEY`          | 비어 있음                | Google Routes API key          |
-| `AI_JOB_TTL_SECONDS`           | `86400`                  | AI Job 기록 보존 시간          |
-| `AI_CACHE_DEFAULT_TTL_SECONDS` | `3600`                   | AI 응답 cache TTL              |
-| `AI_PROVIDER_TIMEOUT_MS`       | `120000`                 | AI provider 요청 제한 시간     |
-| `AI_PROVIDER`                  | `mock`                   | `mock` 또는 `gemini`           |
-| `GEMINI_API_KEY`               | 비어 있음                | Gemini API key                 |
+| 변수                               | 기본값                    | 설명                                                    |
+| ---------------------------------- | ------------------------- | ------------------------------------------------------- |
+| `NODE_ENV`                         | `development`             | 실행 환경                                               |
+| `TCACHE_PORT`                      | `3200`                    | 로컬 server/host 포트                                   |
+| `TCACHE_TESTBED_PORT`              | `3201`                    | 로컬 testbed/host 포트                                  |
+| `REDIS_URL`                        | `redis://localhost:6379`  | Redis 연결 주소                                         |
+| `POSTGRES_PASSWORD`                | 비어 있음                 | Compose PostgreSQL 사용자 암호                          |
+| `DATABASE_URL`                     | 비어 있음                 | PostgreSQL 연결 문자열                                  |
+| `GIT_COMMIT_SHA`                   | `dev`                     | `/status`에 노출할 배포 버전                            |
+| `ROUTE_JOB_TTL_SECONDS`            | `86400`                   | Route Job 기록 보존 시간                                |
+| `ROUTE_CACHE_TTL_SECONDS`          | `3600`                    | Route 결과 cache TTL                                    |
+| `ROUTE_PROVIDER_TIMEOUT_MS`        | `30000`                   | Route provider 요청 제한 시간                           |
+| `TCACHE_MATRIX_CONCURRENCY`        | `4`                       | Matrix pair 동시 처리 수                                |
+| `ROUTE_PROVIDER`                   | `mock`                    | `auto`, `mock`, Google, Kakao, Ekispert, NAVITIME, OTP  |
+| `JAPAN_TRANSIT_PROVIDER`           | `ekispert`                | JP TRANSIT 기본 adapter (`ekispert`, `navitime`, `otp`) |
+| `ROUTE_PROVIDER_OVERRIDE_ENABLED`  | `true`                    | 요청별 provider override 허용                           |
+| `ROUTE_PROVIDER_RAW_DEBUG_ENABLED` | `true`                    | redacted raw provider response 기록                     |
+| `ROUTE_TIME_ZONE`                  | `Asia/Seoul`              | 국가·요청 timezone이 없을 때 day/bucket fallback        |
+| `GOOGLE_MAPS_API_KEY`              | 비어 있음                 | Google Routes API key                                   |
+| `KAKAO_REST_API_KEY`               | 비어 있음                 | Kakao Maps REST API key                                 |
+| `KAKAO_MOBILITY_API_KEY`           | 비어 있음                 | Kakao Mobility API key                                  |
+| `NAVITIME_API_KEY`                 | 비어 있음                 | NAVITIME RapidAPI key                                   |
+| `NAVITIME_API_BASE_URL`            | NAVITIME RapidAPI URL     | NAVITIME Total Navi API base URL                        |
+| `EKISPERT_API_KEY`                 | 비어 있음                 | Ekispert Standard/Trial access key                      |
+| `EKISPERT_API_BASE_URL`            | `https://api.ekispert.jp` | Ekispert Standard API base URL                          |
+| `OTP_BASE_URL`                     | `http://localhost:8080`   | Experimental OTP service base URL                       |
+| `OTP_PROVIDER_ENABLED`             | `false`                   | OTP adapter를 명시적으로 활성화                         |
+| `OTP_REQUEST_TIMEOUT_MS`           | `30000`                   | OTP GraphQL 요청 제한 시간                              |
+| `OTP_VERSION`                      | 비어 있음                 | 관측·cache metadata용 OTP 버전                          |
+| `OTP_GRAPH_BUILD_ID`               | 비어 있음                 | graph 재빌드별 cache identity                           |
+| `OTP_GTFS_DATASET_VERSION`         | 비어 있음                 | 현재 graph의 GTFS dataset identity                      |
+| `OTP_OSM_DATASET_VERSION`          | 비어 있음                 | 현재 graph의 OSM dataset identity                       |
+| `AI_JOB_TTL_SECONDS`               | `86400`                   | AI Job 기록 보존 시간                                   |
+| `AI_CACHE_DEFAULT_TTL_SECONDS`     | `3600`                    | AI 응답 cache TTL                                       |
+| `AI_PROVIDER_TIMEOUT_MS`           | `120000`                  | AI provider 요청 제한 시간                              |
+| `AI_PROVIDER`                      | `mock`                    | `mock` 또는 `gemini`                                    |
+| `GEMINI_API_KEY`                   | 비어 있음                 | Gemini API key                                          |
 
 `.env`와 tunnel credential은 Git에 커밋하지 않습니다. Docker 환경에서는 server가 내부 주소 `redis://redis:6379`를 사용하고, `DATABASE_URL`은 `postgresql://tcache:<URL-encoded password>@postgres:5432/tcache` 형태로 설정합니다. PostgreSQL은 장기 요청 이력과 분석 metadata용이며 Route/AI cache 본문과 Job 상태는 계속 Redis에 저장합니다. `POSTGRES_PASSWORD`는 빈 `postgres-data` volume을 최초 초기화할 때 적용되므로 운영 중 암호 변경은 PostgreSQL role 변경 절차와 함께 수행해야 합니다.
 
 ## URL 구조
 
-| URL                                       | 용도                                          |
-| ----------------------------------------- | --------------------------------------------- |
-| `/`                                       | testbed 홈                                    |
-| `/route`                                  | Google Routes provider playground             |
-| `/route/jobs`                             | Route Job lifecycle testbed                   |
-| `/route/cache`                            | Redis Route Cache read-only explorer          |
-| `/route/analytics`                        | PostgreSQL Route Analytics dashboard          |
-| `/ai`                                     | AI Job testbed                                |
-| `/status`                                 | 배포 상태 UI                                  |
-| `/health`                                 | server/container health check                 |
-| `/api/route/ping`                         | Route Cache health                            |
-| `POST /api/route/provider/google/compute` | Google provider 직접 검증                     |
-| `POST /api/route/jobs`                    | 비동기 Route Job 생성                         |
-| `GET /api/route/jobs/:jobId`              | Route Job 상태 polling                        |
-| `GET /api/route/jobs/:jobId/events`       | Route Job SSE progress stream                 |
-| `GET /api/route/jobs/:jobId/result`       | 완료 결과 조회                                |
-| `POST /api/route/jobs/:jobId/cancel`      | Route Job 취소                                |
-| `GET /api/route/analytics/summary`        | Route 분석 요약                               |
-| `GET /api/route/analytics/timeseries`     | 시간/일 단위 요청 추이                        |
-| `GET /api/route/analytics/modes`          | 이동수단별 요청 및 cache hit rate             |
-| `GET /api/route/analytics/top-routes`     | 요청량 기준 상위 출발지/도착지 조합           |
-| `GET /api/route/analytics/errors`         | error code별 발생 건수                        |
-| `GET /api/route/analytics/recent`         | 최근 Route 요청 metadata                      |
-| `/api/ai/ping`                            | AI Cache health                               |
-| `POST /api/ai/jobs`                       | 비동기 AI Job 생성                            |
-| `GET /api/ai/jobs/:jobId`                 | AI Job 상태 polling                           |
-| `GET /api/ai/jobs/:jobId/events`          | AI Job SSE progress stream                    |
-| `GET /api/ai/jobs/:jobId/result`          | AI Job 완료 결과 조회                         |
-| `POST /api/ai/jobs/:jobId/cancel`         | AI Job 취소                                   |
-| `/api/status`                             | UI에서 server `/status`를 조회하는 proxy 경로 |
+| URL                                         | 용도                                          |
+| ------------------------------------------- | --------------------------------------------- |
+| `/`                                         | testbed 홈                                    |
+| `/route`                                    | Multi-provider Route playground               |
+| `/route/matrix`                             | directed Matrix Query testbed                 |
+| `/route/jobs`                               | Route Job lifecycle testbed                   |
+| `/route/cache`                              | Redis Route Cache read-only explorer          |
+| `/route/analytics`                          | PostgreSQL Route Analytics dashboard          |
+| `/ai`                                       | AI Job testbed                                |
+| `/status`                                   | 배포 상태 UI                                  |
+| `/health`                                   | server/container health check                 |
+| `/api/route/ping`                           | Route Cache health                            |
+| `POST /api/route/provider/google/compute`   | Google provider 직접 검증                     |
+| `POST /api/route/jobs`                      | 비동기 Route Job 생성                         |
+| `GET /api/route/jobs/:jobId`                | Route Job 상태 polling                        |
+| `GET /api/route/jobs/:jobId/events`         | Route Job SSE progress stream                 |
+| `GET /api/route/jobs/:jobId/result`         | 완료 결과 조회                                |
+| `GET /api/route/providers/diagnostics`      | provider 설정·연결 상태(core health와 분리)   |
+| `POST /api/route/jobs/:jobId/cancel`        | Route Job 취소                                |
+| `POST /api/route/matrix/jobs`               | directed Travel Time Matrix Job 생성          |
+| `GET /api/route/matrix/jobs/:jobId`         | Matrix Job 상태 polling                       |
+| `GET /api/route/matrix/jobs/:jobId/events`  | Matrix Job SSE progress stream                |
+| `GET /api/route/matrix/jobs/:jobId/result`  | 완료된 durationSeconds matrix 조회            |
+| `POST /api/route/matrix/jobs/:jobId/cancel` | Matrix Job 취소                               |
+| `GET /api/route/analytics/summary`          | Route 분석 요약                               |
+| `GET /api/route/analytics/timeseries`       | 시간/일 단위 요청 추이                        |
+| `GET /api/route/analytics/modes`            | 이동수단별 요청 및 cache hit rate             |
+| `GET /api/route/analytics/top-routes`       | 요청량 기준 상위 출발지/도착지 조합           |
+| `GET /api/route/analytics/errors`           | error code별 발생 건수                        |
+| `GET /api/route/analytics/recent`           | 최근 Route 요청 metadata                      |
+| `/api/ai/ping`                              | AI Cache health                               |
+| `POST /api/ai/jobs`                         | 비동기 AI Job 생성                            |
+| `GET /api/ai/jobs/:jobId`                   | AI Job 상태 polling                           |
+| `GET /api/ai/jobs/:jobId/events`            | AI Job SSE progress stream                    |
+| `GET /api/ai/jobs/:jobId/result`            | AI Job 완료 결과 조회                         |
+| `POST /api/ai/jobs/:jobId/cancel`           | AI Job 취소                                   |
+| `/api/status`                               | UI에서 server `/status`를 조회하는 proxy 경로 |
 
 server의 `GET /status`는 service, commit SHA, environment, uptime, Redis 및 PostgreSQL 상태를 JSON으로 반환합니다. PostgreSQL 상태는 server가 주기적으로 실행하는 `SELECT 1` 결과를 캐시하므로 `/status` 요청마다 DB query를 실행하지 않습니다. 외부 `/status`는 같은 정보를 표시하는 React 화면이므로 Nginx/Vite가 `/api/status`를 server의 `/status`로 변환합니다.
 
@@ -145,18 +169,19 @@ curl -X POST http://localhost:3200/api/route/provider/google/compute \
 
 Route 요청은 `202 Accepted`와 `route_` prefix Job ID를 즉시 반환하고 Redis에서 상태를 관리합니다. 클라이언트는 callback URL을 제공하지 않으며, 반환된 `eventsUrl`에 직접 SSE 연결을 열어 `snapshot`, `progress`, `completed`, `failed`, `cancelled` 이벤트를 받습니다. 연결이 끊겨도 Job은 계속 실행되며 재연결 시 최신 Redis snapshot이 먼저 전송됩니다.
 
-외부 클라이언트는 방문 순서대로 정렬된 `locations`, `mode`, timezone이 포함된 `departureTime`만 전송하면 됩니다. 첫 위치는 출발지, 마지막 위치는 도착지, 그 사이는 경유지로 정규화됩니다. 위치는 2~27개이며 Place ID를 우선 권장하고 주소와 위도/경도도 지원합니다. 요일 유형, 10분 단위 시간 버킷, cache key, provider 요청은 서버가 계산합니다. 기존 `origin` / `intermediates` / `destination` / `travelMode` 형태도 호환을 위해 계속 지원합니다.
+외부 클라이언트는 방문 순서대로 정렬된 `locations`, `mode`, timezone이 포함된 `departureTime`만 전송하면 됩니다. 첫 위치는 출발지, 마지막 위치는 도착지, 그 사이는 경유지로 정규화됩니다. 위치는 2~27개이며 canonical 위치는 `coordinates.latitude` / `coordinates.longitude`를 기준으로 하고 provider별 ID는 `externalIds`에 둡니다. 주소도 지원하며 기존 `{ placeId }`, `{ latitude, longitude }`, `origin` / `intermediates` / `destination` / `travelMode` 형태는 호환을 위해 계속 지원합니다.
 
 ```bash
 curl -X POST http://localhost:3200/api/route/jobs \
   -H 'Content-Type: application/json' \
   -d '{
     "locations":[
-      {"placeId":"ChIJ-origin"},
-      {"placeId":"ChIJ-stop"},
-      {"placeId":"ChIJ-destination"}
+      {"coordinates":{"latitude":37.5665,"longitude":126.9780},"externalIds":{"googlePlaceId":"ChIJ-origin"}},
+      {"coordinates":{"latitude":37.5700,"longitude":126.9820}},
+      {"address":"서울역"}
     ],
     "mode":"TRANSIT",
+    "countryCode":"JP",
     "departureTime":"2026-10-02T14:23:00+09:00",
     "languageCode":"ko"
   }'
@@ -165,7 +190,61 @@ curl -N http://localhost:3200/api/route/jobs/<jobId>/events
 curl http://localhost:3200/api/route/jobs/<jobId>/result
 ```
 
-로컬 `.env.example`은 실제 비용 없이 Job·cache·SSE 흐름을 검증하도록 `ROUTE_PROVIDER=mock`을 사용합니다. Compose의 환경 변수 기본값은 운영 안전을 위해 `google`이며, 이때 `GOOGLE_MAPS_API_KEY`가 없으면 가짜 결과를 반환하지 않고 Job이 `PROVIDER_ERROR`로 실패합니다. provider는 Job 상태를 직접 다루지 않으며 timeout과 progress stage는 runner가 관리합니다.
+로컬 `.env.example`은 실제 비용 없이 Job·cache·SSE 흐름을 검증하도록 `ROUTE_PROVIDER=mock`을 사용합니다. Compose 기본값인 `auto`는 `countryCode`와 mode로 provider를 선택합니다. JP TRANSIT은 `JAPAN_TRANSIT_PROVIDER`(기본 Ekispert), JP의 다른 mode는 Google, KR DRIVING은 Kakao Mobility, KR의 다른 mode는 Kakao Maps, 그 외 또는 국가 미지정 요청은 Google을 선택합니다. Kakao adapter는 WGS84 좌표가 있는 location만 받고, NAVITIME adapter는 `navitimeId` 또는 WGS84 좌표를 사용합니다. Ekispert adapter는 `ekispertId`, WGS84 좌표, 주소, 역명 순으로 실제 Standard 경로 탐색 API에 매핑합니다. 어느 adapter도 Google Place ID를 다른 provider ID로 전달하지 않습니다. provider 오류 시 자동 fallback하지 않습니다. production에서는 `ROUTE_PROVIDER_OVERRIDE_ENABLED=false`가 기본이며, provider는 Job 상태를 직접 다루지 않고 timeout과 progress stage는 runner가 관리합니다.
+
+### Ekispert 일본 대중교통 provider
+
+Ekispert adapter는 일본 `TRANSIT` 전용이며 공식 Standard API의 [`search/course/extreme`](https://docs.ekispert.com/v1/api/search/course/extreme.html)을 사용합니다. Free Plan의 `search/course/light`는 역·노선 조회 및 웹 URL 생성 중심으로 실제 경로 결과 JSON을 제공하는 RouteProvider API가 아니므로 사용하지 않습니다. Standard 또는 90일 평가판 access key를 `EKISPERT_API_KEY`에 설정해야 합니다.
+
+평가판 key가 없거나 만료돼도 server와 provider registry는 정상 시작합니다. Catalog에는 Ekispert가 unavailable로 표시되고, 선택된 요청은 `PROVIDER_NOT_CONFIGURED`로 실패하며 NAVITIME으로 자동 fallback하지 않습니다. 평가 종료 후 `JAPAN_TRANSIT_PROVIDER=navitime`으로 명시적으로 전환하거나 Testbed의 `provider=ekispert` / `provider=navitime` override로 동일 요청 결과를 비교할 수 있습니다. 두 provider 결과는 각각 `route:v4:ekispert:...`, `route:v4:navitime:...` namespace를 사용합니다.
+
+## Travel Time Matrix API
+
+`POST /api/route/matrix/jobs`는 2~20개 location의 모든 directed pair를 계산합니다. 대각선은 provider를 호출하지 않고 0으로 채우며, 입력 순서를 결과에 그대로 보존합니다. 각 pair는 일반 Route Job과 동일한 cache key, TTL, provider adapter를 사용하므로 cache hit에서는 provider를 다시 호출하지 않습니다. 하나의 pair라도 실패하면 부분 matrix 대신 전체 Job이 실패합니다.
+
+```sh
+curl -X POST http://localhost:3200/api/route/matrix/jobs \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "locations":[
+      {"id":"A","placeId":"ChIJ-origin"},
+      {"id":"B","placeId":"ChIJ-destination"}
+    ],
+    "mode":"TRANSIT",
+    "departureTime":"2026-10-01T09:00:00+09:00",
+    "options":{"languageCode":"ko","regionCode":"KR"}
+  }'
+```
+
+결과의 `durationSeconds`는 directed square matrix이며 단위는 항상 초입니다. `TCACHE_MATRIX_CONCURRENCY`로 pair 동시성을 제한하며 1 이상의 정수만 허용합니다.
+
+Testbed의 Matrix Query preset은 troute의
+`tests/fixtures/places/*_10_places.json`에서 생성합니다. Tokyo/Seoul 각각
+3/5/10개 preset이 같은 Place ID와 순서를 사용하며, 화면에서 장소명·slug·Place ID와
+tcache request 및 troute-compatible request preview를 확인할 수 있습니다. 생성 파일
+`route/testbed/matrix/place-fixtures.generated.ts`는 직접 편집하지 않고 troute에서
+`node scripts/generate_testbed_place_presets.mjs`를 실행해 갱신합니다. 자동 UI 테스트는
+실제 Google provider를 호출하지 않습니다.
+
+## OpenTripPlanner Tokyo PoC
+
+`otp/`에는 tcache 런타임과 결합되지 않은 독립 OTP 2.10.0 실험 환경이 있습니다. Tokyo OSM과 라이선스가 확인된 Toei 정적 GTFS로 graph를 만들고 GTFS GraphQL `planConnection`을 통해 도보·대중교통 경로 및 latency를 검증합니다. 데이터 다운로드, graph build, 실행, query와 coverage 제한은 [OTP PoC README](otp/README.md)를 참고합니다.
+
+### Experimental OTP RouteProvider
+
+독립 PoC가 검증된 뒤 추가된 `otp` adapter는 좌표가 있는 `JP + TRANSIT` 요청만 받으며 GraphQL query와 variables를 분리해 `/otp/gtfs/v1`을 호출합니다. 기본 Japan transit 정책은 계속 Ekispert이고 OTP는 `OTP_PROVIDER_ENABLED=true`와 개발용 `provider=otp` override를 함께 설정해야 사용됩니다. 실패 시 Ekispert/NAVITIME으로 자동 fallback하지 않습니다.
+
+실험용 Compose overlay는 production topology와 분리되어 있습니다. `otp/data/tokyo/graph.obj`를 먼저 만든 뒤 다음처럼 실행합니다.
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.otp.yml --profile otp up -d --build
+```
+
+컨테이너 안의 tcache server는 service DNS인 `http://otp:8080`을 사용합니다. OTP 장애는 `/health`나 core server health를 down으로 만들지 않으며, `GET /api/route/providers/diagnostics`에서 `configured`와 `reachable`을 별도로 확인합니다. Testbed override에서 Ekispert, NAVITIME, OpenTripPlanner를 같은 JP transit preset으로 실행해 duration, transfer, walking, latency와 cache hit/miss를 비교할 수 있습니다.
+
+CI의 기본 test suite는 fixture HTTP 응답만 사용합니다. 로컬 graph까지 확인하려면 OTP를 실행한 뒤 `RUN_LIVE_ROUTE_PROVIDER_TESTS=true OTP_BASE_URL=http://127.0.0.1:8080 pnpm --filter @tcache/server exec vitest run route/server/otp-provider.test.ts --root ../..`를 실행합니다.
+
+GTFS/OSM을 갱신한 뒤에는 graph를 다시 빌드하고 `OTP_GRAPH_BUILD_ID`를 새 값으로 바꿔야 합니다. 이 값과 dataset version은 `route:v4:otp:...` hash seed, cache metadata, normalized result metadata에 포함되므로 과거 graph 결과와 cache가 섞이지 않습니다. API 전체 응답은 debug 설정이 켜진 환경에서만 노출되며 endpoint, GraphQL variables, itinerary count와 dataset identity에는 secret이 포함되지 않습니다.
 
 ## AI Job API
 
@@ -213,8 +292,8 @@ Mac mini에는 다음 사전 구성이 필요합니다.
 1. GitHub self-hosted runner에 `macOS` label과 Docker 접근 권한 설정
 2. repository Environment `production` 생성
 3. 필요하면 Actions variable `TCACHE_PORT` 설정(기본 `3200`)
-4. production Environment에 `ROUTE_PROVIDER=google`, `AI_PROVIDER=gemini` variable 설정
-5. production Environment에 `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_MAPS_API_KEY`, `GEMINI_API_KEY` secret 설정
+4. production Environment에 `ROUTE_PROVIDER=auto`, `AI_PROVIDER=gemini` variable 설정
+5. production Environment에 `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_MAPS_API_KEY`, `KAKAO_REST_API_KEY`, `KAKAO_MOBILITY_API_KEY`, `EKISPERT_API_KEY`, `NAVITIME_API_KEY`, `GEMINI_API_KEY` secret 설정
 6. `DATABASE_URL`은 Docker DNS의 `postgres:5432`와 URL-encoded password를 사용하도록 설정
 7. `cloudflared`를 시스템 서비스로 등록하고 `tcache.mangagaki.net` 연결
 
@@ -241,7 +320,7 @@ docker compose start tcache-server
 
 최초 migration은 장기 분석용 `route_requests`와 `created_at`, `mode`, `cache_hit`, `provider`, `status` index를 생성합니다. Route/AI cache 본문과 Job 실시간 상태는 PostgreSQL에 저장하지 않습니다. Route Job은 시작 시 분석 row를 upsert하고 completed/failed/cancelled 시 cache 결과, latency, 상태와 제한된 error code를 갱신합니다. recorder 실패는 구조화된 warning으로 남지만 Route 결과에는 영향을 주지 않으며 Job runner는 SQL 세부사항에 의존하지 않습니다.
 
-Route cache key와 분석 metadata는 `route/server/cache/canonical.ts`의 location canonicalization, day type, 10분 time bucket을 함께 사용합니다. 이 정책을 도입한 cache key는 `route:v3` namespace를 사용합니다. 기본 timezone은 `Asia/Seoul`이며 `ROUTE_TIME_ZONE`으로 변경할 수 있습니다. holiday 판정 hook은 준비되어 있지만 기본 정책에서는 weekday/saturday/sunday만 계산합니다.
+Route cache key와 분석 metadata는 `route/server/cache/canonical.ts`의 location canonicalization, day type, 10분 time bucket을 함께 사용합니다. 좌표를 우선하는 cache key는 `route:v4:<provider>:<mode>:<country>:<hash>` 형태이며 provider별 결과를 공유하지 않습니다. 좌표 정밀도는 `ROUTE_COORDINATE_PRECISION` 상수로 제한합니다. timezone은 요청의 `timeZone`, 국가 기본값(`JP`는 `Asia/Tokyo`, `KR`은 `Asia/Seoul`), `ROUTE_TIME_ZONE` 순서로 결정합니다. 새 cache entry에는 provider/version, normalized request hash, 생성·만료 시각이 저장되며 기존 namespace를 dual-read하지 않습니다. holiday 판정 hook은 준비되어 있지만 기본 정책에서는 weekday/saturday/sunday만 계산합니다.
 
 Route Analytics API는 조회 전용이며 기본 조회 기간은 최근 24시간, 최대 조회 기간은 90일입니다. `from`/`to`는 ISO-8601, `interval`은 `hour` 또는 `day`를 사용합니다. Top Routes limit은 최대 100, Recent Requests limit은 최대 200입니다. 집계는 PostgreSQL의 `COUNT`, `AVG`, `FILTER`, `GROUP BY`, `date_trunc`로 수행하며 별도 Redis cache를 사용하지 않습니다.
 

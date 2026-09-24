@@ -6,6 +6,10 @@ const CACHE_PREFIX = 'tcache:route:cache:';
 export interface RouteCacheEntrySummary {
   key: string;
   provider: string | null;
+  providerVersion: string | null;
+  normalizedRequestHash: string | null;
+  createdAt: string | null;
+  expiresAt: string | null;
   ttlSeconds: number;
   sizeBytes: number;
 }
@@ -77,6 +81,10 @@ export class RedisRouteCacheInspector implements RouteCacheInspector {
         typeof value.provider === 'string' && value.provider
           ? value.provider
           : null,
+      providerVersion: value.metadata?.providerVersion ?? null,
+      normalizedRequestHash: value.metadata?.normalizedRequestHash ?? null,
+      createdAt: value.metadata?.createdAt ?? null,
+      expiresAt: value.metadata?.expiresAt ?? null,
       ttlSeconds,
       sizeBytes: Buffer.byteLength(serialized),
     };

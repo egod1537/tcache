@@ -1,19 +1,23 @@
 import type {
+  LegacyRouteLocation,
   PublicRouteLocation,
   PublicRouteRequest,
-  RouteLocation,
   RouteTravelMode,
 } from '../../../apps/testbed/src/api/client';
 import { ROUTE_MODE_LABELS } from '../route-ui-labels';
 
-export type RouteLocationKind = RouteLocation['type'];
+export type RouteLocationKind = LegacyRouteLocation['type'];
 
 export interface RouteLocationDraft {
   type: RouteLocationKind;
+  name: string;
   address: string;
   latitude: string;
   longitude: string;
   placeId: string;
+  kakaoPlaceId: string;
+  navitimeId: string;
+  ekispertId: string;
 }
 
 export interface RouteDraftLocation {
@@ -29,7 +33,111 @@ export interface RouteRequestDraft {
   languageCode: string;
   regionCode: string;
   routingPreference: string;
+  countryCode: string;
+  provider: string;
 }
+
+export interface RoutePlaygroundPreset {
+  id: string;
+  label: string;
+  countryCode: 'JP' | 'KR';
+  mode: RouteTravelMode;
+  locations: Array<{ name: string; latitude: number; longitude: number }>;
+}
+
+export const ROUTE_PLAYGROUND_PRESETS: RoutePlaygroundPreset[] = [
+  {
+    id: 'japan-driving',
+    label: 'Japan · Tokyo driving',
+    countryCode: 'JP',
+    mode: 'DRIVING',
+    locations: [
+      { name: 'Tokyo Station', latitude: 35.681236, longitude: 139.767125 },
+      { name: 'Shibuya', latitude: 35.658034, longitude: 139.701636 },
+    ],
+  },
+  {
+    id: 'japan-walking',
+    label: 'Japan · Tokyo walking',
+    countryCode: 'JP',
+    mode: 'WALKING',
+    locations: [
+      { name: 'Tokyo Station', latitude: 35.681236, longitude: 139.767125 },
+      { name: 'Tokyo Tower', latitude: 35.658581, longitude: 139.745433 },
+    ],
+  },
+  {
+    id: 'japan-transit',
+    label: 'Japan · Tokyo Station → Shibuya transit',
+    countryCode: 'JP',
+    mode: 'TRANSIT',
+    locations: [
+      { name: 'Tokyo Station', latitude: 35.681236, longitude: 139.767125 },
+      { name: 'Shibuya', latitude: 35.658034, longitude: 139.701636 },
+    ],
+  },
+  {
+    id: 'japan-transit-tokyo-tower',
+    label: 'Japan · Tokyo Station → Tokyo Tower transit',
+    countryCode: 'JP',
+    mode: 'TRANSIT',
+    locations: [
+      { name: 'Tokyo Station', latitude: 35.681236, longitude: 139.767125 },
+      { name: 'Tokyo Tower', latitude: 35.658581, longitude: 139.745433 },
+    ],
+  },
+  {
+    id: 'japan-transit-shinjuku-asakusa',
+    label: 'Japan · Shinjuku → Asakusa transit',
+    countryCode: 'JP',
+    mode: 'TRANSIT',
+    locations: [
+      { name: 'Shinjuku', latitude: 35.690921, longitude: 139.700258 },
+      { name: 'Asakusa', latitude: 35.714765, longitude: 139.796655 },
+    ],
+  },
+  {
+    id: 'japan-transit-multi-stop',
+    label: 'Japan · Tokyo Station → Asakusa → Shibuya transit',
+    countryCode: 'JP',
+    mode: 'TRANSIT',
+    locations: [
+      { name: 'Tokyo Station', latitude: 35.681236, longitude: 139.767125 },
+      { name: 'Asakusa', latitude: 35.714765, longitude: 139.796655 },
+      { name: 'Shibuya', latitude: 35.658034, longitude: 139.701636 },
+    ],
+  },
+  {
+    id: 'korea-driving',
+    label: 'Korea · Seoul driving',
+    countryCode: 'KR',
+    mode: 'DRIVING',
+    locations: [
+      { name: 'Seoul Station', latitude: 37.554722, longitude: 126.970833 },
+      { name: 'Gangnam Station', latitude: 37.497942, longitude: 127.027621 },
+    ],
+  },
+  {
+    id: 'korea-walking',
+    label: 'Korea · Seoul walking',
+    countryCode: 'KR',
+    mode: 'WALKING',
+    locations: [
+      { name: 'Gwanghwamun', latitude: 37.571607, longitude: 126.976897 },
+      { name: 'Gyeongbokgung', latitude: 37.579617, longitude: 126.977041 },
+    ],
+  },
+  {
+    id: 'korea-transit',
+    label: 'Korea · Seoul transit',
+    countryCode: 'KR',
+    mode: 'TRANSIT',
+    locations: [
+      { name: 'Seoul Station', latitude: 37.554722, longitude: 126.970833 },
+      { name: 'Gangnam Station', latitude: 37.497942, longitude: 127.027621 },
+    ],
+  },
+];
 
 export interface PlaygroundError {
   httpStatus: number | null;
@@ -56,10 +164,14 @@ export const ROUTE_MODES: Array<{
 export function createLocationDraft(address = ''): RouteLocationDraft {
   return {
     type: 'address',
+    name: '',
     address,
     latitude: '',
     longitude: '',
     placeId: '',
+    kakaoPlaceId: '',
+    navitimeId: '',
+    ekispertId: '',
   };
 }
 
@@ -81,17 +193,34 @@ export function createRouteLocationId(): string {
 }
 
 export function createDefaultRouteDraft(): RouteRequestDraft {
+  return createRoutePresetDraft(ROUTE_PLAYGROUND_PRESETS[0]!);
+}
+
+export function createRoutePresetDraft(
+  preset: RoutePlaygroundPreset,
+): RouteRequestDraft {
   return {
-    locations: [
-      createRouteDraftLocation(createLocationDraft('東京駅、日本')),
-      createRouteDraftLocation(createLocationDraft('東京タワー、日本')),
-    ],
-    travelMode: 'DRIVING',
+    locations: preset.locations.map((location) =>
+      createRouteDraftLocation({
+        type: 'coordinates',
+        name: location.name,
+        address: '',
+        latitude: String(location.latitude),
+        longitude: String(location.longitude),
+        placeId: '',
+        kakaoPlaceId: '',
+        navitimeId: '',
+        ekispertId: '',
+      }),
+    ),
+    travelMode: preset.mode,
     computeAlternativeRoutes: false,
     departureTime: createDefaultDepartureTime(),
-    languageCode: 'ja',
-    regionCode: 'JP',
+    languageCode: preset.countryCode === 'JP' ? 'ja' : 'ko',
+    regionCode: preset.countryCode,
     routingPreference: '',
+    countryCode: preset.countryCode,
+    provider: '',
   };
 }
 
@@ -127,6 +256,10 @@ export function buildRouteRequest(
     ...(draft.routingPreference
       ? { routingPreference: draft.routingPreference }
       : {}),
+    ...(draft.countryCode.trim()
+      ? { countryCode: draft.countryCode.trim().toUpperCase() }
+      : {}),
+    ...(draft.provider ? { provider: draft.provider } : {}),
   };
 }
 
@@ -150,6 +283,10 @@ export function buildRouteRequestPreview(draft: RouteRequestDraft): unknown {
     ...(draft.routingPreference
       ? { routingPreference: draft.routingPreference }
       : {}),
+    ...(draft.countryCode.trim()
+      ? { countryCode: draft.countryCode.trim().toUpperCase() }
+      : {}),
+    ...(draft.provider ? { provider: draft.provider } : {}),
   };
 }
 
@@ -193,41 +330,72 @@ function toPublicRouteLocation(
 ): PublicRouteLocation {
   if (value.type === 'address') {
     if (!value.address.trim()) throw new Error(`${label} 주소를 입력하세요.`);
-    return { address: value.address.trim() };
   }
   if (value.type === 'placeId') {
     if (!value.placeId.trim())
       throw new Error(`${label} Place ID를 입력하세요.`);
-    return { placeId: value.placeId.trim() };
   }
-
-  const latitude = Number(value.latitude);
-  const longitude = Number(value.longitude);
-  if (
-    !value.latitude.trim() ||
-    !value.longitude.trim() ||
-    !Number.isFinite(latitude) ||
-    latitude < -90 ||
-    latitude > 90 ||
-    !Number.isFinite(longitude) ||
-    longitude < -180 ||
-    longitude > 180
-  ) {
-    throw new Error(`${label} 좌표가 올바르지 않습니다.`);
+  const hasLatitude = Boolean(value.latitude.trim());
+  const hasLongitude = Boolean(value.longitude.trim());
+  let coordinates: { latitude: number; longitude: number } | undefined;
+  if (value.type === 'coordinates' || hasLatitude || hasLongitude) {
+    const latitude = Number(value.latitude);
+    const longitude = Number(value.longitude);
+    if (
+      !hasLatitude ||
+      !hasLongitude ||
+      !Number.isFinite(latitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      !Number.isFinite(longitude) ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      throw new Error(`${label} 좌표가 올바르지 않습니다.`);
+    }
+    coordinates = { latitude, longitude };
   }
-  return { latitude, longitude };
+  const externalIds = {
+    ...(value.placeId.trim() ? { googlePlaceId: value.placeId.trim() } : {}),
+    ...(value.kakaoPlaceId.trim()
+      ? { kakaoPlaceId: value.kakaoPlaceId.trim() }
+      : {}),
+    ...(value.navitimeId.trim() ? { navitimeId: value.navitimeId.trim() } : {}),
+    ...(value.ekispertId.trim() ? { ekispertId: value.ekispertId.trim() } : {}),
+  };
+  return {
+    ...(coordinates ? { coordinates } : {}),
+    ...(value.name.trim() ? { name: value.name.trim() } : {}),
+    ...(value.address.trim() ? { address: value.address.trim() } : {}),
+    ...(Object.keys(externalIds).length ? { externalIds } : {}),
+  };
 }
 
 function toRouteLocationPreview(value: RouteLocationDraft): unknown {
-  if (value.type === 'address') {
-    return { address: value.address };
-  }
-  if (value.type === 'placeId') {
-    return { placeId: value.placeId };
-  }
   return {
-    latitude: numberOrOriginal(value.latitude),
-    longitude: numberOrOriginal(value.longitude),
+    ...(value.name ? { name: value.name } : {}),
+    ...(value.address ? { address: value.address } : {}),
+    ...(value.latitude || value.longitude
+      ? {
+          coordinates: {
+            latitude: numberOrOriginal(value.latitude),
+            longitude: numberOrOriginal(value.longitude),
+          },
+        }
+      : {}),
+    ...(value.placeId ||
+    value.kakaoPlaceId ||
+    value.navitimeId ||
+    value.ekispertId
+      ? {
+          externalIds: {
+            ...(value.placeId ? { googlePlaceId: value.placeId } : {}),
+            ...(value.kakaoPlaceId ? { kakaoPlaceId: value.kakaoPlaceId } : {}),
+            ...(value.navitimeId ? { navitimeId: value.navitimeId } : {}),
+            ...(value.ekispertId ? { ekispertId: value.ekispertId } : {}),
+          },
+        }
+      : {}),
   };
 }
 

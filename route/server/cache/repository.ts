@@ -3,6 +3,17 @@ import type { RedisClient } from '../../../apps/server/src/redis/client.js';
 export interface CachedRoute {
   provider: string;
   result: unknown;
+  /** Missing only on legacy entries waiting for Redis TTL expiry. */
+  metadata?: RouteCacheMetadata;
+}
+
+export interface RouteCacheMetadata {
+  provider: string;
+  providerVersion?: string;
+  normalizedRequestHash: string;
+  createdAt: string;
+  expiresAt: string;
+  providerMetadata?: Record<string, string>;
 }
 
 export interface RouteCacheRepository {

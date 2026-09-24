@@ -130,10 +130,9 @@ export function RoutePlaygroundPage() {
     <main className="route-tool-workspace route-playground-workspace">
       <div className="route-tool-heading">
         <div>
-          <h1 className={Classes.HEADING}>Google Routes 플레이그라운드</h1>
+          <h1 className={Classes.HEADING}>Route Playground</h1>
           <p className={Classes.TEXT_MUTED}>
-            Google Provider를 직접 호출해 매핑, 파싱, polyline과 bounds를
-            검증합니다.
+            국가와 이동수단에 따른 provider 선택과 정규화 결과를 검증합니다.
           </p>
         </div>
       </div>
@@ -150,8 +149,10 @@ export function RoutePlaygroundPage() {
           rawJson={playground.rawJson}
           rawOverride={playground.rawOverride}
           validation={playground.validation}
+          selectedPresetId={playground.selectedPresetId}
+          onSelectPreset={playground.selectPreset}
         />
-        <section className="route-playground-map" aria-label="Google 지도">
+        <section className="route-playground-map" aria-label="경로 지도">
           <RouteMapPanel
             locationSelectionDisabled={playground.rawOverride !== null}
             onMapLocationApply={applyMapLocation}

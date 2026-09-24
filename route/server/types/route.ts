@@ -7,12 +7,34 @@ export const ROUTE_TRAVEL_MODES = [
 
 export type RouteTravelMode = (typeof ROUTE_TRAVEL_MODES)[number];
 
-/** A location accepted by both the preferred public and legacy contracts. */
-export interface RoutePoint {
-  type?: string;
-  placeId?: string;
+export interface RouteCoordinates {
+  latitude: number;
+  longitude: number;
+}
+
+export interface RouteExternalIds {
+  googlePlaceId?: string;
+  kakaoPlaceId?: string;
+  navitimeId?: string;
+  ekispertId?: string;
+}
+
+/** Provider-independent location used inside tcache. */
+export interface RouteLocation {
+  coordinates?: RouteCoordinates;
+  name?: string;
   address?: string;
+  externalIds?: RouteExternalIds;
+}
+
+/** A location accepted by both the preferred public and legacy contracts. */
+export interface RoutePoint extends RouteLocation {
+  type?: string;
+  /** @deprecated Use externalIds.googlePlaceId. */
+  placeId?: string;
+  /** @deprecated Use coordinates.latitude. */
   latitude?: number;
+  /** @deprecated Use coordinates.longitude. */
   longitude?: number;
   lat?: number;
   lng?: number;
@@ -24,6 +46,9 @@ export interface PublicRouteRequest {
   locations: PublicRouteLocation[];
   mode: RouteTravelMode;
   departureTime: string;
+  countryCode?: string;
+  timeZone?: string;
+  provider?: string;
   computeAlternativeRoutes?: boolean;
   languageCode?: string;
   regionCode?: string;
@@ -40,6 +65,9 @@ export interface RouteJobRequest {
   /** @deprecated Use intermediates. Kept for existing clients. */
   waypoints?: RoutePoint[];
   travelMode: string;
+  countryCode?: string;
+  timeZone?: string;
+  provider?: string;
   computeAlternativeRoutes?: boolean;
   departureTime?: string;
   languageCode?: string;
@@ -51,10 +79,8 @@ export interface RouteJobRequest {
 
 export type RouteRequestInput = PublicRouteRequest | RouteJobRequest;
 
-export type NormalizedRouteLocation =
-  | { type: 'address'; address: string }
-  | { type: 'coordinates'; latitude: number; longitude: number }
-  | { type: 'placeId'; placeId: string };
+/** @deprecated Prefer RouteLocation. */
+export type NormalizedRouteLocation = RouteLocation;
 
 export interface NormalizedRouteRequest {
   origin: NormalizedRouteLocation;
@@ -63,6 +89,9 @@ export interface NormalizedRouteRequest {
   /** Legacy alias retained so old provider/cache consumers do not break. */
   waypoints: NormalizedRouteLocation[];
   travelMode: RouteTravelMode;
+  countryCode?: string;
+  timeZone?: string;
+  provider?: string;
   computeAlternativeRoutes: boolean;
   departureTime?: string;
   languageCode?: string;
@@ -94,51 +123,131 @@ function normalizePoint(
 
   const type =
     typeof value.type === 'string' ? value.type.trim().toLowerCase() : '';
-  const placeId = typeof value.placeId === 'string' ? value.placeId.trim() : '';
-  const address = typeof value.address === 'string' ? value.address.trim() : '';
-  const latitude = value.latitude ?? value.lat;
-  const longitude = value.longitude ?? value.lng;
-  const hasCoordinates =
-    typeof latitude === 'number' &&
-    Number.isFinite(latitude) &&
-    latitude >= -90 &&
-    latitude <= 90 &&
-    typeof longitude === 'number' &&
-    Number.isFinite(longitude) &&
-    longitude >= -180 &&
-    longitude <= 180;
+  const name = normalizeOptionalLocationString(value.name, `${field}.name`);
+  const address = normalizeOptionalLocationString(
+    value.address,
+    `${field}.address`,
+  );
+  const coordinates = normalizeCoordinates(value, field);
+  const externalIds = normalizeExternalIds(value, field);
 
   if (type === 'address' && !address) {
     throw new Error(`${field}.address is required`);
   }
-  if ((type === 'place' || type === 'placeid') && !placeId) {
+  if ((type === 'place' || type === 'placeid') && !externalIds?.googlePlaceId) {
     throw new Error(`${field}.placeId is required`);
   }
   if (
     ['coordinates', 'coordinate', 'latlng', 'latitudelongitude'].includes(
       type,
     ) &&
-    !hasCoordinates
+    !coordinates
   ) {
     throw new Error(`${field} requires valid latitude/longitude`);
   }
 
-  if (type === 'place' || type === 'placeid' || (!type && placeId)) {
-    return { type: 'placeId', placeId };
-  }
-  if (type === 'address' || (!type && address)) {
-    return { type: 'address', address };
-  }
-  if (hasCoordinates) {
-    return {
-      type: 'coordinates',
-      latitude: latitude as number,
-      longitude: longitude as number,
-    };
+  if (!coordinates && !name && !address && !hasExternalId(externalIds)) {
+    throw new Error(
+      `${field} requires coordinates, a name, an address, or an external place ID`,
+    );
   }
 
-  throw new Error(
-    `${field} requires an address, placeId, or valid latitude/longitude`,
+  return {
+    ...(coordinates ? { coordinates } : {}),
+    ...(name ? { name } : {}),
+    ...(address ? { address } : {}),
+    ...(externalIds ? { externalIds } : {}),
+  };
+}
+
+function normalizeCoordinates(
+  value: Record<string, unknown>,
+  field: string,
+): RouteCoordinates | undefined {
+  const nested = value.coordinates;
+  if (nested !== undefined && !isObject(nested)) {
+    throw new Error(`${field}.coordinates must be an object`);
+  }
+
+  const source = isObject(nested) ? nested : value;
+  const latitude = source.latitude ?? source.lat;
+  const longitude = source.longitude ?? source.lng;
+  const hasLatitude = latitude !== undefined;
+  const hasLongitude = longitude !== undefined;
+  if (!hasLatitude && !hasLongitude) return undefined;
+  if (!hasLatitude || !hasLongitude) {
+    throw new Error(`${field} requires both latitude and longitude`);
+  }
+  if (typeof latitude !== 'number' || !Number.isFinite(latitude)) {
+    throw new Error(`${field}.latitude must be a finite number`);
+  }
+  if (latitude < -90 || latitude > 90) {
+    throw new Error(`${field}.latitude must be between -90 and 90`);
+  }
+  if (typeof longitude !== 'number' || !Number.isFinite(longitude)) {
+    throw new Error(`${field}.longitude must be a finite number`);
+  }
+  if (longitude < -180 || longitude > 180) {
+    throw new Error(`${field}.longitude must be between -180 and 180`);
+  }
+  return { latitude, longitude };
+}
+
+function normalizeExternalIds(
+  value: Record<string, unknown>,
+  field: string,
+): RouteExternalIds | undefined {
+  const raw = value.externalIds;
+  if (raw !== undefined && !isObject(raw)) {
+    throw new Error(`${field}.externalIds must be an object`);
+  }
+  const externalIds = isObject(raw) ? raw : {};
+  const legacyGooglePlaceId = normalizeOptionalLocationString(
+    value.placeId,
+    `${field}.placeId`,
+  );
+  const googlePlaceId = normalizeOptionalLocationString(
+    externalIds.googlePlaceId,
+    `${field}.externalIds.googlePlaceId`,
+  );
+  const kakaoPlaceId = normalizeOptionalLocationString(
+    externalIds.kakaoPlaceId,
+    `${field}.externalIds.kakaoPlaceId`,
+  );
+  const navitimeId = normalizeOptionalLocationString(
+    externalIds.navitimeId,
+    `${field}.externalIds.navitimeId`,
+  );
+  const ekispertId = normalizeOptionalLocationString(
+    externalIds.ekispertId,
+    `${field}.externalIds.ekispertId`,
+  );
+  const normalizedGooglePlaceId = googlePlaceId ?? legacyGooglePlaceId;
+  const normalized = {
+    ...(normalizedGooglePlaceId
+      ? { googlePlaceId: normalizedGooglePlaceId }
+      : {}),
+    ...(kakaoPlaceId ? { kakaoPlaceId } : {}),
+    ...(navitimeId ? { navitimeId } : {}),
+    ...(ekispertId ? { ekispertId } : {}),
+  };
+  return hasExternalId(normalized) ? normalized : undefined;
+}
+
+function normalizeOptionalLocationString(value: unknown, field: string) {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string') throw new Error(`${field} must be a string`);
+  return value.trim() || undefined;
+}
+
+function hasExternalId(
+  externalIds: RouteExternalIds | undefined,
+): externalIds is RouteExternalIds {
+  return Boolean(
+    externalIds?.googlePlaceId ||
+    externalIds?.kakaoPlaceId ||
+    externalIds?.navitimeId ||
+    externalIds?.ekispertId,
   );
 }
 
@@ -247,6 +356,9 @@ function createNormalizedRequest(input: {
     throw new Error('routingPreference is only supported for DRIVING');
   }
   const units = optionalString(value.units, options.units);
+  const countryCode = normalizeCountryCode(value.countryCode);
+  const timeZone = normalizeTimeZone(value.timeZone);
+  const provider = optionalString(value.provider, undefined)?.toLowerCase();
 
   return {
     origin,
@@ -254,6 +366,9 @@ function createNormalizedRequest(input: {
     intermediates,
     waypoints: intermediates,
     travelMode: travelMode as RouteTravelMode,
+    ...(countryCode ? { countryCode } : {}),
+    ...(timeZone ? { timeZone } : {}),
+    ...(provider ? { provider } : {}),
     computeAlternativeRoutes,
     ...(input.departureTime ? { departureTime: input.departureTime } : {}),
     ...(languageCode ? { languageCode } : {}),
@@ -262,6 +377,28 @@ function createNormalizedRequest(input: {
     ...(units ? { units } : {}),
     options,
   };
+}
+
+function normalizeTimeZone(value: unknown): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || !value.trim()) {
+    throw new Error('timeZone must be a valid IANA timezone');
+  }
+  const timeZone = value.trim();
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone }).format();
+  } catch {
+    throw new Error('timeZone must be a valid IANA timezone');
+  }
+  return timeZone;
+}
+
+function normalizeCountryCode(value: unknown): string | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value !== 'string' || !/^[a-z]{2}$/i.test(value.trim())) {
+    throw new Error('countryCode must be an ISO 3166-1 alpha-2 code');
+  }
+  return value.trim().toUpperCase();
 }
 
 function normalizeTravelMode(value: unknown, field: string): RouteTravelMode {

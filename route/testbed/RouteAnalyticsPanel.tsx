@@ -13,6 +13,7 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 
 import {
+  getRouteProviderCatalog,
   getRouteAnalyticsDashboard,
   type RouteAnalyticsDashboard,
   type RouteAnalyticsFilters,
@@ -53,6 +54,17 @@ export function RouteAnalyticsPanel({ onSelectJob }: RouteAnalyticsPanelProps) {
   const [data, setData] = useState<RouteAnalyticsDashboard | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [providers, setProviders] = useState<string[]>([]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void getRouteProviderCatalog(controller.signal)
+      .then((catalog) =>
+        setProviders(catalog.providers.map((item) => item.name)),
+      )
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -153,8 +165,11 @@ export function RouteAnalyticsPanel({ onSelectJob }: RouteAnalyticsPanelProps) {
             value={provider}
           >
             <option value="">전체 Provider</option>
-            <option value="google">Google</option>
-            <option value="mock">Mock</option>
+            {providers.map((value) => (
+              <option key={value} value={value}>
+                {providerLabel(value)}
+              </option>
+            ))}
           </HTMLSelect>
         </label>
         <label>
@@ -377,6 +392,17 @@ export function RouteAnalyticsPanel({ onSelectJob }: RouteAnalyticsPanelProps) {
       )}
     </main>
   );
+}
+
+function providerLabel(value: string) {
+  if (value === 'google') return 'Google';
+  if (value === 'kakao-mobility') return 'Kakao Mobility';
+  if (value === 'kakao-maps') return 'Kakao Maps';
+  if (value === 'ekispert') return 'Ekispert';
+  if (value === 'navitime') return 'NAVITIME';
+  if (value === 'otp') return 'OpenTripPlanner';
+  if (value === 'mock') return 'Mock';
+  return value;
 }
 
 function SummaryCard({

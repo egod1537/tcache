@@ -11,12 +11,25 @@ export interface RouteJobError {
 
 export type RouteTravelMode = 'DRIVING' | 'WALKING' | 'BICYCLING' | 'TRANSIT';
 
-export type RouteLocation =
+export interface RouteLocation {
+  coordinates?: { latitude: number; longitude: number };
+  name?: string;
+  address?: string;
+  externalIds?: {
+    googlePlaceId?: string;
+    kakaoPlaceId?: string;
+    navitimeId?: string;
+    ekispertId?: string;
+  };
+}
+
+export type LegacyRouteLocation =
   | { type: 'address'; address: string }
   | { type: 'coordinates'; latitude: number; longitude: number }
   | { type: 'placeId'; placeId: string };
 
 export type PublicRouteLocation =
+  | RouteLocation
   | { placeId: string }
   | { address: string }
   | { latitude: number; longitude: number };
@@ -25,6 +38,9 @@ export interface PublicRouteRequest {
   locations: PublicRouteLocation[];
   mode: RouteTravelMode;
   departureTime: string;
+  countryCode?: string;
+  timeZone?: string;
+  provider?: string;
   computeAlternativeRoutes?: boolean;
   languageCode?: string;
   regionCode?: string;
@@ -37,6 +53,9 @@ export interface RouteRequest {
   intermediates: RouteLocation[];
   destination: RouteLocation;
   travelMode: RouteTravelMode;
+  countryCode?: string;
+  timeZone?: string;
+  provider?: string;
   computeAlternativeRoutes: boolean;
   languageCode?: string;
   regionCode?: string;
@@ -50,12 +69,41 @@ export interface RouteCoordinate {
   lng: number;
 }
 
+export interface RouteStop {
+  id?: string | null;
+  name?: string | null;
+  platform?: string | null;
+  location?: RouteCoordinate | null;
+}
+
+export interface TransitStepDetails {
+  lineName?: string | null;
+  operatorName?: string | null;
+  departureStop?: RouteStop | null;
+  arrivalStop?: RouteStop | null;
+  departureTime?: string | null;
+  arrivalTime?: string | null;
+  numberOfStops?: number | null;
+  [key: string]: unknown;
+}
+
+export interface NormalizedRouteStep {
+  distanceMeters: number | null;
+  durationSeconds: number | null;
+  startLocation: RouteCoordinate | null;
+  endLocation: RouteCoordinate | null;
+  travelMode: string | null;
+  instruction: string | null;
+  transitDetails: TransitStepDetails | null;
+}
+
 export interface NormalizedRouteLeg {
   distanceMeters: number | null;
   durationSeconds: number | null;
   startLocation: RouteCoordinate | null;
   endLocation: RouteCoordinate | null;
-  steps: unknown[];
+  steps: NormalizedRouteStep[];
+  providerMetadata?: unknown;
 }
 
 export interface NormalizedRoute {
@@ -73,6 +121,11 @@ export interface NormalizedRoute {
   } | null;
   legs: NormalizedRouteLeg[];
   warnings: string[];
+  departureTime?: string | null;
+  arrivalTime?: string | null;
+  transferCount?: number | null;
+  fare?: { amount: number; currency: string } | null;
+  providerMetadata?: unknown;
 }
 
 export interface GoogleRouteProviderResult {
@@ -87,6 +140,14 @@ export interface GoogleRouteProviderResult {
   };
 }
 
+export interface NormalizedRouteProviderResult {
+  provider: string;
+  routes: NormalizedRoute[];
+  raw?: unknown;
+  debug?: unknown;
+  metadata?: unknown;
+}
+
 export interface NormalizedRouteRequest extends RouteRequest {
   waypoints: RouteLocation[];
   options: Record<string, unknown>;
@@ -96,6 +157,63 @@ export interface GoogleProviderComputeResponse {
   provider: string;
   normalizedRequest: NormalizedRouteRequest;
   result: GoogleRouteProviderResult;
+}
+
+export interface RoutePlaygroundResponse {
+  jobId: string;
+  provider: string;
+  selectedProvider?: string;
+  providerSelectionReason?: string;
+  providerCapabilities?: RouteProviderCapabilities;
+  providerAvailable?: boolean;
+  providerUnavailableReason?: string;
+  providerRequest?: unknown;
+  rawProviderResponse?: unknown;
+  rawProviderResponseExposed?: boolean;
+  normalizedRequest: NormalizedRouteRequest;
+  providerLatencyMs?: number;
+  cache?: { hit: boolean; key: string; ttl: number };
+  result: NormalizedRouteProviderResult;
+}
+
+export interface RouteProviderCapabilities {
+  countries?: string[];
+  modes: RouteTravelMode[];
+  supportsWaypoints: boolean;
+  maxLocations?: number;
+  requiresCoordinates?: boolean;
+  supportsDepartureTime?: boolean;
+  requiresDepartureTime?: boolean;
+  modeCapabilities?: Partial<
+    Record<RouteTravelMode, Partial<RouteProviderCapabilities>>
+  >;
+}
+
+export interface RouteProviderCatalog {
+  providers: Array<{
+    name: string;
+    adapterVersion?: string;
+    experimental?: boolean;
+    cacheMetadata?: Record<string, string>;
+    capabilities?: RouteProviderCapabilities;
+    available: boolean;
+    unavailableReason?: string;
+  }>;
+  providerOverrideEnabled: boolean;
+  rawProviderResponseEnabled: boolean;
+  fallbackPolicy: 'disabled';
+}
+
+export interface RouteProviderDiagnostics {
+  providers: Array<{
+    provider: string;
+    configured: boolean;
+    reachable?: boolean;
+    endpoint?: string;
+    experimental?: boolean;
+    [key: string]: unknown;
+  }>;
+  coreHealthAffected: false;
 }
 
 export interface RouteJobView {
@@ -108,15 +226,28 @@ export interface RouteJobView {
   updatedAt: string;
   completedAt?: string;
   request: RouteRequest;
-  normalizedRequest?: RouteRequest & { waypoints?: RouteLocation[] };
+  clientRequest?: unknown;
+  normalizedRequest?: NormalizedRouteRequest;
   requestMetadata?: {
     fromKey: string;
     toKey: string;
     intermediateKeys: string[];
     dayType: 'weekday' | 'saturday' | 'sunday' | 'holiday';
     timeBucket: string;
+    timeZone: string;
   };
   cache?: { hit: boolean; key: string; ttl: number };
+  selectedProvider?: string;
+  providerSelectionReason?: string;
+  providerCapabilities?: RouteProviderCapabilities;
+  providerAvailable?: boolean;
+  providerUnavailableReason?: string;
+  fallbackPolicy?: 'disabled';
+  providerRequest?: unknown;
+  rawProviderResponse?: unknown;
+  rawProviderResponseExposed?: boolean;
+  countryCode?: string;
+  mode?: RouteTravelMode;
   provider?: string;
   providerLatencyMs?: number;
   error?: RouteJobError;
@@ -139,9 +270,74 @@ export interface CreateRouteJobResponse {
   resultUrl: string;
 }
 
+export type MatrixLocation = { id: string } & PublicRouteLocation;
+
+export interface MatrixRequest {
+  locations: MatrixLocation[];
+  mode: RouteTravelMode;
+  departureTime: string;
+  countryCode?: string;
+  timeZone?: string;
+  provider?: string;
+  options?: {
+    languageCode?: string;
+    regionCode?: string;
+    routingPreference?: string;
+    units?: string;
+  };
+}
+
+export interface MatrixJobStats {
+  totalPairs: number;
+  completedPairs: number;
+  cacheHits: number;
+  cacheMisses: number;
+  providerCalls: number;
+}
+
+export interface MatrixJobView {
+  jobId: string;
+  status: RouteJobStatus;
+  stage: string;
+  progress: number;
+  message: string;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  request: MatrixRequest;
+  stats: MatrixJobStats;
+  error?: RouteJobError;
+}
+
+export interface MatrixResult {
+  jobId: string;
+  locations: Array<{ id: string }>;
+  durationSeconds: number[][];
+  metadata: {
+    mode: RouteTravelMode;
+    departureTime: string;
+    totalPairs: number;
+    cacheHits: number;
+    cacheMisses: number;
+    providerCalls: number;
+  };
+}
+
+export interface CreateMatrixJobResponse {
+  jobId: string;
+  status: 'queued';
+  statusUrl: string;
+  eventsUrl: string;
+  resultUrl: string;
+}
+
 export interface RouteCacheEntrySummary {
   key: string;
   provider: string | null;
+  providerVersion: string | null;
+  normalizedRequestHash: string | null;
+  createdAt: string | null;
+  expiresAt: string | null;
   ttlSeconds: number;
   sizeBytes: number;
 }
@@ -150,6 +346,14 @@ export interface RouteCacheEntry extends RouteCacheEntrySummary {
   value: {
     provider: string;
     result: unknown;
+    metadata?: {
+      provider: string;
+      providerVersion?: string;
+      normalizedRequestHash: string;
+      createdAt: string;
+      expiresAt: string;
+      providerMetadata?: Record<string, string>;
+    };
   };
 }
 
@@ -244,6 +448,19 @@ export function pingRouteCache(signal?: AbortSignal) {
   return getJson<PingResponse>('/api/route/ping', signal);
 }
 
+export function getRouteProviderCatalog(signal?: AbortSignal) {
+  return requestJson<RouteProviderCatalog>('/api/route/providers', {
+    ...(signal ? { signal } : {}),
+  });
+}
+
+export function getRouteProviderDiagnostics(signal?: AbortSignal) {
+  return requestJson<RouteProviderDiagnostics>(
+    '/api/route/providers/diagnostics',
+    signal ? { signal } : undefined,
+  );
+}
+
 export function pingAiCache(signal?: AbortSignal) {
   return getJson<PingResponse>('/api/ai/ping', signal);
 }
@@ -294,10 +511,11 @@ export function computeGoogleRoute(request: unknown, signal?: AbortSignal) {
   );
 }
 
-export function createRouteJob(request: unknown) {
+export function createRouteJob(request: unknown, signal?: AbortSignal) {
   return requestJson<CreateRouteJobResponse>('/api/route/jobs', {
     method: 'POST',
     body: JSON.stringify(request),
+    ...(signal ? { signal } : {}),
   });
 }
 
@@ -308,16 +526,17 @@ export async function listRouteJobs() {
   return response.jobs;
 }
 
-export function getRouteJob(jobId: string) {
+export function getRouteJob(jobId: string, signal?: AbortSignal) {
   return requestJson<RouteJobView>(
     `/api/route/jobs/${encodeURIComponent(jobId)}`,
+    signal ? { signal } : undefined,
   );
 }
 
-export async function getRouteJobResult(jobId: string) {
+export async function getRouteJobResult(jobId: string, signal?: AbortSignal) {
   const response = await fetch(
     `/api/route/jobs/${encodeURIComponent(jobId)}/result`,
-    { cache: 'no-store' },
+    { cache: 'no-store', ...(signal ? { signal } : {}) },
   );
   const body = (await response.json()) as RouteJobResult;
   if (!response.ok && response.status !== 409) {
@@ -332,6 +551,72 @@ export function cancelRouteJob(jobId: string) {
     { method: 'POST' },
   );
 }
+
+export function createMatrixJob(request: MatrixRequest) {
+  return requestJson<CreateMatrixJobResponse>('/api/route/matrix/jobs', {
+    method: 'POST',
+    body: JSON.stringify(request),
+  });
+}
+
+export function getMatrixJob(jobId: string) {
+  return requestJson<MatrixJobView>(
+    `/api/route/matrix/jobs/${encodeURIComponent(jobId)}`,
+  );
+}
+
+export function getMatrixResult(jobId: string) {
+  return requestJson<MatrixResult>(
+    `/api/route/matrix/jobs/${encodeURIComponent(jobId)}/result`,
+  );
+}
+
+export function cancelMatrixJob(jobId: string) {
+  return requestJson<{ jobId: string; status: RouteJobStatus }>(
+    `/api/route/matrix/jobs/${encodeURIComponent(jobId)}/cancel`,
+    { method: 'POST' },
+  );
+}
+
+export function subscribeMatrixJob(
+  jobId: string,
+  onEvent: (job: MatrixJobView, eventType: MatrixJobStreamEventType) => void,
+  onConnectionState: (state: RouteJobStreamState) => void,
+) {
+  const source = new EventSource(
+    `/api/route/matrix/jobs/${encodeURIComponent(jobId)}/events`,
+  );
+  const eventNames = [
+    'snapshot',
+    'progress',
+    'completed',
+    'failed',
+    'cancelled',
+  ] as const;
+  source.onopen = () => onConnectionState('connected');
+  for (const eventName of eventNames) {
+    source.addEventListener(eventName, (event) => {
+      const payload = JSON.parse((event as MessageEvent<string>).data) as {
+        type: MatrixJobStreamEventType;
+        job: MatrixJobView;
+      };
+      onEvent(payload.job, eventName);
+      if (['completed', 'failed', 'cancelled'].includes(eventName)) {
+        source.close();
+        onConnectionState('disconnected');
+      }
+    });
+  }
+  source.onerror = () =>
+    onConnectionState(
+      source.readyState === EventSource.CLOSED
+        ? 'disconnected'
+        : 'reconnecting',
+    );
+  return () => source.close();
+}
+
+export type MatrixJobStreamEventType = RouteJobStreamEventType;
 
 export async function listRouteCacheEntries(limit = 50, signal?: AbortSignal) {
   const response = await requestJson<{ entries: RouteCacheEntrySummary[] }>(

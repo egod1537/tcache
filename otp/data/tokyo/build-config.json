@@ -1,0 +1,30 @@
+{
+  "configVersion": "tcache-tokyo-poc-1",
+  "transitModelTimeZone": "Asia/Tokyo",
+  "transitServiceStart": "-P30D",
+  "transitServiceEnd": "P1Y",
+  "dataImportReport": true,
+  "buildReportDir": "build-report",
+  "maxDataImportIssuesPerFile": 2000,
+  "platformEntriesLinking": true,
+  "osm": [
+    {
+      "source": "tokyo.osm.pbf",
+      "timeZone": "Asia/Tokyo",
+      "osmTagMapping": "default",
+      "includeOsmStationEntrances": true
+    }
+  ],
+  "transitFeeds": [
+    {
+      "type": "gtfs",
+      "feedId": "TOEI_TRAIN",
+      "source": "toei-train-gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "TOEI_BUS",
+      "source": "toei-bus-gtfs.zip"
+    }
+  ]
+}

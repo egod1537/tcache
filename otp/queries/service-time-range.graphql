@@ -1,0 +1,9 @@
+query ServiceTimeRange {
+  serviceTimeRange {
+    start
+    end
+  }
+  feeds {
+    feedId
+  }
+}

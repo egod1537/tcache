@@ -14,8 +14,8 @@ import {
 import { useState } from 'react';
 
 import type {
-  GoogleProviderComputeResponse,
   NormalizedRoute,
+  RoutePlaygroundResponse,
 } from '../../../apps/testbed/src/api/client';
 import { JsonViewer } from '../../../apps/testbed/src/components/common/JsonViewer';
 import type { PlaygroundError } from './playground-types';
@@ -33,7 +33,7 @@ export function RouteResultPanel({
 }: {
   pending: boolean;
   error: PlaygroundError | null;
-  response: GoogleProviderComputeResponse | null;
+  response: RoutePlaygroundResponse | null;
   submittedRequest: unknown;
   requestTimestamp: string | null;
   selectedRouteIndex: number;
@@ -105,7 +105,7 @@ function ResultTabPanel({
 }: {
   pending: boolean;
   error: PlaygroundError | null;
-  response: GoogleProviderComputeResponse | null;
+  response: RoutePlaygroundResponse | null;
   selectedRoute: NormalizedRoute | undefined;
   selectedIndex: number;
   onSelectRoute: (index: number) => void;
@@ -114,7 +114,7 @@ function ResultTabPanel({
     return (
       <div className="route-playground-output-empty">
         <Spinner size={28} />
-        Google Routes 응답 대기 중…
+        Route Job 응답 대기 중…
       </div>
     );
   }
@@ -125,9 +125,23 @@ function ResultTabPanel({
   return (
     <div className="route-playground-tab-content">
       <dl className="fact-grid route-playground-result-facts">
-        <Fact label="Provider" value="Google" />
-        <Fact label="응답 시간" value={`${result.debug.latencyMs} ms`} />
+        <Fact
+          label="Provider"
+          value={response.selectedProvider ?? response.provider}
+        />
+        <Fact
+          label="응답 시간"
+          value={
+            response.providerLatencyMs === undefined
+              ? '—'
+              : `${response.providerLatencyMs} ms`
+          }
+        />
         <Fact label="경로 수" value={result.routes.length} />
+        <Fact
+          label="캐시"
+          value={response.cache ? (response.cache.hit ? 'hit' : 'miss') : '—'}
+        />
         <Fact
           label="거리"
           value={formatDistance(selectedRoute?.distanceMeters ?? null)}
@@ -136,6 +150,24 @@ function ResultTabPanel({
           label="소요 시간"
           value={formatDuration(selectedRoute?.durationSeconds ?? null)}
         />
+        <Fact
+          label="도보 시간"
+          value={formatDuration(readWalkingDuration(selectedRoute))}
+        />
+        <Fact
+          label="환승"
+          value={
+            selectedRoute?.transferCount === null ||
+            selectedRoute?.transferCount === undefined
+              ? '—'
+              : `${selectedRoute.transferCount}회`
+          }
+        />
+        <Fact
+          label="출발"
+          value={formatDateTime(selectedRoute?.departureTime)}
+        />
+        <Fact label="도착" value={formatDateTime(selectedRoute?.arrivalTime)} />
         <Fact
           label="선택한 경로"
           value={selectedRoute ? `경로 ${selectedIndex + 1}` : '—'}
@@ -173,7 +205,7 @@ function ResultTabPanel({
         </div>
       ) : (
         <Callout compact icon="info-sign">
-          Google에서 반환한 경로 구간이 없습니다.
+          Provider가 반환한 경로 구간이 없습니다.
         </Callout>
       )}
     </div>
@@ -184,7 +216,7 @@ function RequestTabPanel({
   response,
   submittedRequest,
 }: {
-  response: GoogleProviderComputeResponse | null;
+  response: RoutePlaygroundResponse | null;
   submittedRequest: unknown;
 }) {
   if (submittedRequest === null)
@@ -197,8 +229,24 @@ function RequestTabPanel({
         value={response?.normalizedRequest ?? null}
       />
       <JsonViewer
-        title="Google Provider 요청"
-        value={response?.result.debug.request ?? null}
+        title="Provider 선택"
+        value={
+          response
+            ? {
+                selectedProvider:
+                  response.selectedProvider ?? response.provider,
+                reason: response.providerSelectionReason,
+                capabilities: response.providerCapabilities,
+                available: response.providerAvailable,
+                unavailableReason: response.providerUnavailableReason,
+                fallback: 'disabled',
+              }
+            : null
+        }
+      />
+      <JsonViewer
+        title="Provider 요청"
+        value={response?.providerRequest ?? null}
       />
     </div>
   );
@@ -207,13 +255,28 @@ function RequestTabPanel({
 function ResponseTabPanel({
   response,
 }: {
-  response: GoogleProviderComputeResponse | null;
+  response: RoutePlaygroundResponse | null;
 }) {
   if (!response) return <OutputEmpty title="수신한 응답이 없습니다" />;
   return (
     <div className="route-playground-json-grid">
-      <JsonViewer title="정규화된 경로 결과" value={response.result.routes} />
-      <JsonViewer title="Google 원본 응답" value={response.result.raw} />
+      {response.rawProviderResponse !== undefined ? (
+        <JsonViewer
+          title="Raw Provider Response"
+          value={response.rawProviderResponse}
+        />
+      ) : (
+        <Callout compact icon="lock">
+          {response.rawProviderResponseExposed
+            ? '캐시 적중 또는 adapter 제한으로 Raw Provider Response가 없습니다.'
+            : 'Raw Provider Response는 현재 환경 설정에서 비활성화되어 있습니다.'}
+        </Callout>
+      )}
+      <JsonViewer title="정규화된 경로 결과" value={response.result} />
+      <JsonViewer
+        title="Provider metadata"
+        value={response.result.metadata ?? null}
+      />
     </div>
   );
 }
@@ -223,7 +286,7 @@ function DebugTabPanel({
   error,
   requestTimestamp,
 }: {
-  response: GoogleProviderComputeResponse | null;
+  response: RoutePlaygroundResponse | null;
   error: PlaygroundError | null;
   requestTimestamp: string | null;
 }) {
@@ -231,11 +294,16 @@ function DebugTabPanel({
   return (
     <div className="route-playground-tab-content">
       <dl className="fact-grid route-playground-debug-facts">
+        <Fact label="엔드포인트" value="POST /api/route/jobs" />
         <Fact
-          label="엔드포인트"
-          value="POST /api/route/provider/google/compute"
+          label="Provider"
+          value={response?.selectedProvider ?? response?.provider ?? '—'}
         />
-        <Fact label="Provider" value={response?.provider ?? 'google'} />
+        <Fact
+          label="선택 사유"
+          value={response?.providerSelectionReason ?? '—'}
+        />
+        <Fact label="Job ID" value={response?.jobId ?? '—'} />
         <Fact
           label="요청 시각"
           value={
@@ -246,23 +314,31 @@ function DebugTabPanel({
         />
         <Fact
           label="응답 시간"
-          value={response ? `${response.result.debug.latencyMs} ms` : '—'}
+          value={
+            response?.providerLatencyMs === undefined
+              ? '—'
+              : `${response.providerLatencyMs} ms`
+          }
         />
         <Fact
           label="Upstream 상태"
           value={
-            response?.result.debug.httpStatus ??
+            readMetadataStatus(response?.result.metadata) ??
             upstream?.httpStatus ??
             upstream?.status ??
             '—'
           }
         />
         <Fact label="경로 수" value={response?.result.routes.length ?? '—'} />
+        <Fact
+          label="캐시"
+          value={response?.cache ? (response.cache.hit ? 'hit' : 'miss') : '—'}
+        />
       </dl>
-      {response && (
+      {response?.result.metadata !== undefined && (
         <JsonViewer
-          title="Google field mask"
-          value={response.result.debug.fieldMask}
+          title="Provider metadata"
+          value={response.result.metadata}
         />
       )}
       {error?.details !== undefined && (
@@ -270,6 +346,19 @@ function DebugTabPanel({
       )}
     </div>
   );
+}
+
+function readWalkingDuration(route: NormalizedRoute | undefined) {
+  if (!route?.providerMetadata || typeof route.providerMetadata !== 'object') {
+    return null;
+  }
+  const value = (route.providerMetadata as Record<string, unknown>)
+    .walkingDurationSeconds;
+  return typeof value === 'number' ? value : null;
+}
+
+function formatDateTime(value: string | null | undefined) {
+  return value ? new Date(value).toLocaleString('ko-KR') : '—';
 }
 
 function ProviderError({ error }: { error: PlaygroundError }) {
@@ -283,8 +372,8 @@ function ProviderError({ error }: { error: PlaygroundError }) {
         <Fact label="엔드포인트 HTTP" value={error.httpStatus ?? '—'} />
         <Fact label="오류 코드" value={error.code} />
         <Fact label="Upstream HTTP" value={upstream?.httpStatus ?? '—'} />
-        <Fact label="Google 상태" value={upstream?.status ?? '—'} />
-        <Fact label="Google 메시지" value={upstream?.message ?? '—'} />
+        <Fact label="Provider 상태" value={upstream?.status ?? '—'} />
+        <Fact label="Provider 메시지" value={upstream?.message ?? '—'} />
       </dl>
       {error.details !== undefined && (
         <JsonViewer title="Upstream 상세 정보" value={error.details} />
@@ -320,13 +409,27 @@ function readUpstream(details: unknown): {
   message?: string | null;
 } | null {
   if (typeof details !== 'object' || details === null) return null;
-  const upstream = (details as { upstream?: unknown }).upstream;
+  const direct = details as {
+    upstream?: unknown;
+    httpStatus?: number | null;
+    status?: string | null;
+    message?: string | null;
+  };
+  const upstream = direct.upstream;
   return typeof upstream === 'object' && upstream !== null
     ? (upstream as {
         httpStatus?: number | null;
         status?: string | null;
         message?: string | null;
       })
+    : direct;
+}
+
+function readMetadataStatus(metadata: unknown): number | string | null {
+  if (typeof metadata !== 'object' || metadata === null) return null;
+  const status = (metadata as { upstreamStatus?: unknown }).upstreamStatus;
+  return typeof status === 'number' || typeof status === 'string'
+    ? status
     : null;
 }
 

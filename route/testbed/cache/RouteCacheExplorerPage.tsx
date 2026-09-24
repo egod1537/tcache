@@ -192,6 +192,22 @@ export function RouteCacheExplorerPage() {
                 <Tag intent={Intent.SUCCESS}>{selectedEntry.provider}</Tag>
               </div>
               <dl className="fact-grid">
+                <Fact
+                  label="Provider version"
+                  value={selectedEntry.providerVersion ?? '—'}
+                />
+                <Fact
+                  label="Request hash"
+                  value={selectedEntry.normalizedRequestHash ?? '—'}
+                />
+                <Fact
+                  label="생성 시각"
+                  value={formatTimestamp(selectedEntry.createdAt)}
+                />
+                <Fact
+                  label="만료 시각"
+                  value={formatTimestamp(selectedEntry.expiresAt)}
+                />
                 <Fact label="TTL" value={formatTtl(selectedEntry.ttlSeconds)} />
                 <Fact
                   label="크기"
@@ -236,4 +252,8 @@ function formatTtl(seconds: number) {
 function formatBytes(bytes: number) {
   if (bytes < 1_024) return `${bytes} B`;
   return `${(bytes / 1_024).toFixed(1)} KB`;
+}
+
+function formatTimestamp(value: string | null) {
+  return value ? new Date(value).toLocaleString('ko-KR') : '—';
 }

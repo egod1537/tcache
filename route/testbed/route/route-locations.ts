@@ -27,6 +27,7 @@ export function getRouteLocationDisplayName(
   location: RouteLocationDraft,
   fallback: string,
 ): string {
+  if (location.name.trim()) return location.name.trim();
   if (location.type === 'address') return location.address.trim() || fallback;
   if (location.type === 'placeId') return location.placeId.trim() || fallback;
   if (location.latitude.trim() && location.longitude.trim()) {

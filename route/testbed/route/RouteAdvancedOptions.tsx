@@ -34,6 +34,41 @@ export function RouteAdvancedOptions({
       </Button>
       {open && (
         <div className="route-playground-advanced-fields">
+          <div className="route-playground-inline-fields">
+            <FormGroup label="국가 코드" labelFor="playground-country">
+              <InputGroup
+                disabled={disabled}
+                id="playground-country"
+                maxLength={2}
+                onChange={(event) =>
+                  onChange({ ...draft, countryCode: event.target.value })
+                }
+                placeholder="JP"
+                value={draft.countryCode}
+              />
+            </FormGroup>
+            <FormGroup label="Provider override" labelFor="playground-provider">
+              <HTMLSelect
+                disabled={disabled}
+                fill
+                id="playground-provider"
+                onChange={(event) =>
+                  onChange({ ...draft, provider: event.target.value })
+                }
+                options={[
+                  { value: '', label: '자동 선택' },
+                  { value: 'google', label: 'Google' },
+                  { value: 'kakao-mobility', label: 'Kakao Mobility' },
+                  { value: 'kakao-maps', label: 'Kakao Maps' },
+                  { value: 'ekispert', label: 'Ekispert' },
+                  { value: 'navitime', label: 'NAVITIME' },
+                  { value: 'otp', label: 'OpenTripPlanner (experimental)' },
+                  { value: 'mock', label: 'Mock' },
+                ]}
+                value={draft.provider}
+              />
+            </FormGroup>
+          </div>
           <FormGroup label="출발 시각" labelFor="playground-departure">
             <InputGroup
               disabled={disabled}

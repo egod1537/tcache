@@ -13,7 +13,7 @@ import type { ServiceStatus } from '@tcache/common';
 import { useEffect, useState } from 'react';
 
 import type {
-  GoogleRouteProviderResult,
+  NormalizedRouteProviderResult,
   NormalizedRoute,
   RouteJobResult,
   RouteJobStatus,
@@ -90,8 +90,8 @@ export function RouteDetail({
         : serverState === 'checking'
           ? 'checking'
           : 'offline';
-  const googleResult = parseGoogleResult(result?.result);
-  const selectedRoute = googleResult?.routes[selectedRouteIndex];
+  const providerResult = parseRouteProviderResult(result?.result);
+  const selectedRoute = providerResult?.routes[selectedRouteIndex];
 
   return (
     <div className="route-job-detail">
@@ -165,7 +165,20 @@ export function RouteDetail({
                   : '—'
               }
             />
-            <Fact label="Provider" value={job.provider ?? '—'} />
+            <Fact
+              label="선택 Provider"
+              value={providerDisplayName(job.selectedProvider ?? job.provider)}
+            />
+            <Fact
+              label="선택 사유"
+              value={job.providerSelectionReason ?? '—'}
+            />
+            <Fact label="국가" value={job.countryCode ?? '기본 정책'} />
+            <Fact
+              label="이동 수단"
+              value={routeModeLabel(job.mode ?? job.request.travelMode)}
+            />
+            <Fact label="응답 Provider" value={job.provider ?? '—'} />
           </dl>
         </Card>
 
@@ -280,21 +293,51 @@ export function RouteDetail({
               value={job.requestMetadata?.dayType ?? '—'}
             />
             <Fact
-              label="시간대"
+              label="시간 버킷"
               value={job.requestMetadata?.timeBucket ?? '—'}
             />
+            <Fact
+              label="Timezone"
+              value={job.requestMetadata?.timeZone ?? '—'}
+            />
           </dl>
-          <details className="route-request-json">
-            <summary>전송한 요청 JSON</summary>
-            <JsonViewer title="전송한 요청" value={job.request} />
-          </details>
-          <details className="route-request-json">
-            <summary>서버 정규화 요청</summary>
-            <JsonViewer
-              title="정규화된 요청"
+          <div className="route-transformation-flow">
+            <TransformationStep
+              label="Client Request"
+              value={job.clientRequest ?? job.request}
+            />
+            <TransformationArrow />
+            <TransformationStep
+              label="Normalized Route Request"
               value={job.normalizedRequest ?? job.request}
             />
-          </details>
+            <TransformationArrow />
+            <TransformationStep
+              label="Canonical Locations"
+              value={{
+                origin: job.requestMetadata?.fromKey,
+                intermediates: job.requestMetadata?.intermediateKeys ?? [],
+                destination: job.requestMetadata?.toKey,
+              }}
+            />
+            <TransformationArrow />
+            <TransformationStep
+              label="Provider Selection"
+              value={{
+                provider: job.selectedProvider,
+                reason: job.providerSelectionReason,
+                capabilities: job.providerCapabilities,
+                available: job.providerAvailable,
+                unavailableReason: job.providerUnavailableReason,
+                fallback: job.fallbackPolicy ?? 'disabled',
+              }}
+            />
+            <TransformationArrow />
+            <TransformationStep
+              label="Provider Request"
+              value={job.providerRequest ?? null}
+            />
+          </div>
         </Card>
 
         <div className="detail-section-grid">
@@ -313,14 +356,31 @@ export function RouteDetail({
                   </dd>
                 </div>
                 <Fact label="TTL" value={`${job.cache.ttl}s`} />
-                <div>
-                  <dt>키</dt>
-                  <dd>
-                    <code className={Classes.MONOSPACE_TEXT}>
-                      {job.cache.key}
-                    </code>
-                  </dd>
-                </div>
+                <Fact label="Namespace" value={cacheNamespace(job.cache.key)} />
+                <Fact
+                  label="Provider"
+                  value={providerDisplayName(
+                    job.selectedProvider ?? job.provider,
+                  )}
+                />
+                <Fact
+                  label="시간 버킷"
+                  value={job.requestMetadata?.timeBucket ?? '—'}
+                />
+                <Fact
+                  label="Timezone"
+                  value={job.requestMetadata?.timeZone ?? '—'}
+                />
+                <Fact
+                  label="요일 유형"
+                  value={job.requestMetadata?.dayType ?? '—'}
+                />
+                <details className="route-cache-key-debug">
+                  <summary>전체 cache key</summary>
+                  <code className={Classes.MONOSPACE_TEXT}>
+                    {job.cache.key}
+                  </code>
+                </details>
               </dl>
             ) : (
               <Callout compact icon="time">
@@ -331,11 +391,46 @@ export function RouteDetail({
 
           <Card className="detail-section" compact>
             <SectionHeader
-              title="Provider"
-              description="Upstream 경로 제공 정보"
+              title="Provider Selection"
+              description="선택 정책과 adapter capability"
             />
             <dl className="compact-facts">
-              <Fact label="Provider" value={job.provider ?? '—'} />
+              <Fact
+                label="Selected Provider"
+                value={providerDisplayName(
+                  job.selectedProvider ?? job.provider,
+                )}
+              />
+              <Fact label="Reason" value={job.providerSelectionReason ?? '—'} />
+              <Fact
+                label="Modes"
+                value={job.providerCapabilities?.modes.join(', ') ?? '—'}
+              />
+              <Fact
+                label="Availability"
+                value={
+                  job.providerAvailable === undefined
+                    ? '—'
+                    : job.providerAvailable
+                      ? 'available'
+                      : `unavailable${job.providerUnavailableReason ? ` · ${job.providerUnavailableReason}` : ''}`
+                }
+              />
+              <Fact
+                label="Waypoints"
+                value={
+                  job.providerCapabilities
+                    ? job.providerCapabilities.supportsWaypoints
+                      ? 'supported'
+                      : 'unsupported'
+                    : '—'
+                }
+              />
+              <Fact
+                label="Max locations"
+                value={job.providerCapabilities?.maxLocations ?? '—'}
+              />
+              <Fact label="Fallback" value={job.fallbackPolicy ?? 'disabled'} />
               <Fact
                 label="응답 시간"
                 value={
@@ -357,10 +452,10 @@ export function RouteDetail({
             <Callout compact icon="time">
               최종 결과를 불러오는 중…
             </Callout>
-          ) : googleResult && googleResult.routes.length ? (
+          ) : providerResult && providerResult.routes.length ? (
             <>
               <div className="route-result-selector" aria-label="경로 선택">
-                {googleResult.routes.map((route, index) => (
+                {providerResult.routes.map((route, index) => (
                   <button
                     aria-pressed={selectedRouteIndex === index}
                     className="route-result-option"
@@ -378,8 +473,7 @@ export function RouteDetail({
             </>
           ) : result?.result !== undefined ? (
             <Callout compact icon="info-sign">
-              Provider 결과에 정규화된 Google 경로가 없습니다. 원본 JSON을
-              확인하세요.
+              Provider 결과에 정규화된 경로가 없습니다. 원본 JSON을 확인하세요.
             </Callout>
           ) : (
             <Callout compact icon="info-sign">
@@ -403,35 +497,73 @@ export function RouteDetail({
             title="디버그"
             description="정규화된 결과와 Provider 원본 진단 정보(API 키 제외)"
           />
-          {googleResult && (
+          {providerResult && (
             <>
+              {job.rawProviderResponse !== undefined && (
+                <details>
+                  <summary>Raw Provider Response</summary>
+                  <JsonViewer
+                    title="Raw Provider Response"
+                    value={job.rawProviderResponse}
+                  />
+                </details>
+              )}
+              {job.rawProviderResponse === undefined && (
+                <Callout compact icon="lock">
+                  {job.rawProviderResponseExposed
+                    ? '캐시 적중 또는 adapter 제한으로 Raw Provider Response가 없습니다.'
+                    : 'Raw Provider Response는 현재 환경 설정에서 비활성화되어 있습니다.'}
+                </Callout>
+              )}
+              <TransformationArrow />
               <details>
-                <summary>정규화된 결과</summary>
-                <JsonViewer title="정규화된 결과" value={googleResult.routes} />
-              </details>
-              <details>
-                <summary>Provider 요청 / 응답 시간</summary>
+                <summary>Normalized Route Result</summary>
                 <JsonViewer
-                  title="Provider 디버그"
-                  value={googleResult.debug}
+                  title="Normalized Route Result"
+                  value={providerResult}
                 />
               </details>
-              <details>
-                <summary>Provider 원본 응답</summary>
-                <JsonViewer
-                  title="Provider 원본 응답"
-                  value={googleResult.raw}
-                />
-              </details>
+              {providerResult.metadata !== undefined && (
+                <details>
+                  <summary>Provider 메타데이터</summary>
+                  <JsonViewer
+                    title="Provider 메타데이터"
+                    value={providerResult.metadata}
+                  />
+                </details>
+              )}
             </>
           )}
-          {result?.result !== undefined && !googleResult && (
+          {result?.result !== undefined && !providerResult && (
             <JsonViewer title="원본 JSON" value={result.result} />
           )}
         </Card>
       </div>
     </div>
   );
+}
+
+function TransformationStep({
+  label,
+  value,
+}: {
+  label: string;
+  value: unknown;
+}) {
+  return (
+    <details className="route-request-json">
+      <summary>{label}</summary>
+      <JsonViewer title={label} value={value} />
+    </details>
+  );
+}
+
+function TransformationArrow() {
+  return <div className="route-transformation-arrow">↓</div>;
+}
+
+function cacheNamespace(key: string) {
+  return key.split(':').slice(0, 2).join(':') || '—';
 }
 
 function streamIntent(state: RouteJobStreamState) {
@@ -451,11 +583,36 @@ function formatLocation(value: unknown) {
   const location = value as Record<string, unknown>;
   if (typeof location.placeId === 'string') return `place:${location.placeId}`;
   if (typeof location.address === 'string') return location.address;
-  const latitude = location.latitude ?? location.lat;
-  const longitude = location.longitude ?? location.lng;
+  const externalIds =
+    typeof location.externalIds === 'object' && location.externalIds !== null
+      ? (location.externalIds as Record<string, unknown>)
+      : {};
+  if (typeof externalIds.googlePlaceId === 'string') {
+    return `google:${externalIds.googlePlaceId}`;
+  }
+  if (typeof externalIds.ekispertId === 'string') {
+    return `ekispert:${externalIds.ekispertId}`;
+  }
+  const coordinates =
+    typeof location.coordinates === 'object' && location.coordinates !== null
+      ? (location.coordinates as Record<string, unknown>)
+      : location;
+  const latitude = coordinates.latitude ?? coordinates.lat;
+  const longitude = coordinates.longitude ?? coordinates.lng;
   return typeof latitude === 'number' && typeof longitude === 'number'
     ? `${latitude}, ${longitude}`
     : '—';
+}
+
+function providerDisplayName(value: string | undefined) {
+  if (!value) return '—';
+  if (value === 'ekispert') return 'Ekispert';
+  if (value === 'navitime') return 'NAVITIME';
+  if (value === 'otp') return 'OpenTripPlanner (experimental)';
+  if (value === 'google') return 'Google';
+  if (value === 'kakao-mobility') return 'Kakao Mobility';
+  if (value === 'kakao-maps') return 'Kakao Maps';
+  return value;
 }
 
 function Fact({ label, value }: { label: string; value: React.ReactNode }) {
@@ -496,11 +653,13 @@ function RouteSummary({ route }: { route: NormalizedRoute }) {
   );
 }
 
-function parseGoogleResult(value: unknown): GoogleRouteProviderResult | null {
+function parseRouteProviderResult(
+  value: unknown,
+): NormalizedRouteProviderResult | null {
   if (typeof value !== 'object' || value === null) return null;
-  const result = value as Partial<GoogleRouteProviderResult>;
-  return result.provider === 'google' && Array.isArray(result.routes)
-    ? (result as GoogleRouteProviderResult)
+  const result = value as Partial<NormalizedRouteProviderResult>;
+  return typeof result.provider === 'string' && Array.isArray(result.routes)
+    ? (result as NormalizedRouteProviderResult)
     : null;
 }
 

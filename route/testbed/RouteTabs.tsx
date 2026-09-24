@@ -1,16 +1,17 @@
 import { Tab, Tabs, type TabId } from '@blueprintjs/core';
 
-export type RouteTab = 'route' | 'jobs' | 'cache' | 'analytics';
+export type RouteTab = 'route' | 'matrix' | 'jobs' | 'cache' | 'analytics';
 
 export const ROUTE_TABS: Array<{
   id: RouteTab;
   label: string;
   path: string;
 }> = [
-  { id: 'route', label: '경로', path: '/route' },
-  { id: 'jobs', label: '작업', path: '/route/jobs' },
-  { id: 'cache', label: '캐시', path: '/route/cache' },
-  { id: 'analytics', label: '분석', path: '/route/analytics' },
+  { id: 'route', label: 'Route Query', path: '/route' },
+  { id: 'matrix', label: 'Matrix Query', path: '/route/matrix' },
+  { id: 'jobs', label: 'Jobs', path: '/route/jobs' },
+  { id: 'cache', label: 'Cache', path: '/route/cache' },
+  { id: 'analytics', label: 'Analytics', path: '/route/analytics' },
 ];
 
 interface RouteTabsProps {

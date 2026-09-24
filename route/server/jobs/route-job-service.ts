@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 
 import type { NormalizedRouteRequest } from '../types/route.js';
+import type { RouteProviderSelection } from '../resolver/provider-resolver.js';
 import type { RouteJob } from './route-job.js';
 import type { RouteJobEventBus } from './route-job-events.js';
 import { RouteJobRunner } from './route-job-runner.js';
@@ -13,7 +14,11 @@ export class RouteJobService {
     private readonly runner: RouteJobRunner,
   ) {}
 
-  async create(request: NormalizedRouteRequest): Promise<RouteJob> {
+  async create(
+    request: NormalizedRouteRequest,
+    selection = this.selectProvider(request),
+    clientRequest?: unknown,
+  ): Promise<RouteJob> {
     const now = new Date().toISOString();
     const job: RouteJob = {
       jobId: `route_${randomUUID().replaceAll('-', '')}`,
@@ -24,12 +29,35 @@ export class RouteJobService {
       createdAt: now,
       updatedAt: now,
       request,
+      ...(clientRequest !== undefined ? { clientRequest } : {}),
+      selectedProvider: selection.provider,
+      providerSelectionReason: selection.reason,
+      ...(selection.capabilities
+        ? { providerCapabilities: selection.capabilities }
+        : {}),
+      ...(selection.available !== undefined
+        ? { providerAvailable: selection.available }
+        : {}),
+      ...(selection.unavailableReason
+        ? { providerUnavailableReason: selection.unavailableReason }
+        : {}),
+      fallbackPolicy: 'disabled',
+      ...(request.countryCode ? { countryCode: request.countryCode } : {}),
+      mode: request.travelMode,
     };
 
     await this.store.save(job);
     await this.events.publish(job.jobId, { type: 'progress', job });
     setImmediate(() => void this.runner.run(job.jobId));
     return job;
+  }
+
+  validateRequest(request: NormalizedRouteRequest) {
+    return this.selectProvider(request);
+  }
+
+  selectProvider(request: NormalizedRouteRequest): RouteProviderSelection {
+    return this.runner.validateRequest(request);
   }
 
   get(jobId: string) {

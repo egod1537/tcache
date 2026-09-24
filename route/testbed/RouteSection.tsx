@@ -5,6 +5,7 @@ import { RouteAnalyticsPage } from './analytics/RouteAnalyticsPage';
 import { RouteCacheExplorerPage } from './cache/RouteCacheExplorerPage';
 import { RouteJobsPage } from './jobs/RouteJobsPage';
 import { RoutePlaygroundPage } from './route/RoutePlaygroundPage';
+import { MatrixQueryPage } from './matrix/MatrixQueryPage';
 import {
   RouteTabs,
   routeTabFromPath,
@@ -62,6 +63,11 @@ export function RouteSection({ dark, status }: RouteSectionProps) {
       {visited.has('route') && (
         <div hidden={activeTab !== 'route'}>
           <RoutePlaygroundPage />
+        </div>
+      )}
+      {visited.has('matrix') && (
+        <div hidden={activeTab !== 'matrix'}>
+          <MatrixQueryPage status={status} />
         </div>
       )}
       {visited.has('jobs') && (

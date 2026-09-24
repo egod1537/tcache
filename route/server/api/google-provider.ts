@@ -1,12 +1,14 @@
 import type { FastifyInstance } from 'fastify';
 
 import type { RouteProvider } from '../providers/provider.js';
+import { validateRouteRequestForProvider } from '../providers/location-validation.js';
 import { GoogleRoutesError } from '../providers/google/errors.js';
 import { normalizePublicRouteRequest } from '../types/route.js';
 
 export interface GoogleProviderDebugContext {
   provider: RouteProvider;
   timeoutMs: number;
+  exposeRawProviderResponse: boolean;
 }
 
 export function registerGoogleProviderDebug(
@@ -19,6 +21,7 @@ export function registerGoogleProviderDebug(
       let normalizedRequest;
       try {
         normalizedRequest = normalizePublicRouteRequest(request.body);
+        validateRouteRequestForProvider(normalizedRequest, 'google');
       } catch (error) {
         return reply.code(400).send({
           error: {
@@ -47,7 +50,9 @@ export function registerGoogleProviderDebug(
         return {
           provider: providerResult.provider,
           normalizedRequest,
-          result: providerResult.result,
+          result: context.exposeRawProviderResponse
+            ? providerResult.result
+            : withoutProviderDebug(providerResult.result),
         };
       } catch (error) {
         if (timedOut) {
@@ -82,4 +87,14 @@ export function registerGoogleProviderDebug(
       }
     },
   );
+}
+
+function withoutProviderDebug(value: unknown): unknown {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    return value;
+  }
+  const result = { ...(value as Record<string, unknown>) };
+  delete result.raw;
+  delete result.debug;
+  return result;
 }

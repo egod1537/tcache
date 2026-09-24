@@ -1,0 +1,100 @@
+{
+  "exampleMetadata": {
+    "sanitized": true,
+    "scope": "First itinerary with encoded geometry omitted; the verification script stores the full raw response."
+  },
+  "data": {
+    "planConnection": {
+      "searchDateTime": "2026-09-25T10:00:00+09:00",
+      "routingErrors": [],
+      "edges": [
+        {
+          "node": {
+            "start": "2026-09-25T10:03:55+09:00",
+            "end": "2026-09-25T10:34:06+09:00",
+            "duration": 1811,
+            "walkTime": 1511,
+            "walkDistance": 1473.84,
+            "numberOfTransfers": 0,
+            "legs": [
+              {
+                "mode": "WALK",
+                "transitLeg": false,
+                "duration": 725.0,
+                "distance": 668.43,
+                "start": { "scheduledTime": "2026-09-25T10:03:55+09:00" },
+                "end": { "scheduledTime": "2026-09-25T10:16:00+09:00" },
+                "from": { "name": "Tokyo Station", "stop": null },
+                "to": {
+                  "name": "Otemachi",
+                  "stop": {
+                    "gtfsId": "TOEI_TRAIN:209",
+                    "name": "Otemachi",
+                    "platformCode": null
+                  }
+                },
+                "agency": null,
+                "route": null,
+                "headsign": null
+              },
+              {
+                "mode": "SUBWAY",
+                "transitLeg": true,
+                "duration": 300.0,
+                "distance": 2804.0,
+                "start": { "scheduledTime": "2026-09-25T10:16:00+09:00" },
+                "end": { "scheduledTime": "2026-09-25T10:21:00+09:00" },
+                "from": {
+                  "name": "Otemachi",
+                  "stop": {
+                    "gtfsId": "TOEI_TRAIN:209",
+                    "name": "Otemachi",
+                    "platformCode": null
+                  }
+                },
+                "to": {
+                  "name": "Onarimon",
+                  "stop": {
+                    "gtfsId": "TOEI_TRAIN:206",
+                    "name": "Onarimon",
+                    "platformCode": null
+                  }
+                },
+                "agency": {
+                  "gtfsId": "TOEI_TRAIN:toei",
+                  "name": "東京都交通局"
+                },
+                "route": {
+                  "gtfsId": "TOEI_TRAIN:2",
+                  "shortName": null,
+                  "longName": "Mita Line"
+                },
+                "headsign": "Hiyoshi"
+              },
+              {
+                "mode": "WALK",
+                "transitLeg": false,
+                "duration": 786.0,
+                "distance": 805.41,
+                "start": { "scheduledTime": "2026-09-25T10:21:00+09:00" },
+                "end": { "scheduledTime": "2026-09-25T10:34:06+09:00" },
+                "from": {
+                  "name": "Onarimon",
+                  "stop": {
+                    "gtfsId": "TOEI_TRAIN:206",
+                    "name": "Onarimon",
+                    "platformCode": null
+                  }
+                },
+                "to": { "name": "Tokyo Tower", "stop": null },
+                "agency": null,
+                "route": null,
+                "headsign": null
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -7,9 +7,14 @@ import {
   Intent,
   Switch,
   Tag,
+  HTMLSelect,
 } from '@blueprintjs/core';
 
-import type { RouteRequestDraft, ValidationState } from './playground-types';
+import {
+  ROUTE_PLAYGROUND_PRESETS,
+  type RouteRequestDraft,
+  type ValidationState,
+} from './playground-types';
 import { RouteAdvancedOptions } from './RouteAdvancedOptions';
 import { RouteLocationList } from './RouteLocationList';
 import { RouteModeSelector } from './RouteModeSelector';
@@ -25,6 +30,8 @@ export function RouteRequestPanel({
   onReset,
   onValidate,
   onRun,
+  selectedPresetId,
+  onSelectPreset,
 }: {
   draft: RouteRequestDraft;
   rawJson: string;
@@ -36,6 +43,8 @@ export function RouteRequestPanel({
   onReset: () => void;
   onValidate: () => void;
   onRun: () => void;
+  selectedPresetId: string;
+  onSelectPreset: (presetId: string) => void;
 }) {
   return (
     <Card className="route-playground-request-panel" compact elevation={1}>
@@ -43,7 +52,7 @@ export function RouteRequestPanel({
         <div>
           <h2 className={Classes.HEADING}>경로 요청</h2>
           <p className={Classes.TEXT_MUTED}>
-            Google Routes 백엔드에 직접 요청합니다.
+            Route Job이 국가와 이동수단에 맞는 provider를 선택합니다.
           </p>
         </div>
         {validation.state === 'valid' && (
@@ -52,6 +61,18 @@ export function RouteRequestPanel({
           </Tag>
         )}
       </div>
+
+      <HTMLSelect
+        aria-label="경로 프리셋"
+        disabled={pending || rawOverride !== null}
+        fill
+        onChange={(event) => onSelectPreset(event.target.value)}
+        options={ROUTE_PLAYGROUND_PRESETS.map((preset) => ({
+          value: preset.id,
+          label: preset.label,
+        }))}
+        value={selectedPresetId}
+      />
 
       <RouteLocationList
         disabled={pending || rawOverride !== null}

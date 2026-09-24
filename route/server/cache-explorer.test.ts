@@ -28,6 +28,10 @@ describe('Route Cache Explorer API', () => {
         {
           key: 'v1:google:abc',
           provider: 'google',
+          providerVersion: '1',
+          normalizedRequestHash: 'request-hash',
+          createdAt: '2026-09-24T00:00:00.000Z',
+          expiresAt: '2026-09-24T01:00:00.000Z',
           ttlSeconds: 120,
           sizeBytes: 512,
         },
@@ -46,6 +50,10 @@ describe('Route Cache Explorer API', () => {
         {
           key: 'v1:google:abc',
           provider: 'google',
+          providerVersion: '1',
+          normalizedRequestHash: 'request-hash',
+          createdAt: '2026-09-24T00:00:00.000Z',
+          expiresAt: '2026-09-24T01:00:00.000Z',
           ttlSeconds: 120,
           sizeBytes: 512,
         },
@@ -59,9 +67,23 @@ describe('Route Cache Explorer API', () => {
       get: vi.fn().mockResolvedValue({
         key: 'v1:google:abc',
         provider: 'google',
+        providerVersion: '1',
+        normalizedRequestHash: 'request-hash',
+        createdAt: '2026-09-24T00:00:00.000Z',
+        expiresAt: '2026-09-24T01:00:00.000Z',
         ttlSeconds: 120,
         sizeBytes: 512,
-        value: { provider: 'google', result: { routes: [] } },
+        value: {
+          provider: 'google',
+          result: { routes: [] },
+          metadata: {
+            provider: 'google',
+            providerVersion: '1',
+            normalizedRequestHash: 'request-hash',
+            createdAt: '2026-09-24T00:00:00.000Z',
+            expiresAt: '2026-09-24T01:00:00.000Z',
+          },
+        },
       }),
     };
     const app = createApp(inspector);

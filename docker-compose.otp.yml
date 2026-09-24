@@ -1,0 +1,24 @@
+services:
+  otp:
+    image: ${OTP_IMAGE:-docker.io/opentripplanner/opentripplanner:2.10.0@sha256:8d54e5c589186707ee365417f2202dc878c451fa3001b8edff07019531100933}
+    profiles: ['otp']
+    environment:
+      JAVA_TOOL_OPTIONS: ${OTP_JAVA_OPTIONS:--Xmx6g}
+      TZ: Asia/Tokyo
+    volumes:
+      - ./otp/data/tokyo:/var/opentripplanner:ro
+    command: ['--load', '--serve']
+    init: true
+    stop_grace_period: 30s
+    networks:
+      - tcache-internal
+
+  tcache-server:
+    environment:
+      OTP_BASE_URL: http://otp:8080
+      OTP_PROVIDER_ENABLED: 'true'
+      OTP_REQUEST_TIMEOUT_MS: ${OTP_REQUEST_TIMEOUT_MS:-30000}
+      OTP_VERSION: ${OTP_VERSION:-2.10.0}
+      OTP_GRAPH_BUILD_ID: ${OTP_GRAPH_BUILD_ID:-}
+      OTP_GTFS_DATASET_VERSION: ${OTP_GTFS_DATASET_VERSION:-}
+      OTP_OSM_DATASET_VERSION: ${OTP_OSM_DATASET_VERSION:-}

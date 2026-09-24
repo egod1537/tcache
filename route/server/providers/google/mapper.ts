@@ -18,16 +18,23 @@ const GOOGLE_TRAVEL_MODES: Record<
 };
 
 function toWaypoint(point: NormalizedRouteLocation): GoogleWaypoint {
-  if (point.type === 'placeId') return { placeId: point.placeId };
-  if (point.type === 'address') return { address: point.address };
-  return {
-    location: {
-      latLng: {
-        latitude: point.latitude,
-        longitude: point.longitude,
+  if (point.externalIds?.googlePlaceId) {
+    return { placeId: point.externalIds.googlePlaceId };
+  }
+  if (point.coordinates) {
+    return {
+      location: {
+        latLng: {
+          latitude: point.coordinates.latitude,
+          longitude: point.coordinates.longitude,
+        },
       },
-    },
-  };
+    };
+  }
+  if (point.address) return { address: point.address };
+  throw new Error(
+    'Google route location requires googlePlaceId, coordinates, or address',
+  );
 }
 
 export function toGoogleRoutesRequest(

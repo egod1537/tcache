@@ -14,29 +14,37 @@ import {
 import { useMemo, useState } from 'react';
 
 import type {
+  LegacyRouteLocation,
   PublicRouteLocation,
   PublicRouteRequest,
-  RouteLocation,
   RouteTravelMode,
 } from '../../../apps/testbed/src/api/client';
 import { ROUTE_MODE_LABELS } from '../route-ui-labels';
 
-type LocationKind = RouteLocation['type'];
+type LocationKind = LegacyRouteLocation['type'];
 
 interface LocationDraft {
   type: LocationKind;
+  name: string;
   address: string;
   latitude: string;
   longitude: string;
   placeId: string;
+  kakaoPlaceId: string;
+  navitimeId: string;
+  ekispertId: string;
 }
 
 const newLocation = (address = ''): LocationDraft => ({
   type: 'address',
+  name: '',
   address,
   latitude: '',
   longitude: '',
   placeId: '',
+  kakaoPlaceId: '',
+  navitimeId: '',
+  ekispertId: '',
 });
 
 const modeOptions: Array<{ value: RouteTravelMode; label: string }> = [
@@ -76,6 +84,8 @@ export function NewRouteJobDialog({
   const [alternatives, setAlternatives] = useState(false);
   const [languageCode, setLanguageCode] = useState('ja');
   const [regionCode, setRegionCode] = useState('JP');
+  const [countryCode, setCountryCode] = useState('JP');
+  const [provider, setProvider] = useState('');
   const [departureTime, setDepartureTime] = useState(
     createDefaultDepartureTime,
   );
@@ -93,6 +103,8 @@ export function NewRouteJobDialog({
         alternatives,
         languageCode,
         regionCode,
+        countryCode,
+        provider,
         departureTime,
         routingPreference,
       });
@@ -107,6 +119,8 @@ export function NewRouteJobDialog({
     alternatives,
     languageCode,
     regionCode,
+    countryCode,
+    provider,
     departureTime,
     routingPreference,
   ]);
@@ -272,6 +286,39 @@ export function NewRouteJobDialog({
                 value={regionCode}
               />
             </FormGroup>
+            <FormGroup label="국가 코드" labelFor="route-country">
+              <InputGroup
+                id="route-country"
+                maxLength={2}
+                onChange={(event) => {
+                  setRawOverride(null);
+                  setCountryCode(event.target.value.toUpperCase());
+                }}
+                placeholder="JP"
+                value={countryCode}
+              />
+            </FormGroup>
+            <FormGroup label="Provider override" labelFor="route-provider">
+              <HTMLSelect
+                fill
+                id="route-provider"
+                onChange={(event) => {
+                  setRawOverride(null);
+                  setProvider(event.target.value);
+                }}
+                options={[
+                  { value: '', label: '자동 선택' },
+                  { value: 'google', label: 'Google' },
+                  { value: 'kakao-mobility', label: 'Kakao Mobility' },
+                  { value: 'kakao-maps', label: 'Kakao Maps' },
+                  { value: 'ekispert', label: 'Ekispert' },
+                  { value: 'navitime', label: 'NAVITIME' },
+                  { value: 'otp', label: 'OpenTripPlanner (experimental)' },
+                  { value: 'mock', label: 'Mock' },
+                ]}
+                value={provider}
+              />
+            </FormGroup>
             <FormGroup label="출발 시각" labelFor="route-departure">
               <InputGroup
                 id="route-departure"
@@ -385,52 +432,85 @@ function LocationEditor({
           ]}
           value={value.type}
         />
-        {value.type === 'address' && (
-          <InputGroup
-            aria-label={`${label} 주소`}
-            fill
-            onChange={(event) =>
-              onChange({ ...value, address: event.target.value })
-            }
-            placeholder="東京駅、日本"
-            value={value.address}
-          />
-        )}
-        {value.type === 'placeId' && (
-          <InputGroup
-            aria-label={`${label} Place ID`}
-            fill
-            onChange={(event) =>
-              onChange({ ...value, placeId: event.target.value })
-            }
-            placeholder="Google Place ID"
-            value={value.placeId}
-          />
-        )}
-        {value.type === 'coordinates' && (
-          <div className="route-coordinate-inputs">
+        <InputGroup
+          aria-label={`${label} 이름`}
+          fill
+          onChange={(event) => onChange({ ...value, name: event.target.value })}
+          placeholder="장소 이름 (선택)"
+          value={value.name}
+        />
+        <details className="route-location-debug-fields" open>
+          <summary>위치 상세 / Provider ID</summary>
+          <div className="route-location-debug-grid">
             <InputGroup
-              aria-label={`${label} 위도`}
+              aria-label={`${label} 주소`}
               fill
-              inputMode="decimal"
               onChange={(event) =>
-                onChange({ ...value, latitude: event.target.value })
+                onChange({ ...value, address: event.target.value })
               }
-              placeholder="위도"
-              value={value.latitude}
+              placeholder="주소"
+              value={value.address}
+            />
+            <div className="route-coordinate-inputs">
+              <InputGroup
+                aria-label={`${label} 위도`}
+                fill
+                inputMode="decimal"
+                onChange={(event) =>
+                  onChange({ ...value, latitude: event.target.value })
+                }
+                placeholder="위도"
+                value={value.latitude}
+              />
+              <InputGroup
+                aria-label={`${label} 경도`}
+                fill
+                inputMode="decimal"
+                onChange={(event) =>
+                  onChange({ ...value, longitude: event.target.value })
+                }
+                placeholder="경도"
+                value={value.longitude}
+              />
+            </div>
+            <InputGroup
+              aria-label={`${label} Google Place ID`}
+              fill
+              onChange={(event) =>
+                onChange({ ...value, placeId: event.target.value })
+              }
+              placeholder="Google Place ID (선택)"
+              value={value.placeId}
             />
             <InputGroup
-              aria-label={`${label} 경도`}
+              aria-label={`${label} Kakao Place ID`}
               fill
-              inputMode="decimal"
               onChange={(event) =>
-                onChange({ ...value, longitude: event.target.value })
+                onChange({ ...value, kakaoPlaceId: event.target.value })
               }
-              placeholder="경도"
-              value={value.longitude}
+              placeholder="Kakao Place ID (선택)"
+              value={value.kakaoPlaceId}
+            />
+            <InputGroup
+              aria-label={`${label} NAVITIME ID`}
+              fill
+              onChange={(event) =>
+                onChange({ ...value, navitimeId: event.target.value })
+              }
+              placeholder="NAVITIME node/station ID (선택)"
+              value={value.navitimeId}
+            />
+            <InputGroup
+              aria-label={`${label} Ekispert ID`}
+              fill
+              onChange={(event) =>
+                onChange({ ...value, ekispertId: event.target.value })
+              }
+              placeholder="Ekispert station ID (선택)"
+              value={value.ekispertId}
             />
           </div>
-        )}
+        </details>
       </div>
     </FormGroup>
   );
@@ -439,29 +519,46 @@ function LocationEditor({
 function toLocation(value: LocationDraft, label: string): PublicRouteLocation {
   if (value.type === 'address') {
     if (!value.address.trim()) throw new Error(`${label} 주소를 입력하세요.`);
-    return { address: value.address.trim() };
   }
   if (value.type === 'placeId') {
     if (!value.placeId.trim())
       throw new Error(`${label} Place ID를 입력하세요.`);
-    return { placeId: value.placeId.trim() };
   }
-  if (!value.latitude.trim() || !value.longitude.trim()) {
-    throw new Error(`${label} 좌표를 입력하세요.`);
+  const hasLatitude = Boolean(value.latitude.trim());
+  const hasLongitude = Boolean(value.longitude.trim());
+  let coordinates: { latitude: number; longitude: number } | undefined;
+  if (value.type === 'coordinates' || hasLatitude || hasLongitude) {
+    if (!hasLatitude || !hasLongitude) {
+      throw new Error(`${label} 좌표를 입력하세요.`);
+    }
+    const latitude = Number(value.latitude);
+    const longitude = Number(value.longitude);
+    if (
+      !Number.isFinite(latitude) ||
+      latitude < -90 ||
+      latitude > 90 ||
+      !Number.isFinite(longitude) ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      throw new Error(`${label} 좌표가 올바르지 않습니다.`);
+    }
+    coordinates = { latitude, longitude };
   }
-  const latitude = Number(value.latitude);
-  const longitude = Number(value.longitude);
-  if (
-    !Number.isFinite(latitude) ||
-    latitude < -90 ||
-    latitude > 90 ||
-    !Number.isFinite(longitude) ||
-    longitude < -180 ||
-    longitude > 180
-  ) {
-    throw new Error(`${label} 좌표가 올바르지 않습니다.`);
-  }
-  return { latitude, longitude };
+  const externalIds = {
+    ...(value.placeId.trim() ? { googlePlaceId: value.placeId.trim() } : {}),
+    ...(value.kakaoPlaceId.trim()
+      ? { kakaoPlaceId: value.kakaoPlaceId.trim() }
+      : {}),
+    ...(value.navitimeId.trim() ? { navitimeId: value.navitimeId.trim() } : {}),
+    ...(value.ekispertId.trim() ? { ekispertId: value.ekispertId.trim() } : {}),
+  };
+  return {
+    ...(coordinates ? { coordinates } : {}),
+    ...(value.name.trim() ? { name: value.name.trim() } : {}),
+    ...(value.address.trim() ? { address: value.address.trim() } : {}),
+    ...(Object.keys(externalIds).length ? { externalIds } : {}),
+  };
 }
 
 function buildRequest(input: {
@@ -472,6 +569,8 @@ function buildRequest(input: {
   alternatives: boolean;
   languageCode: string;
   regionCode: string;
+  countryCode: string;
+  provider: string;
   departureTime: string;
   routingPreference: string;
 }): PublicRouteRequest {
@@ -486,6 +585,10 @@ function buildRequest(input: {
     ],
     mode: input.travelMode,
     departureTime: new Date(input.departureTime).toISOString(),
+    ...(input.countryCode.trim()
+      ? { countryCode: input.countryCode.trim().toUpperCase() }
+      : {}),
+    ...(input.provider ? { provider: input.provider } : {}),
     ...(input.alternatives ? { computeAlternativeRoutes: true } : {}),
     ...(input.languageCode.trim()
       ? { languageCode: input.languageCode.trim() }

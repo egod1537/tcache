@@ -17,6 +17,12 @@ import type {
   RouteProviderResult,
 } from './providers/provider.js';
 import { GoogleRouteProvider } from './providers/google/client.js';
+import { createKakaoHttpError } from './providers/kakao/errors.js';
+import { createNavitimeHttpError } from './providers/navitime/errors.js';
+import { EkispertRouteProvider } from './providers/ekispert/provider.js';
+import { OtpRouteProvider } from './providers/otp/provider.js';
+import { otpDirectRouteFixture } from './providers/otp/fixtures/routes.js';
+import { RouteResolver } from './resolver/route-resolver.js';
 import { toGoogleRoutesRequest } from './providers/google/mapper.js';
 import { parseGoogleRoutesResponse } from './providers/google/parser.js';
 import {
@@ -63,6 +69,7 @@ class MemoryCache implements RouteCacheRepository {
 
 class TestProvider implements RouteProvider {
   calls = 0;
+  readonly adapterVersion = 'test-v1';
 
   async getRoute(
     request: NormalizedRouteRequest,
@@ -73,6 +80,44 @@ class TestProvider implements RouteProvider {
     return {
       provider: 'test',
       result: { request, route: ['origin', 'destination'] },
+    };
+  }
+}
+
+class ObservableProvider implements RouteProvider {
+  readonly providerName = 'mock';
+  readonly adapterVersion = 'observable-v1';
+  readonly capabilities: RouteProvider['capabilities'] = {
+    modes: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'],
+    supportsWaypoints: true,
+    maxLocations: 10,
+  };
+
+  getDebugRequest() {
+    return {
+      method: 'POST',
+      url: 'https://provider.example/route?api_key=request-secret',
+      headers: { Authorization: 'Bearer request-secret' },
+      body: { locations: 2 },
+    };
+  }
+
+  async getRoute(): Promise<RouteProviderResult> {
+    return {
+      provider: 'mock',
+      result: {
+        provider: 'mock',
+        routes: [],
+        raw: { shouldNotReachPublicResult: true },
+        debug: { shouldNotReachPublicResult: true },
+      },
+      debug: {
+        rawProviderResponse: {
+          routes: [],
+          token: 'response-secret',
+          authorization: 'Bearer response-secret',
+        },
+      },
     };
   }
 }
@@ -90,12 +135,37 @@ class BlockingProvider implements RouteProvider {
   }
 }
 
+class KakaoProvider extends TestProvider {
+  readonly providerName = 'kakao';
+}
+
+class FailingKakaoProvider implements RouteProvider {
+  readonly providerName = 'kakao-maps';
+
+  async getRoute(): Promise<RouteProviderResult> {
+    throw createKakaoHttpError('kakao-maps', 429, {
+      message: 'upstream quota detail',
+    });
+  }
+}
+
+class FailingNavitimeProvider implements RouteProvider {
+  readonly providerName = 'navitime';
+
+  async getRoute(): Promise<RouteProviderResult> {
+    throw createNavitimeHttpError(500, {
+      message: 'specified route is not found: private upstream detail',
+    });
+  }
+}
+
 const apps: ReturnType<typeof buildApp>[] = [];
 const requestBody = {
   origin: { latitude: 37.5665, longitude: 126.978 },
   destination: { latitude: 35.1796, longitude: 129.0756 },
   waypoints: [],
   travelMode: 'TRANSIT',
+  countryCode: 'KR',
   departureTime: '2026-09-17T02:00:00.000Z',
   options: { languageCode: 'ko' },
 };
@@ -106,18 +176,22 @@ function createTestApp(
   cache = new MemoryCache(),
   analytics?: RouteJobRunnerOptions['analytics'],
   onAnalyticsError?: RouteJobRunnerOptions['onAnalyticsError'],
+  exposeRawProviderResponse = false,
 ) {
   const store = new MemoryJobStore();
   const events = new InMemoryRouteJobEventBus();
   const runner = new RouteJobRunner({
     store,
     events,
-    cache,
-    cachePolicy: createRouteCachePolicy(3_600),
-    provider,
-    providerTimeoutMs,
+    resolver: new RouteResolver({
+      cache,
+      cachePolicy: createRouteCachePolicy(3_600),
+      provider,
+      providerTimeoutMs,
+    }),
     ...(analytics ? { analytics } : {}),
     ...(onAnalyticsError ? { onAnalyticsError } : {}),
+    exposeRawProviderResponse,
   });
   const jobs = new RouteJobService(store, events, runner);
   const app = buildApp({ routeCache: { jobs, events } });
@@ -147,6 +221,59 @@ afterEach(async () => {
 });
 
 describe('route jobs', () => {
+  it('runs an OTP Route Job through the shared lifecycle and v4 cache', async () => {
+    const provider = new OtpRouteProvider({
+      enabled: true,
+      baseUrl: 'http://otp.test',
+      graphBuildId: 'tokyo-test-graph',
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify(otpDirectRouteFixture), { status: 200 }),
+      ),
+    });
+    const { app, cache } = createTestApp(provider);
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: {
+        locations: [
+          { latitude: 35.681236, longitude: 139.767125 },
+          { latitude: 35.658034, longitude: 139.701636 },
+        ],
+        mode: 'TRANSIT',
+        countryCode: 'JP',
+        departureTime: '2026-09-25T10:00:00+09:00',
+      },
+    });
+    expect(created.statusCode).toBe(202);
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+    expect(job).toMatchObject({
+      status: 'completed',
+      selectedProvider: 'otp',
+      provider: 'otp',
+      cache: {
+        hit: false,
+        key: expect.stringMatching(/^route:v4:otp:transit:jp:/),
+      },
+    });
+    const result = await app.inject({
+      method: 'GET',
+      url: `/api/route/jobs/${job.jobId}/result`,
+    });
+    expect(result.json()).toMatchObject({
+      provider: 'otp',
+      result: { provider: 'otp', routes: [{ durationSeconds: 900 }] },
+    });
+    expect([...cache.values.values()][0]?.metadata).toMatchObject({
+      provider: 'otp',
+      providerVersion: '1',
+      providerMetadata: { graphBuildId: 'tokyo-test-graph' },
+    });
+  });
+
   it('creates a background job and exposes status, SSE, and result', async () => {
     const provider = new TestProvider();
     const { app } = createTestApp(provider);
@@ -168,12 +295,16 @@ describe('route jobs', () => {
       status: 'completed',
       progress: 100,
       provider: 'test',
+      selectedProvider: 'unknown',
+      providerSelectionReason: 'configured -> unknown',
+      countryCode: 'KR',
+      mode: 'TRANSIT',
       requestMetadata: {
         fromKey: 'coord:37.56650,126.97800',
         toKey: 'coord:35.17960,129.07560',
         intermediateKeys: [],
         dayType: 'weekday',
-        timeBucket: '02:00',
+        timeBucket: '11:00',
       },
     });
 
@@ -195,6 +326,74 @@ describe('route jobs', () => {
     expect(events.headers['content-type']).toContain('text/event-stream');
     expect(events.body).toContain('event: snapshot');
     expect(events.body).toContain('event: completed');
+    expect(events.body).toContain(
+      '"providerSelectionReason":"configured -> unknown"',
+    );
+  });
+
+  it('exposes redacted provider transformations without leaking transport debug', async () => {
+    const { app } = createTestApp(
+      new ObservableProvider(),
+      1_000,
+      new MemoryCache(),
+      undefined,
+      undefined,
+      true,
+    );
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: requestBody,
+    });
+    const jobId = created.json<{ jobId: string }>().jobId;
+    const job = await waitForTerminal(app, jobId);
+
+    expect(job).toMatchObject({
+      selectedProvider: 'mock',
+      providerSelectionReason: 'configured -> mock',
+      providerCapabilities: {
+        modes: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'],
+        supportsWaypoints: true,
+        maxLocations: 10,
+      },
+      fallbackPolicy: 'disabled',
+      providerRequest: {
+        method: 'POST',
+        url: 'https://provider.example/route?api_key=[REDACTED]',
+        headers: { Authorization: '[REDACTED]' },
+      },
+      rawProviderResponseExposed: true,
+      rawProviderResponse: {
+        routes: [],
+        token: '[REDACTED]',
+        authorization: '[REDACTED]',
+      },
+    });
+    expect(JSON.stringify(job)).not.toContain('request-secret');
+    expect(JSON.stringify(job)).not.toContain('response-secret');
+
+    const result = await app.inject({
+      method: 'GET',
+      url: `/api/route/jobs/${jobId}/result`,
+    });
+    expect(result.json().result).toEqual({ provider: 'mock', routes: [] });
+  });
+
+  it('keeps raw provider responses out of production-style job snapshots', async () => {
+    const { app } = createTestApp(new ObservableProvider());
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: requestBody,
+    });
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+
+    expect(job.rawProviderResponseExposed).toBe(false);
+    expect(job.rawProviderResponse).toBeUndefined();
+    expect(job.providerRequest).toBeDefined();
   });
 
   it('accepts the public ordered-locations contract at POST /jobs', async () => {
@@ -210,6 +409,7 @@ describe('route jobs', () => {
         ],
         mode: 'TRANSIT',
         departureTime: '2026-10-02T14:23:00+09:00',
+        apiKey: 'client-secret',
       },
     });
 
@@ -219,16 +419,24 @@ describe('route jobs', () => {
       created.json<{ jobId: string }>().jobId,
     );
     expect(job.normalizedRequest).toMatchObject({
-      origin: { type: 'placeId', placeId: 'origin-place' },
-      intermediates: [{ type: 'address', address: '중간 위치' }],
+      origin: { externalIds: { googlePlaceId: 'origin-place' } },
+      intermediates: [{ address: '중간 위치' }],
       destination: {
-        type: 'coordinates',
-        latitude: 35.6586,
-        longitude: 139.7454,
+        coordinates: { latitude: 35.6586, longitude: 139.7454 },
       },
       travelMode: 'TRANSIT',
       departureTime: '2026-10-02T14:23:00+09:00',
     });
+    expect(job.clientRequest).toMatchObject({
+      locations: [
+        { placeId: 'origin-place' },
+        { address: '중간 위치' },
+        { latitude: 35.6586, longitude: 139.7454 },
+      ],
+      mode: 'TRANSIT',
+      apiKey: '[REDACTED]',
+    });
+    expect(JSON.stringify(job)).not.toContain('client-secret');
   });
 
   it('lists server-side jobs from every client in newest-first order', async () => {
@@ -292,6 +500,34 @@ describe('route jobs', () => {
     expect(second.statusCode).toBe(202);
     expect(secondJob.cache).toMatchObject({ hit: true });
     expect(provider.calls).toBe(1);
+  });
+
+  it('stores v4 cache metadata with the normalized request hash and expiry', async () => {
+    const cache = new MemoryCache();
+    const { app } = createTestApp(new TestProvider(), 1_000, cache);
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: requestBody,
+    });
+    await waitForTerminal(app, created.json<{ jobId: string }>().jobId);
+
+    const [[key, cached]] = [...cache.values.entries()];
+    expect(key).toMatch(/^route:v4:unknown:transit:kr:[a-f0-9]{64}$/);
+    expect(cached).toMatchObject({
+      provider: 'test',
+      metadata: {
+        provider: 'test',
+        providerVersion: 'test-v1',
+        normalizedRequestHash: key.split(':').at(-1),
+        createdAt: expect.any(String),
+        expiresAt: expect.any(String),
+      },
+    });
+    expect(
+      Date.parse(cached.metadata!.expiresAt) -
+        Date.parse(cached.metadata!.createdAt),
+    ).toBe(3_600_000);
   });
 
   it('records cache miss/hit lifecycle analytics with provider latency', async () => {
@@ -446,6 +682,88 @@ describe('route jobs', () => {
     );
   });
 
+  it('returns normalized Kakao provider errors without internal debug details', async () => {
+    const { app } = createTestApp(new FailingKakaoProvider());
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: requestBody,
+    });
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+
+    expect(job).toMatchObject({
+      status: 'failed',
+      error: {
+        code: 'ROUTE_PROVIDER_RATE_LIMITED',
+        message: 'Kakao route provider rate limit exceeded',
+        details: {
+          provider: 'kakao-maps',
+          httpStatus: 429,
+          status: null,
+        },
+      },
+    });
+    expect(JSON.stringify(job)).not.toContain('upstream quota detail');
+  });
+
+  it('returns a normalized NAVITIME no-route error without upstream details', async () => {
+    const { app } = createTestApp(new FailingNavitimeProvider());
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: requestBody,
+    });
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+
+    expect(job).toMatchObject({
+      status: 'failed',
+      error: {
+        code: 'ROUTE_PROVIDER_NO_ROUTE',
+        message: 'NAVITIME route provider found no route',
+        details: {
+          provider: 'navitime',
+          httpStatus: 500,
+          status: null,
+        },
+      },
+    });
+    expect(JSON.stringify(job)).not.toContain('private upstream detail');
+  });
+
+  it('reports an unavailable Ekispert trial without silently falling back', async () => {
+    const { app } = createTestApp(new EkispertRouteProvider(''));
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: { ...requestBody, countryCode: 'JP' },
+    });
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+
+    expect(job).toMatchObject({
+      selectedProvider: 'ekispert',
+      providerAvailable: false,
+      providerUnavailableReason: 'EKISPERT_API_KEY is not configured',
+      fallbackPolicy: 'disabled',
+      status: 'failed',
+      error: {
+        code: 'PROVIDER_NOT_CONFIGURED',
+        details: {
+          provider: 'ekispert',
+          status: 'NOT_CONFIGURED',
+        },
+      },
+    });
+  });
+
   it('rejects invalid requests without creating a job', async () => {
     const { app, store } = createTestApp(new TestProvider());
     const response = await app.inject({
@@ -458,6 +776,30 @@ describe('route jobs', () => {
     expect(response.json()).toMatchObject({
       error: { code: 'INVALID_ROUTE_REQUEST' },
     });
+    expect(store.jobs.size).toBe(0);
+  });
+
+  it('returns the existing validation envelope for a provider-incompatible location', async () => {
+    const provider = new KakaoProvider();
+    const { app, store } = createTestApp(provider);
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: {
+        origin: { placeId: 'google-only' },
+        destination: { latitude: 35, longitude: 139 },
+        travelMode: 'DRIVING',
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      error: {
+        code: 'INVALID_ROUTE_REQUEST',
+        message: 'origin cannot be used with kakao: coordinates are required',
+      },
+    });
+    expect(provider.calls).toBe(0);
     expect(store.jobs.size).toBe(0);
   });
 
@@ -489,7 +831,12 @@ describe('Google route provider mapping and parsing', () => {
       origin: { type: 'address', address: ' 東京駅、日本 ' },
       intermediates: [
         { type: 'coordinates', latitude: 35.7148, longitude: 139.7967 },
-        { type: 'placeId', placeId: 'ChIJ-example' },
+        {
+          type: 'placeId',
+          placeId: 'ChIJ-example',
+          latitude: 35.7,
+          longitude: 139.7,
+        },
       ],
       destination: { latitude: 35.6586, longitude: 139.7454 },
       travelMode: 'driving',
