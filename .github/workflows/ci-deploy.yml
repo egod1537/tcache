@@ -47,9 +47,15 @@ jobs:
       TCACHE_TESTBED_PORT: ${{ vars.TCACHE_TESTBED_PORT || '3201' }}
       POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      ROUTE_PROVIDER: ${{ vars.ROUTE_PROVIDER || 'google' }}
+      ROUTE_PROVIDER: ${{ vars.ROUTE_PROVIDER || 'auto' }}
+      ROUTE_PROVIDER_POLICY_JSON: ${{ vars.ROUTE_PROVIDER_POLICY_JSON }}
+      ROUTE_PROVIDER_OVERRIDE_ENABLED: ${{ vars.ROUTE_PROVIDER_OVERRIDE_ENABLED || 'false' }}
       ROUTE_TIME_ZONE: ${{ vars.ROUTE_TIME_ZONE || 'Asia/Seoul' }}
       GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+      KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+      KAKAO_MOBILITY_API_KEY: ${{ secrets.KAKAO_MOBILITY_API_KEY }}
+      EKISPERT_API_KEY: ${{ secrets.EKISPERT_API_KEY }}
+      NAVITIME_API_KEY: ${{ secrets.NAVITIME_API_KEY }}
       VITE_GOOGLE_MAPS_API_KEY: ${{ secrets.VITE_GOOGLE_MAPS_API_KEY }}
       AI_PROVIDER: ${{ vars.AI_PROVIDER || 'gemini' }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -62,6 +68,24 @@ jobs:
         with:
           clean: true
 
+      - name: Verify production provider configuration
+        run: |
+          if [[ "${ROUTE_PROVIDER}" != "auto" ]]; then
+            echo "ROUTE_PROVIDER must be auto in production; got ${ROUTE_PROVIDER:-unset}" >&2
+            exit 1
+          fi
+
+          missing=()
+          for name in GOOGLE_MAPS_API_KEY KAKAO_REST_API_KEY KAKAO_MOBILITY_API_KEY EKISPERT_API_KEY; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("${name}")
+            fi
+          done
+          if (( ${#missing[@]} > 0 )); then
+            echo "Missing required production route provider secrets: ${missing[*]}" >&2
+            exit 1
+          fi
+
       - name: Build images
         run: docker compose build
 
@@ -72,10 +96,48 @@ jobs:
         run: |
           for attempt in {1..20}; do
             if curl --fail --silent "http://127.0.0.1:${TCACHE_PORT}/health" >/dev/null; then
-              exit 0
+              break
+            fi
+            if [[ "${attempt}" == "20" ]]; then
+              docker compose ps
+              docker compose logs --tail=100 tcache-server
+              exit 1
             fi
             sleep 3
           done
-          docker compose ps
-          docker compose logs --tail=100 tcache-server
-          exit 1
+
+          docker compose exec -T tcache-server node --input-type=module <<'NODE'
+          const response = await fetch('http://127.0.0.1:3200/api/route/providers/policy');
+          if (!response.ok) throw new Error(`Provider policy returned HTTP ${response.status}`);
+          const body = await response.json();
+          if (body.routeProviderMode !== 'auto') {
+            throw new Error(`Expected routeProviderMode=auto, got ${body.routeProviderMode}`);
+          }
+          if (body.policySource !== 'built-in') {
+            throw new Error(`Expected built-in policy, got ${body.policySource}`);
+          }
+          if (body.legacyCompatibilityApplied) {
+            throw new Error('Deprecated JAPAN_TRANSIT_PROVIDER override is active');
+          }
+          const expected = new Map([
+            ['JP:TRANSIT', 'ekispert'],
+            ['JP:WALKING', 'google'],
+            ['KR:TRANSIT', 'kakao-maps'],
+            ['KR:DRIVING', 'kakao-mobility'],
+          ]);
+          for (const assignment of body.assignments) {
+            const key = `${assignment.countryCode}:${assignment.mode}`;
+            if (!expected.has(key)) continue;
+            const provider = expected.get(key);
+            if (assignment.provider !== provider || !assignment.available) {
+              throw new Error(
+                `Invalid ${key} assignment: expected available ${provider}, got ${assignment.provider} available=${assignment.available}`,
+              );
+            }
+            expected.delete(key);
+          }
+          if (expected.size) {
+            throw new Error(`Missing provider assignments: ${[...expected.keys()].join(', ')}`);
+          }
+          console.log('Production route provider policy verified: auto, built-in, required providers available');
+          NODE

@@ -80,9 +80,9 @@ Compose는 `tcache-server`, `tcache-testbed`, `redis`, `postgres`를 실행합�
 | `TCACHE_MATRIX_CONCURRENCY`        | `4`                       | Matrix pair 동시 처리 수                         |
 | `ROUTE_PROVIDER`                   | `auto`                    | `auto` 또는 모든 요청에 강제할 provider          |
 | `ROUTE_PROVIDER_POLICY_JSON`       | 비어 있음                 | 국가 × 이동수단 provider policy JSON             |
-| `JAPAN_TRANSIT_PROVIDER`           | `ekispert`                | Deprecated JP TRANSIT compatibility 설정         |
-| `ROUTE_PROVIDER_OVERRIDE_ENABLED`  | `true`                    | 요청별 provider override 허용                    |
-| `ROUTE_PROVIDER_RAW_DEBUG_ENABLED` | `true`                    | redacted raw provider response 기록              |
+| `JAPAN_TRANSIT_PROVIDER`           | 비어 있음                 | Deprecated JP TRANSIT compatibility 설정         |
+| `ROUTE_PROVIDER_OVERRIDE_ENABLED`  | production에서 `false`    | 요청별 provider override 허용                    |
+| `ROUTE_PROVIDER_RAW_DEBUG_ENABLED` | production에서 `false`    | redacted raw provider response 기록              |
 | `ROUTE_TIME_ZONE`                  | `Asia/Seoul`              | 국가·요청 timezone이 없을 때 day/bucket fallback |
 | `GOOGLE_MAPS_API_KEY`              | 비어 있음                 | Google Routes API key                            |
 | `KAKAO_REST_API_KEY`               | 비어 있음                 | Kakao Maps REST API key                          |
@@ -309,7 +309,7 @@ Mac mini에는 다음 사전 구성이 필요합니다.
 1. GitHub self-hosted runner에 `macOS` label과 Docker 접근 권한 설정
 2. repository Environment `production` 생성
 3. 필요하면 Actions variable `TCACHE_PORT` 설정(기본 `3200`)
-4. production Environment에 `ROUTE_PROVIDER=auto`, `AI_PROVIDER=gemini` variable 설정
+4. production Environment에 `ROUTE_PROVIDER=auto`, `ROUTE_PROVIDER_OVERRIDE_ENABLED=false`, `AI_PROVIDER=gemini` variable 설정. `ROUTE_PROVIDER_POLICY_JSON`과 deprecated `JAPAN_TRANSIT_PROVIDER`는 특별한 운영 정책이 없다면 설정하지 않음
 5. production Environment에 `POSTGRES_PASSWORD`, `DATABASE_URL`, `GOOGLE_MAPS_API_KEY`, `KAKAO_REST_API_KEY`, `KAKAO_MOBILITY_API_KEY`, `EKISPERT_API_KEY`, `NAVITIME_API_KEY`, `GEMINI_API_KEY` secret 설정
 6. `DATABASE_URL`은 Docker DNS의 `postgres:5432`와 URL-encoded password를 사용하도록 설정
 7. `cloudflared`를 시스템 서비스로 등록하고 `tcache.mangagaki.net` 연결
