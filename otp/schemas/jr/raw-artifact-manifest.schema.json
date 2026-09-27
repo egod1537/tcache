@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcache.local/schemas/jr/raw-artifact-manifest.schema.json",
+  "title": "JR Raw Artifact Manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sourceUrl",
+    "requestedAt",
+    "httpStatus",
+    "contentType",
+    "sha256",
+    "byteLength",
+    "sourceEdition",
+    "sourceType",
+    "operator",
+    "collectorVersion"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "sourceUrl": { "type": "string", "format": "uri" },
+    "requestedAt": { "type": "string", "format": "date-time" },
+    "httpStatus": { "type": "integer", "minimum": 100, "maximum": 599 },
+    "contentType": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "byteLength": { "type": "integer", "minimum": 0 },
+    "sourceEdition": { "type": "string", "minLength": 1 },
+    "sourceType": { "type": "string", "minLength": 1 },
+    "operator": { "type": "string", "minLength": 1 },
+    "collectorVersion": { "type": "string", "minLength": 1 }
+  }
+}

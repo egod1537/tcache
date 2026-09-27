@@ -1,0 +1,42 @@
+{
+  "name": "@tcache/jr-timetable-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./index.ts",
+      "default": "./index.ts"
+    },
+    "./common": {
+      "types": "./common/index.ts",
+      "default": "./common/index.ts"
+    },
+    "./jr-east": {
+      "types": "./jr-east/index.ts",
+      "default": "./jr-east/index.ts"
+    },
+    "./gtfs": {
+      "types": "./gtfs/index.ts",
+      "default": "./gtfs/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "build:gtfs:yamanote": "tsx gtfs/cli.ts",
+    "collect:yamanote": "tsx jr-east/cli.ts",
+    "smoke:jreast": "tsx jr-east/cli.ts --mode sample --direction outer --service weekday --max-trips 2 --max-details 1",
+    "test:integration:gtfs": "RUN_MOBILITYDATA_VALIDATOR=1 vitest run test/gtfs-validator.integration.test.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3"
+  }
+}

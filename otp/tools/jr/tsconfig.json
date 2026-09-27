@@ -1,0 +1,15 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": [
+    "index.ts",
+    "common/**/*.ts",
+    "gtfs/**/*.ts",
+    "jr-east/**/*.ts",
+    "test/**/*.ts"
+  ]
+}

@@ -17,3 +17,18 @@ otp/data/tokyo/*.log
 otp/data/tokyo/data-metadata.json
 otp/results/*
 !otp/results/.gitkeep
+
+# Licensed JR timetable collection artifacts stay local and immutable.
+otp/data/japan/tokyo/jr-east/raw/*
+otp/data/japan/tokyo/jr-east/parsed/*
+otp/data/japan/tokyo/jr-east/manifests/*
+otp/data/japan/tokyo/jr-east/mappings/*.json
+!otp/data/japan/tokyo/jr-east/mappings/yamanote-osm-reviewed.json
+!otp/data/japan/tokyo/jr-east/raw/.gitkeep
+!otp/data/japan/tokyo/jr-east/parsed/.gitkeep
+!otp/data/japan/tokyo/jr-east/manifests/.gitkeep
+!otp/data/japan/tokyo/jr-east/mappings/.gitkeep
+otp/data/japan/tokyo/jr-east/yamanote/*
+!otp/data/japan/tokyo/jr-east/yamanote/.gitkeep
+otp/data/japan/tokyo/builds/*
+!otp/data/japan/tokyo/builds/.gitkeep

@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "1.0",
+  "departureTime": "2026-09-29T10:00:00+09:00",
+  "itineraryCount": 12,
+  "routes": [
+    {
+      "id": "jr-tokyo-shinjuku",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Tokyo",
+        "latitude": 35.681244,
+        "longitude": 139.7666095
+      },
+      "destination": {
+        "name": "Shinjuku",
+        "latitude": 35.6889594,
+        "longitude": 139.7002855
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"]
+    },
+    {
+      "id": "jr-shinjuku-shibuya",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6889594,
+        "longitude": 139.7002855
+      },
+      "destination": {
+        "name": "Shibuya",
+        "latitude": 35.6580215,
+        "longitude": 139.7015858
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"]
+    },
+    {
+      "id": "jr-ueno-shinagawa",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Ueno",
+        "latitude": 35.7135763,
+        "longitude": 139.7761427
+      },
+      "destination": {
+        "name": "Shinagawa",
+        "latitude": 35.628654,
+        "longitude": 139.7385067
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"]
+    },
+    {
+      "id": "toei-shinjuku-roppongi",
+      "category": "TOEI_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.688462,
+        "longitude": 139.699019
+      },
+      "destination": {
+        "name": "Roppongi",
+        "latitude": 35.664106,
+        "longitude": 139.731354
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-rail"]
+    },
+    {
+      "id": "toei-jimbocho-otemachi",
+      "category": "TOEI_ONLY",
+      "origin": {
+        "name": "Jimbocho",
+        "latitude": 35.695331,
+        "longitude": 139.758213
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.684093,
+        "longitude": 139.762798
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-rail"]
+    },
+    {
+      "id": "toei-asakusa-shimbashi",
+      "category": "TOEI_ONLY",
+      "origin": {
+        "name": "Asakusa",
+        "latitude": 35.70892,
+        "longitude": 139.796542
+      },
+      "destination": {
+        "name": "Shimbashi",
+        "latitude": 35.665386,
+        "longitude": 139.759338
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-rail"]
+    },
+    {
+      "id": "transfer-shibuya-asakusa",
+      "category": "JR_TOEI_TRANSFER",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.6580215,
+        "longitude": 139.7015858
+      },
+      "destination": {
+        "name": "Asakusa",
+        "latitude": 35.70892,
+        "longitude": 139.796542
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"]
+    },
+    {
+      "id": "transfer-ueno-roppongi",
+      "category": "JR_TOEI_TRANSFER",
+      "origin": {
+        "name": "Ueno",
+        "latitude": 35.7135763,
+        "longitude": 139.7761427
+      },
+      "destination": {
+        "name": "Roppongi",
+        "latitude": 35.664106,
+        "longitude": 139.731354
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"]
+    },
+    {
+      "id": "transfer-ikebukuro-roppongi",
+      "category": "JR_TOEI_TRANSFER",
+      "origin": {
+        "name": "Ikebukuro",
+        "latitude": 35.730257,
+        "longitude": 139.710949
+      },
+      "destination": {
+        "name": "Roppongi",
+        "latitude": 35.664106,
+        "longitude": 139.731354
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"]
+    },
+    {
+      "id": "bus-tokyo-tower",
+      "category": "BUS_INCLUDED",
+      "origin": {
+        "name": "Tokyo",
+        "latitude": 35.681244,
+        "longitude": 139.7666095
+      },
+      "destination": {
+        "name": "Tokyo Tower",
+        "latitude": 35.658581,
+        "longitude": 139.745433
+      },
+      "requiredFeeds": ["jp-tokyo-toei-bus"]
+    },
+    {
+      "id": "bus-ueno-asakusa",
+      "category": "BUS_INCLUDED",
+      "origin": {
+        "name": "Ueno Station",
+        "latitude": 35.71197,
+        "longitude": 139.777124
+      },
+      "destination": {
+        "name": "Asakusa Kaminarimon",
+        "latitude": 35.711106,
+        "longitude": 139.79535
+      },
+      "requiredFeeds": ["jp-tokyo-toei-bus"]
+    }
+  ]
+}

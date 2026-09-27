@@ -6,7 +6,7 @@ x-otp-common: &otp-common
     JAVA_TOOL_OPTIONS: ${OTP_JAVA_OPTIONS:--Xmx6g}
     TZ: Asia/Tokyo
   volumes:
-    - ./data/tokyo:/var/opentripplanner
+    - ${OTP_DATA_DIR:-./data/tokyo}:/var/opentripplanner
   init: true
 
 services:

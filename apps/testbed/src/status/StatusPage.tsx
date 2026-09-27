@@ -40,6 +40,9 @@ function formatUptime(seconds: number) {
 
 export function StatusPage({ status }: StatusPageProps) {
   const service = status.service;
+  const otp = status.providerDiagnostics?.providers.find(
+    (provider) => provider.provider === 'otp',
+  );
 
   return (
     <main className="status-workspace">
@@ -107,7 +110,77 @@ export function StatusPage({ status }: StatusPageProps) {
             name="postgres"
             state={postgresState(status)}
           />
+          <ServiceStatus
+            description="Experimental Tokyo transit graph"
+            {...(otp?.endpoint ? { endpoint: otp.endpoint } : {})}
+            name="OpenTripPlanner"
+            state={status.otp}
+          />
         </div>
+      </section>
+
+      <section className="status-section" aria-labelledby="otp-identity-title">
+        <SectionHeader
+          title="OTP graph identity"
+          description="Dataset identity reported by the configured route provider"
+        />
+        <Card className="deployment-card" compact>
+          <table
+            className={`${Classes.HTML_TABLE} ${Classes.HTML_TABLE_STRIPED}`}
+            id="otp-identity-title"
+          >
+            <tbody>
+              <tr>
+                <th scope="row">Configured / reachable</th>
+                <td>
+                  {otp
+                    ? `${otp.configured ? 'yes' : 'no'} / ${otp.reachable ? 'yes' : 'no'}`
+                    : 'diagnostics unavailable'}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Endpoint</th>
+                <td>
+                  <code className={Classes.MONOSPACE_TEXT}>
+                    {otp?.endpoint ?? '—'}
+                  </code>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">OTP version</th>
+                <td>
+                  <code className={Classes.MONOSPACE_TEXT}>
+                    {otp?.otpVersion ?? '—'}
+                  </code>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Graph build ID</th>
+                <td>
+                  <code className={Classes.MONOSPACE_TEXT}>
+                    {otp?.graphBuildId ?? '—'}
+                  </code>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">GTFS dataset version</th>
+                <td>
+                  <code className={Classes.MONOSPACE_TEXT}>
+                    {otp?.gtfsDatasetVersion ?? '—'}
+                  </code>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">OSM dataset version</th>
+                <td>
+                  <code className={Classes.MONOSPACE_TEXT}>
+                    {otp?.osmDatasetVersion ?? '—'}
+                  </code>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </Card>
       </section>
 
       <section className="status-section" aria-labelledby="deployment-title">

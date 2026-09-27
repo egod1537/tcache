@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - otp/tools/jr
 
 onlyBuiltDependencies:
   - esbuild

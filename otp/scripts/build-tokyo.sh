@@ -7,7 +7,12 @@ source "${SCRIPT_DIR}/lib.sh"
 
 require_command docker
 
-for required in tokyo.osm.pbf toei-train-gtfs.zip toei-bus-gtfs.zip; do
+required_inputs=(tokyo.osm.pbf toei-train-gtfs.zip toei-bus-gtfs.zip)
+if [[ "${OTP_REQUIRE_JR:-false}" == "true" ]]; then
+  required_inputs+=(jr-east-yamanote.gtfs.zip)
+fi
+
+for required in "${required_inputs[@]}"; do
   if [[ ! -f "${DATA_DIR}/${required}" ]]; then
     echo "Missing ${DATA_DIR}/${required}. Run ./scripts/download-tokyo-data.sh first." >&2
     exit 1
@@ -46,10 +51,11 @@ monitor_memory &
 monitor_pid="$!"
 
 echo "Building Tokyo graph with ${OTP_IMAGE:-${OTP_IMAGE_DEFAULT}}"
-echo "Build output is also saved to data/tokyo/build.log"
+build_log="${OTP_BUILD_LOG:-${DATA_DIR}/build.log}"
+echo "Build output is also saved to ${build_log}"
 
 set +e
-docker_compose --profile build run --rm --name "${build_container}" otp-build 2>&1 | tee "${DATA_DIR}/build.log"
+docker_compose --profile build run --rm --name "${build_container}" otp-build 2>&1 | tee "${build_log}"
 build_status="${PIPESTATUS[0]}"
 set -e
 
@@ -61,7 +67,7 @@ build_finished_at="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 build_duration="$((build_finished_epoch - build_started_epoch))"
 
 if [[ "${build_status}" -ne 0 ]]; then
-  echo "OTP graph build failed with exit code ${build_status}. Inspect data/tokyo/build.log." >&2
+  echo "OTP graph build failed with exit code ${build_status}. Inspect ${build_log}." >&2
   exit "${build_status}"
 fi
 
@@ -92,4 +98,4 @@ jq -n \
 
 echo "Graph build succeeded in ${build_duration}s."
 echo "graph.obj: $(file_size "${DATA_DIR}/graph.obj") bytes"
-echo "Import report: ${DATA_DIR}/build-report"
+echo "Import report: ${OTP_BUILD_REPORT_DIR:-${DATA_DIR}/build-report}"

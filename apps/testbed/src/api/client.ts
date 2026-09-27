@@ -220,6 +220,10 @@ export interface RouteProviderDiagnostics {
     reachable?: boolean;
     endpoint?: string;
     experimental?: boolean;
+    otpVersion?: string;
+    graphBuildId?: string;
+    gtfsDatasetVersion?: string;
+    osmDatasetVersion?: string;
     [key: string]: unknown;
   }>;
   coreHealthAffected: false;

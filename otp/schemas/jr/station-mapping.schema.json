@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcache.local/schemas/jr/station-mapping.schema.json",
+  "title": "JR Station Mapping",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "internalStationId",
+    "operator",
+    "officialNameJa",
+    "mappingStatus"
+  ],
+  "properties": {
+    "internalStationId": { "type": "string", "minLength": 1 },
+    "operator": { "type": "string", "minLength": 1 },
+    "officialNameJa": { "type": "string", "minLength": 1 },
+    "officialNameEn": { "type": "string", "minLength": 1 },
+    "sourceStationKey": { "type": "string", "minLength": 1 },
+    "stationNumber": { "type": "string", "minLength": 1 },
+    "osmElementType": { "enum": ["node", "way", "relation"] },
+    "osmElementId": { "type": "integer", "minimum": 1 },
+    "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+    "longitude": { "type": "number", "minimum": -180, "maximum": 180 },
+    "mappingStatus": {
+      "enum": ["unmapped", "candidate", "confirmed", "rejected"]
+    },
+    "reviewedAt": { "type": "string", "format": "date-time" }
+  },
+  "allOf": [
+    {
+      "if": { "required": ["latitude"] },
+      "then": { "required": ["longitude"] }
+    },
+    {
+      "if": { "required": ["longitude"] },
+      "then": { "required": ["latitude"] }
+    },
+    {
+      "if": { "required": ["osmElementType"] },
+      "then": { "required": ["osmElementId"] }
+    },
+    {
+      "if": { "required": ["osmElementId"] },
+      "then": { "required": ["osmElementType"] }
+    },
+    {
+      "if": { "properties": { "mappingStatus": { "const": "confirmed" } } },
+      "then": { "required": ["reviewedAt"] }
+    }
+  ]
+}

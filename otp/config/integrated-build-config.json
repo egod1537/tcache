@@ -1,0 +1,35 @@
+{
+  "configVersion": "tcache-tokyo-jr-toei-poc-1",
+  "transitModelTimeZone": "Asia/Tokyo",
+  "transitServiceStart": "-P30D",
+  "transitServiceEnd": "P1Y",
+  "dataImportReport": true,
+  "buildReportDir": "graph/build-report",
+  "maxDataImportIssuesPerFile": 2000,
+  "platformEntriesLinking": true,
+  "osm": [
+    {
+      "source": "tokyo.osm.pbf",
+      "timeZone": "Asia/Tokyo",
+      "osmTagMapping": "default",
+      "includeOsmStationEntrances": true
+    }
+  ],
+  "transitFeeds": [
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-jr-east",
+      "source": "jr-east-yamanote.gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-toei-rail",
+      "source": "toei-train-gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-toei-bus",
+      "source": "toei-bus-gtfs.zip"
+    }
+  ]
+}

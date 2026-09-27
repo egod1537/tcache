@@ -4,8 +4,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OTP_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-DATA_DIR="${OTP_ROOT}/data/tokyo"
-RESULTS_DIR="${OTP_ROOT}/results"
+DATA_DIR="${OTP_DATA_DIR:-${OTP_ROOT}/data/tokyo}"
+RESULTS_DIR="${OTP_RESULTS_DIR:-${OTP_ROOT}/results}"
 COMPOSE_FILE="${OTP_ROOT}/docker-compose.yml"
 OTP_PORT="${OTP_PORT:-8080}"
 OTP_URL="${OTP_URL:-http://localhost:${OTP_PORT}}"
@@ -32,7 +32,7 @@ file_size() {
 }
 
 docker_compose() {
-  docker compose --file "${COMPOSE_FILE}" "$@"
+  OTP_DATA_DIR="${DATA_DIR}" docker compose --file "${COMPOSE_FILE}" "$@"
 }
 
 wait_for_otp() {

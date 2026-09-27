@@ -1,5 +1,21 @@
 # Tokyo PoC verification result
 
+## Integrated JR East + Toei verification (2026-09-27)
+
+Build `tokyo-jr-toei-201318406920c285` combined the locally generated Yamanote feed with Toei Rail, Toei Bus, and the BBBike Tokyo OSM extract. All three feeds passed MobilityData GTFS Validator 8.0.1 with zero errors. The graph built in 92 seconds, is 132,028,323 bytes, and loaded in six seconds; observed idle container memory was 1.287 GiB.
+
+The automated smoke suite used 2026-09-29 10:00 JST and passed 11/11 routes: three JR-only, three Toei-only, three cross-feed JR↔Toei transfers, and two routes containing Toei Bus. Every selected itinerary had a positive duration, ordered legs and stop sequences, at least one transit leg, and identifiable agency/feed IDs. Cross-feed cases contained both stable feed IDs and a real transfer.
+
+| Preflight feed       | Validator errors | Warnings |
+| -------------------- | ---------------: | -------: |
+| `jp-tokyo-jr-east`   |                0 |   64,859 |
+| `jp-tokyo-toei-rail` |                0 |        4 |
+| `jp-tokyo-toei-bus`  |                0 |      300 |
+
+Warnings are retained in the versioned validator reports and are not silently treated as errors. The JR warning volume consists mainly of validator notices about non-ASCII characters in Japanese timetable text, followed by mixed-case recommendations; it remains available for review rather than being suppressed. The graph import reported 421 isolated stops, 545 stops not linked for transfers, and 60 pruned stop islands; these counts are stored in the build manifest and remain explicit OSM-linking/coverage risks.
+
+Machine-readable evidence is under `data/japan/tokyo/builds/latest/`: `manifests/build-manifest.json`, `manifests/preflight.json`, `validator/`, `graph/build-report/`, and `smoke-tests/latest/summary.json`. Official journey-planner results were not copied as truth; a reference comparison remains a manual qualitative check.
+
 Verified on 2026-09-24 using an Apple Silicon host with 16 GiB RAM and an 8 GiB Docker VM. The server was bound to port 28080 because port 8080 was already occupied; the reproducible default remains 8080.
 
 ## Versions and inputs
@@ -56,4 +72,4 @@ Overall p50 across the dedicated 25-request warm benchmark was 105 ms. The first
 
 OTP can build and serve real Tokyo multimodal itineraries with acceptable PoC resource use and warm latency. The pipeline itself is viable for an experimental tcache provider.
 
-It is not yet a viable replacement for Ekispert/NAVITIME. The available PoC data excludes JR East, Tokyo Metro, and private railways, causing long walking sections and reduced route choice. A tcache integration should proceed only after a durable, licensed feed-refresh plan covers the operators required by the product. Until then, keep OTP independent and use this environment to evaluate additional feeds and normalization work.
+It is not yet a viable replacement for Ekispert/NAVITIME. The integrated local graph now proves Yamanote + Toei cross-feed routing, but it still excludes Tokyo Metro, other JR East lines, and private railways. Keep the OTP provider experimental and disabled by default until a durable, licensed feed-refresh plan covers the operators required by the product.

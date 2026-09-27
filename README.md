@@ -243,7 +243,7 @@ tcache request 및 troute-compatible request preview를 확인할 수 있습니�
 
 ## OpenTripPlanner Tokyo PoC
 
-`otp/`에는 tcache 런타임과 결합되지 않은 독립 OTP 2.10.0 실험 환경이 있습니다. Tokyo OSM과 라이선스가 확인된 Toei 정적 GTFS로 graph를 만들고 GTFS GraphQL `planConnection`을 통해 도보·대중교통 경로 및 latency를 검증합니다. 데이터 다운로드, graph build, 실행, query와 coverage 제한은 [OTP PoC README](otp/README.md)를 참고합니다.
+`otp/`에는 OTP 2.10.0 실험 환경과 로컬 JR East Yamanote + Toei 통합 build pipeline이 있습니다. Tokyo OSM, 생성한 Yamanote GTFS, 라이선스가 확인된 Toei 정적 GTFS로 graph를 만들고 GTFS GraphQL `planConnection`을 통해 단일 feed와 cross-feed 경로를 검증합니다. 데이터 lineage, graph build, 실행, smoke test와 coverage 제한은 [OTP PoC README](otp/README.md)를 참고합니다.
 
 ### Experimental OTP RouteProvider
 
@@ -256,6 +256,8 @@ docker compose -f docker-compose.yml -f docker-compose.otp.yml --profile otp up 
 ```
 
 컨테이너 안의 tcache server는 service DNS인 `http://otp:8080`을 사용합니다. OTP 장애는 `/health`나 core server health를 down으로 만들지 않으며, `GET /api/route/providers/diagnostics`에서 `configured`와 `reachable`을 별도로 확인합니다. Testbed override에서 Ekispert, NAVITIME, OpenTripPlanner를 같은 JP transit preset으로 실행해 duration, transfer, walking, latency와 cache hit/miss를 비교할 수 있습니다.
+
+통합 build 후 `otp/data/japan/tokyo/builds/latest/manifests/tcache.env`의 값을 server 환경에 적용하면 `/status` testbed에서 OTP reachability, OTP version, graph build ID, GTFS dataset version, OSM dataset version을 함께 확인할 수 있습니다. 이 설정은 OTP를 production 기본 provider로 승격하지 않습니다.
 
 CI의 기본 test suite는 fixture HTTP 응답만 사용합니다. 로컬 graph까지 확인하려면 OTP를 실행한 뒤 `RUN_LIVE_ROUTE_PROVIDER_TESTS=true OTP_BASE_URL=http://127.0.0.1:8080 pnpm --filter @tcache/server exec vitest run route/server/otp-provider.test.ts --root ../..`를 실행합니다.
 

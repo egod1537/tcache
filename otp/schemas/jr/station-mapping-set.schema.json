@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcache.local/schemas/jr/station-mapping-set.schema.json",
+  "title": "JR station mapping set",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "operator",
+    "reviewMethod",
+    "source",
+    "mappings"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "operator": { "type": "string", "minLength": 1 },
+    "lineId": { "type": "string", "minLength": 1 },
+    "reviewMethod": { "type": "string", "minLength": 1 },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "url", "retrievedAt"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "url": { "type": "string", "format": "uri" },
+        "license": { "type": "string" },
+        "attribution": { "type": "string" },
+        "retrievedAt": { "type": "string", "format": "date-time" },
+        "routeRelationIds": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 },
+          "uniqueItems": true
+        }
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "$ref": "station-mapping.schema.json"
+      }
+    }
+  }
+}

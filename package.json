@@ -16,7 +16,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r --if-present test"
+    "test": "pnpm -r --if-present test && node --test otp/scripts/evaluate-integrated-smoke.node.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",

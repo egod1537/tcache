@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcache.local/schemas/jr/normalized-timetable.schema.json",
+  "title": "Normalized JR Timetable",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "metadata",
+    "operators",
+    "lines",
+    "stations",
+    "serviceCalendars",
+    "trips"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "metadata": { "$ref": "#/$defs/datasetMetadata" },
+    "operators": { "type": "array", "items": { "$ref": "#/$defs/operator" } },
+    "lines": { "type": "array", "items": { "$ref": "#/$defs/line" } },
+    "stations": { "type": "array", "items": { "$ref": "#/$defs/station" } },
+    "serviceCalendars": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/serviceCalendar" }
+    },
+    "trips": { "type": "array", "items": { "$ref": "#/$defs/trip" } }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "serviceDayTime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dayOffset", "hour", "minute", "second"],
+      "properties": {
+        "dayOffset": { "type": "integer", "minimum": 0 },
+        "hour": { "type": "integer", "minimum": 0, "maximum": 23 },
+        "minute": { "type": "integer", "minimum": 0, "maximum": 59 },
+        "second": { "type": "integer", "minimum": 0, "maximum": 59 }
+      }
+    },
+    "datasetMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operator",
+        "timetableEdition",
+        "parserVersion",
+        "sourceArtifactHashes",
+        "datasetVersion",
+        "manifestHash",
+        "generatedAt"
+      ],
+      "properties": {
+        "operator": { "$ref": "#/$defs/nonEmptyString" },
+        "timetableEdition": { "$ref": "#/$defs/nonEmptyString" },
+        "parserVersion": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceArtifactHashes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sha256" }
+        },
+        "datasetVersion": { "$ref": "#/$defs/nonEmptyString" },
+        "manifestHash": { "$ref": "#/$defs/sha256" },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "operator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nameJa"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "nameJa": { "$ref": "#/$defs/nonEmptyString" },
+        "nameEn": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "operatorId", "nameJa"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "operatorId": { "$ref": "#/$defs/nonEmptyString" },
+        "nameJa": { "$ref": "#/$defs/nonEmptyString" },
+        "nameEn": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "station": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "operatorId", "nameJa"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "operatorId": { "$ref": "#/$defs/nonEmptyString" },
+        "nameJa": { "$ref": "#/$defs/nonEmptyString" },
+        "nameEn": { "$ref": "#/$defs/nonEmptyString" },
+        "stationNumber": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "serviceCalendar": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "startDate",
+        "endDate",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+        "exceptions"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "startDate": { "type": "string", "format": "date" },
+        "endDate": { "type": "string", "format": "date" },
+        "monday": { "type": "boolean" },
+        "tuesday": { "type": "boolean" },
+        "wednesday": { "type": "boolean" },
+        "thursday": { "type": "boolean" },
+        "friday": { "type": "boolean" },
+        "saturday": { "type": "boolean" },
+        "sunday": { "type": "boolean" },
+        "exceptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["date", "serviceAdded"],
+            "properties": {
+              "date": { "type": "string", "format": "date" },
+              "serviceAdded": { "type": "boolean" }
+            }
+          }
+        },
+        "calendarConfidence": {
+          "enum": ["explicit-page-label", "detail-calendar", "unresolved"]
+        },
+        "unresolvedCalendarConditions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "sourceReferences": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/sourceReference" }
+        }
+      }
+    },
+    "sourceReference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifactSha256",
+        "sourceUrl",
+        "sourceType",
+        "sourceEdition"
+      ],
+      "properties": {
+        "artifactSha256": { "$ref": "#/$defs/sha256" },
+        "sourceUrl": { "type": "string", "format": "uri" },
+        "sourceType": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceEdition": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceUrlKey": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceStationKey": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "stopTime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["stationId", "sequence", "passThrough"],
+      "properties": {
+        "stationId": { "$ref": "#/$defs/nonEmptyString" },
+        "sequence": { "type": "integer", "minimum": 0 },
+        "arrival": { "$ref": "#/$defs/serviceDayTime" },
+        "departure": { "$ref": "#/$defs/serviceDayTime" },
+        "platform": { "$ref": "#/$defs/nonEmptyString" },
+        "passThrough": { "type": "boolean" },
+        "sourceReference": { "$ref": "#/$defs/sourceReference" }
+      }
+    },
+    "trip": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "internalTripId",
+        "operator",
+        "lineId",
+        "direction",
+        "trainNumber",
+        "trainType",
+        "originStationId",
+        "destinationStationId",
+        "serviceId",
+        "sourceEdition",
+        "sourceUrl",
+        "sourceReference",
+        "stopTimes"
+      ],
+      "properties": {
+        "internalTripId": { "$ref": "#/$defs/nonEmptyString" },
+        "operator": { "$ref": "#/$defs/nonEmptyString" },
+        "lineId": { "$ref": "#/$defs/nonEmptyString" },
+        "direction": { "$ref": "#/$defs/nonEmptyString" },
+        "trainNumber": { "$ref": "#/$defs/nonEmptyString" },
+        "trainType": { "$ref": "#/$defs/nonEmptyString" },
+        "originStationId": { "$ref": "#/$defs/nonEmptyString" },
+        "destinationStationId": { "$ref": "#/$defs/nonEmptyString" },
+        "serviceId": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceEdition": { "$ref": "#/$defs/nonEmptyString" },
+        "sourceUrl": { "type": "string", "format": "uri" },
+        "sourceReference": { "$ref": "#/$defs/sourceReference" },
+        "operationConditions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "stopTimes": {
+          "type": "array",
+          "minItems": 2,
+          "items": { "$ref": "#/$defs/stopTime" }
+        }
+      }
+    }
+  }
+}

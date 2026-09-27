@@ -28,7 +28,7 @@ The public Mobility Database snapshots are used because they are directly downlo
 
 ## Current coverage
 
-Supported in this PoC:
+Supported in the original public-data baseline:
 
 - Toei Subway
 - Tokyo Sakura Tram
@@ -36,7 +36,7 @@ Supported in this PoC:
 - Toei Bus
 - Walking access and transfers from OpenStreetMap
 
-Not included:
+Not included in that distributable baseline:
 
 - JR East
 - Tokyo Metro
@@ -44,7 +44,19 @@ Not included:
 - Airport rail operators
 - GTFS-Realtime
 
-The tested stations are not all directly served by Toei rail. Some trips depend on a walking access leg or Toei Bus. Results can therefore be slower, contain longer walks, or have fewer choices than Ekispert/NAVITIME. This limitation is the main data-maintenance finding of the PoC, not an OTP routing defect.
+The local integrated build additionally stages the authorized, generated Yamanote GTFS next to the two public Toei feeds. Its manifest keeps `generated-gtfs`, `public-gtfs`, and `osm-pbf` lineage and license/scope metadata distinct. The JR artifact is never promoted into the distributable public-data baseline.
+
+The tested stations are not all directly served by the included networks. Some trips depend on walking access or Toei Bus, and Tokyo Metro/private-rail gaps remain. Results can therefore be slower or have fewer choices than a full commercial journey planner; this is a coverage limitation, not by itself an OTP routing defect.
+
+## Local JR East research artifacts
+
+The optional `tools/jr/` workflow uses only the public official timetable pages at <https://timetables.jreast.co.jp/>. It discovers Yamanote matrix and linked train-detail pages from the current Tokyo Station timetable rather than calling or reverse-engineering a private API. The observed opaque edition key and the human-readable edition label printed by JR East are stored separately.
+
+These collected and normalized JR East artifacts are for the authorized personal education/research PoC only. They remain Git-ignored and local, are not part of the distributable Toei GTFS inputs above, and must not be redistributed or used commercially.
+
+The optional Yamanote GTFS generator uses a reviewed mapping of all 30 stations to `stop_position` nodes in OpenStreetMap Yamanote route relation 1972920. The artifact records node IDs, JY station codes, coordinates, retrieval/review time, ODbL 1.0, and OpenStreetMap contributor attribution. Exact Japanese names and station codes are required; fuzzy candidates are never automatically confirmed.
+
+Generated GTFS is checked with the official MobilityData GTFS Validator image pinned by version. The local manifest records the validator version, error/warning counts, report paths, canonical content hash, ZIP SHA-256, normalized dataset lineage, and OSM mapping hash. Unresolved public-holiday weekday exceptions and temporary suspensions remain explicit and are not synthesized.
 
 ## Source references
 
@@ -53,3 +65,5 @@ The tested stations are not all directly served by Toei rail. Some trips depend 
 - Mobility Database catalog: <https://github.com/MobilityData/mobility-database-catalogs>
 - Tokyo OSM extract: <https://download.bbbike.org/osm/bbbike/Tokyo/>
 - OpenStreetMap copyright and ODbL attribution: <https://www.openstreetmap.org/copyright>
+- Reviewed Yamanote route relation: <https://www.openstreetmap.org/relation/1972920>
+- MobilityData GTFS Validator: <https://github.com/MobilityData/gtfs-validator>
