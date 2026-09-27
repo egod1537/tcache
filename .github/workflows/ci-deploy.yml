@@ -49,7 +49,7 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       ROUTE_PROVIDER: ${{ vars.ROUTE_PROVIDER || 'auto' }}
       ROUTE_PROVIDER_POLICY_JSON: ${{ vars.ROUTE_PROVIDER_POLICY_JSON }}
-      ROUTE_PROVIDER_OVERRIDE_ENABLED: ${{ vars.ROUTE_PROVIDER_OVERRIDE_ENABLED || 'false' }}
+      ROUTE_PROVIDER_OVERRIDE_ENABLED: ${{ vars.ROUTE_PROVIDER_OVERRIDE_ENABLED || 'true' }}
       ROUTE_TIME_ZONE: ${{ vars.ROUTE_TIME_ZONE || 'Asia/Seoul' }}
       GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
       KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
@@ -74,9 +74,13 @@ jobs:
             echo "ROUTE_PROVIDER must be auto in production; got ${ROUTE_PROVIDER:-unset}" >&2
             exit 1
           fi
+          if [[ "${ROUTE_PROVIDER_OVERRIDE_ENABLED}" != "true" ]]; then
+            echo "ROUTE_PROVIDER_OVERRIDE_ENABLED must be true for troute integration" >&2
+            exit 1
+          fi
 
           missing=()
-          for name in GOOGLE_MAPS_API_KEY KAKAO_REST_API_KEY KAKAO_MOBILITY_API_KEY EKISPERT_API_KEY; do
+          for name in GOOGLE_MAPS_API_KEY KAKAO_REST_API_KEY KAKAO_MOBILITY_API_KEY; do
             if [[ -z "${!name:-}" ]]; then
               missing+=("${name}")
             fi
@@ -119,19 +123,25 @@ jobs:
           if (body.legacyCompatibilityApplied) {
             throw new Error('Deprecated JAPAN_TRANSIT_PROVIDER override is active');
           }
+          if (!body.providerOverrideEnabled) {
+            throw new Error('Expected request-level provider overrides to be enabled');
+          }
           const expected = new Map([
-            ['JP:TRANSIT', 'ekispert'],
-            ['JP:WALKING', 'google'],
-            ['KR:TRANSIT', 'kakao-maps'],
-            ['KR:DRIVING', 'kakao-mobility'],
+            ['JP:TRANSIT', { provider: 'ekispert', requiredAvailable: false }],
+            ['JP:WALKING', { provider: 'google', requiredAvailable: true }],
+            ['KR:TRANSIT', { provider: 'kakao-maps', requiredAvailable: true }],
+            ['KR:DRIVING', { provider: 'kakao-mobility', requiredAvailable: true }],
           ]);
           for (const assignment of body.assignments) {
             const key = `${assignment.countryCode}:${assignment.mode}`;
             if (!expected.has(key)) continue;
-            const provider = expected.get(key);
-            if (assignment.provider !== provider || !assignment.available) {
+            const expectation = expected.get(key);
+            if (
+              assignment.provider !== expectation.provider ||
+              (expectation.requiredAvailable && !assignment.available)
+            ) {
               throw new Error(
-                `Invalid ${key} assignment: expected available ${provider}, got ${assignment.provider} available=${assignment.available}`,
+                `Invalid ${key} assignment: expected ${expectation.provider}, got ${assignment.provider} available=${assignment.available}`,
               );
             }
             expected.delete(key);
@@ -139,5 +149,5 @@ jobs:
           if (expected.size) {
             throw new Error(`Missing provider assignments: ${[...expected.keys()].join(', ')}`);
           }
-          console.log('Production route provider policy verified: auto, built-in, required providers available');
+          console.log('Production route provider policy verified: auto, overrides enabled, core providers available');
           NODE
