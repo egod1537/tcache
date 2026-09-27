@@ -1,0 +1,514 @@
+{
+  "schemaVersion": "1.0",
+  "departureTime": "2026-09-29T10:00:00+09:00",
+  "itineraryCount": 12,
+  "routes": [
+    {
+      "id": "keikyu-shinagawa-haneda-t3",
+      "category": "AIRPORT_ONLY",
+      "origin": {
+        "name": "Shinagawa",
+        "latitude": 35.6285,
+        "longitude": 139.7388
+      },
+      "destination": {
+        "name": "Haneda Airport Terminal 3",
+        "latitude": 35.544,
+        "longitude": 139.7688
+      },
+      "requiredFeeds": ["jp-tokyo-keikyu"],
+      "allowedFeeds": ["jp-tokyo-keikyu"]
+    },
+    {
+      "id": "keikyu-haneda-t3-yokohama",
+      "category": "AIRPORT_ONLY",
+      "origin": {
+        "name": "Haneda Airport Terminal 3",
+        "latitude": 35.544,
+        "longitude": 139.7688
+      },
+      "destination": {
+        "name": "Yokohama",
+        "latitude": 35.4658,
+        "longitude": 139.6223
+      },
+      "requiredFeeds": ["jp-tokyo-keikyu"],
+      "allowedFeeds": ["jp-tokyo-keikyu"]
+    },
+    {
+      "id": "keikyu-haneda-t1t2-shinagawa",
+      "category": "AIRPORT_ONLY",
+      "origin": {
+        "name": "Haneda Airport Terminal 1/2",
+        "latitude": 35.5493,
+        "longitude": 139.7868
+      },
+      "destination": {
+        "name": "Shinagawa",
+        "latitude": 35.6285,
+        "longitude": 139.7388
+      },
+      "requiredFeeds": ["jp-tokyo-keikyu"],
+      "allowedFeeds": ["jp-tokyo-keikyu"]
+    },
+    {
+      "id": "keikyu-yokohama-haneda-t1t2",
+      "category": "AIRPORT_ONLY",
+      "origin": {
+        "name": "Yokohama",
+        "latitude": 35.4658,
+        "longitude": 139.6223
+      },
+      "destination": {
+        "name": "Haneda Airport Terminal 1/2",
+        "latitude": 35.5493,
+        "longitude": 139.7868
+      },
+      "requiredFeeds": ["jp-tokyo-keikyu"],
+      "allowedFeeds": ["jp-tokyo-keikyu"]
+    },
+    {
+      "id": "keisei-nippori-narita-airport",
+      "category": "AIRPORT_ONLY",
+      "origin": {
+        "name": "Nippori",
+        "latitude": 35.7281,
+        "longitude": 139.7707
+      },
+      "destination": {
+        "name": "Narita Airport Terminal 1",
+        "latitude": 35.7647,
+        "longitude": 140.3864
+      },
+      "requiredFeeds": ["jp-tokyo-keisei"],
+      "allowedFeeds": ["jp-tokyo-keisei"]
+    },
+    {
+      "id": "keisei-ueno-narita-airport",
+      "category": "AIRPORT_ONLY",
+      "origin": {
+        "name": "Keisei-ueno",
+        "latitude": 35.7113,
+        "longitude": 139.7737
+      },
+      "destination": {
+        "name": "Narita Airport Terminal 1",
+        "latitude": 35.7647,
+        "longitude": 140.3864
+      },
+      "requiredFeeds": ["jp-tokyo-keisei"],
+      "allowedFeeds": ["jp-tokyo-keisei"]
+    },
+    {
+      "id": "keisei-narita-t2-nippori",
+      "category": "AIRPORT_ONLY",
+      "origin": {
+        "name": "Narita Airport Terminal 2/3",
+        "latitude": 35.773,
+        "longitude": 140.3874
+      },
+      "destination": {
+        "name": "Nippori",
+        "latitude": 35.7281,
+        "longitude": 139.7707
+      },
+      "requiredFeeds": ["jp-tokyo-keisei"],
+      "allowedFeeds": ["jp-tokyo-keisei"]
+    },
+    {
+      "id": "keisei-ueno-narita-t2",
+      "category": "AIRPORT_ONLY",
+      "origin": {
+        "name": "Keisei-ueno",
+        "latitude": 35.7113,
+        "longitude": 139.7737
+      },
+      "destination": {
+        "name": "Narita Airport Terminal 2/3",
+        "latitude": 35.773,
+        "longitude": 140.3874
+      },
+      "requiredFeeds": ["jp-tokyo-keisei"],
+      "allowedFeeds": ["jp-tokyo-keisei"]
+    },
+    {
+      "id": "seibu-ikebukuro-tokorozawa",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Ikebukuro",
+        "latitude": 35.7303,
+        "longitude": 139.7109
+      },
+      "destination": {
+        "name": "Tokorozawa",
+        "latitude": 35.7868,
+        "longitude": 139.4739
+      },
+      "requiredFeeds": ["jp-tokyo-seibu"],
+      "allowedFeeds": ["jp-tokyo-seibu"]
+    },
+    {
+      "id": "seibu-shinjuku-hon-kawagoe",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Seibu-shinjuku",
+        "latitude": 35.6958,
+        "longitude": 139.7002
+      },
+      "destination": {
+        "name": "Hon-kawagoe",
+        "latitude": 35.9143,
+        "longitude": 139.4811
+      },
+      "requiredFeeds": ["jp-tokyo-seibu"],
+      "allowedFeeds": ["jp-tokyo-seibu"]
+    },
+    {
+      "id": "tobu-ikebukuro-kawagoe",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Ikebukuro",
+        "latitude": 35.7303,
+        "longitude": 139.7109
+      },
+      "destination": {
+        "name": "Kawagoe",
+        "latitude": 35.9068,
+        "longitude": 139.4831
+      },
+      "requiredFeeds": ["jp-tokyo-tobu"],
+      "allowedFeeds": ["jp-tokyo-tobu"]
+    },
+    {
+      "id": "tobu-asakusa-kita-senju",
+      "category": "PRIVATE_ONLY",
+      "origin": { "name": "Asakusa", "latitude": 35.711, "longitude": 139.797 },
+      "destination": {
+        "name": "Kita-senju",
+        "latitude": 35.7494,
+        "longitude": 139.805
+      },
+      "requiredFeeds": ["jp-tokyo-tobu"],
+      "allowedFeeds": ["jp-tokyo-tobu"]
+    },
+    {
+      "id": "sotetsu-yokohama-ebina",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Yokohama",
+        "latitude": 35.4658,
+        "longitude": 139.6223
+      },
+      "destination": {
+        "name": "Ebina",
+        "latitude": 35.4528,
+        "longitude": 139.3909
+      },
+      "requiredFeeds": ["jp-tokyo-sotetsu"],
+      "allowedFeeds": ["jp-tokyo-sotetsu"]
+    },
+    {
+      "id": "sotetsu-yokohama-shonandai",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Yokohama",
+        "latitude": 35.4658,
+        "longitude": 139.6223
+      },
+      "destination": {
+        "name": "Shonandai",
+        "latitude": 35.3962,
+        "longitude": 139.4667
+      },
+      "requiredFeeds": ["jp-tokyo-sotetsu"],
+      "allowedFeeds": ["jp-tokyo-sotetsu"]
+    },
+    {
+      "id": "keikyu-jr-haneda-tokyo",
+      "category": "JR_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Haneda Airport Terminal 3",
+        "latitude": 35.544,
+        "longitude": 139.7688
+      },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6813,
+        "longitude": 139.7668
+      },
+      "requiredFeeds": ["jp-tokyo-keikyu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "keisei-jr-narita-tokyo",
+      "category": "JR_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Narita Airport Terminal 1",
+        "latitude": 35.7647,
+        "longitude": 140.3864
+      },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6813,
+        "longitude": 139.7668
+      },
+      "requiredFeeds": ["jp-tokyo-keisei", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "seibu-jr-tokorozawa-tokyo",
+      "category": "JR_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Tokorozawa",
+        "latitude": 35.7868,
+        "longitude": 139.4739
+      },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6813,
+        "longitude": 139.7668
+      },
+      "requiredFeeds": ["jp-tokyo-seibu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "tobu-jr-kawagoe-tokyo",
+      "category": "JR_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Kawagoe",
+        "latitude": 35.9068,
+        "longitude": 139.4831
+      },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6813,
+        "longitude": 139.7668
+      },
+      "requiredFeeds": ["jp-tokyo-tobu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "tobu-jr-asakusa-shinjuku",
+      "category": "JR_PRIVATE_TRANSFER",
+      "origin": { "name": "Asakusa", "latitude": 35.711, "longitude": 139.797 },
+      "destination": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "requiredFeeds": ["jp-tokyo-tobu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "sotetsu-jr-ebina-tokyo",
+      "category": "JR_PRIVATE_TRANSFER",
+      "origin": { "name": "Ebina", "latitude": 35.4528, "longitude": 139.3909 },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6813,
+        "longitude": 139.7668
+      },
+      "requiredFeeds": ["jp-tokyo-sotetsu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "keikyu-metro-haneda-ginza",
+      "category": "METRO_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Haneda Airport Terminal 3",
+        "latitude": 35.544,
+        "longitude": 139.7688
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-keikyu", "jp-tokyo-metro"]
+    },
+    {
+      "id": "keisei-metro-narita-otemachi",
+      "category": "METRO_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Narita Airport Terminal 1",
+        "latitude": 35.7647,
+        "longitude": 140.3864
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-keisei", "jp-tokyo-metro"]
+    },
+    {
+      "id": "seibu-metro-tokorozawa-ginza",
+      "category": "METRO_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Tokorozawa",
+        "latitude": 35.7868,
+        "longitude": 139.4739
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-seibu", "jp-tokyo-metro"]
+    },
+    {
+      "id": "tobu-metro-kawagoe-otemachi",
+      "category": "METRO_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Kawagoe",
+        "latitude": 35.9068,
+        "longitude": 139.4831
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-tobu", "jp-tokyo-metro"]
+    },
+    {
+      "id": "sotetsu-metro-ebina-ginza",
+      "category": "METRO_PRIVATE_TRANSFER",
+      "origin": { "name": "Ebina", "latitude": 35.4528, "longitude": 139.3909 },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-sotetsu", "jp-tokyo-metro"]
+    },
+    {
+      "id": "seibu-keikyu-tokorozawa-haneda",
+      "category": "PRIVATE_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Tokorozawa",
+        "latitude": 35.7868,
+        "longitude": 139.4739
+      },
+      "destination": {
+        "name": "Haneda Airport Terminal 3",
+        "latitude": 35.544,
+        "longitude": 139.7688
+      },
+      "requiredFeeds": ["jp-tokyo-seibu", "jp-tokyo-keikyu"]
+    },
+    {
+      "id": "tobu-seibu-kawagoe-seibu-shinjuku",
+      "category": "PRIVATE_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Kawagoe",
+        "latitude": 35.9068,
+        "longitude": 139.4831
+      },
+      "destination": {
+        "name": "Seibu-shinjuku",
+        "latitude": 35.6958,
+        "longitude": 139.7002
+      },
+      "requiredFeeds": ["jp-tokyo-tobu", "jp-tokyo-seibu"]
+    },
+    {
+      "id": "keisei-keikyu-narita-haneda",
+      "category": "PRIVATE_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Narita Airport Terminal 1",
+        "latitude": 35.7647,
+        "longitude": 140.3864
+      },
+      "destination": {
+        "name": "Haneda Airport Terminal 3",
+        "latitude": 35.544,
+        "longitude": 139.7688
+      },
+      "requiredFeeds": ["jp-tokyo-keisei", "jp-tokyo-keikyu"]
+    },
+    {
+      "id": "tobu-keisei-kita-senju-narita",
+      "category": "PRIVATE_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Kita-senju",
+        "latitude": 35.7494,
+        "longitude": 139.805
+      },
+      "destination": {
+        "name": "Narita Airport Terminal 1",
+        "latitude": 35.7647,
+        "longitude": 140.3864
+      },
+      "requiredFeeds": ["jp-tokyo-tobu", "jp-tokyo-keisei"]
+    },
+    {
+      "id": "sotetsu-keikyu-ebina-haneda",
+      "category": "PRIVATE_PRIVATE_TRANSFER",
+      "origin": { "name": "Ebina", "latitude": 35.4528, "longitude": 139.3909 },
+      "destination": {
+        "name": "Haneda Airport Terminal 3",
+        "latitude": 35.544,
+        "longitude": 139.7688
+      },
+      "requiredFeeds": ["jp-tokyo-sotetsu", "jp-tokyo-keikyu"]
+    },
+    {
+      "id": "sotetsu-jr-yokohama-shinagawa",
+      "category": "YOKOHAMA_PRIVATE_TRANSFER",
+      "origin": { "name": "Ebina", "latitude": 35.4528, "longitude": 139.3909 },
+      "destination": {
+        "name": "Shinagawa",
+        "latitude": 35.6285,
+        "longitude": 139.7388
+      },
+      "requiredFeeds": ["jp-tokyo-sotetsu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "sotetsu-tokyu-shonandai-shibuya",
+      "category": "YOKOHAMA_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Shonandai",
+        "latitude": 35.3962,
+        "longitude": 139.4667
+      },
+      "destination": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "requiredFeeds": ["jp-tokyo-sotetsu", "jp-tokyo-tokyu"]
+    },
+    {
+      "id": "jr-sotetsu-tokyo-futamatagawa",
+      "category": "YOKOHAMA_PRIVATE_TRANSFER",
+      "origin": { "name": "Tokyo", "latitude": 35.6813, "longitude": 139.7668 },
+      "destination": {
+        "name": "Futamatagawa",
+        "latitude": 35.4633,
+        "longitude": 139.5322
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-sotetsu"]
+    },
+    {
+      "id": "metro-sotetsu-ginza-ebina",
+      "category": "YOKOHAMA_PRIVATE_TRANSFER",
+      "origin": { "name": "Ginza", "latitude": 35.6719, "longitude": 139.765 },
+      "destination": {
+        "name": "Ebina",
+        "latitude": 35.4528,
+        "longitude": 139.3909
+      },
+      "requiredFeeds": ["jp-tokyo-metro", "jp-tokyo-sotetsu"]
+    },
+    {
+      "id": "keikyu-sotetsu-shinagawa-shonandai",
+      "category": "YOKOHAMA_PRIVATE_TRANSFER",
+      "origin": {
+        "name": "Shinagawa",
+        "latitude": 35.6285,
+        "longitude": 139.7388
+      },
+      "destination": {
+        "name": "Shonandai",
+        "latitude": 35.3962,
+        "longitude": 139.4667
+      },
+      "requiredFeeds": ["jp-tokyo-keikyu", "jp-tokyo-sotetsu"]
+    }
+  ]
+}

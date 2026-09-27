@@ -24,6 +24,7 @@ import {
 } from './collector.js';
 import { JrEastTrainDetailParser } from './detail-parser.js';
 import { JrEastPipelineError } from './errors.js';
+import { getJrEastLineDefinition } from './line-registry.js';
 import { YamanoteMatrixParser } from './matrix-parser.js';
 import type {
   ConflictRecord,
@@ -32,9 +33,8 @@ import type {
   ParsedMatrixPage,
   ParsedTrainDetail,
   PipelineDiagnostic,
-  YamanoteDirection,
   YamanoteService,
-  YamanoteSource,
+  JrEastSource,
 } from './model.js';
 import {
   type ValidationReport,
@@ -44,18 +44,17 @@ import {
 import { reconcileMatrixWithDetails } from './reconcile.js';
 import {
   JR_EAST_TIMETABLE_ROOT,
-  TOKYO_STATION_INDEX_URL,
   discoverDetailUrls,
   discoverEdition,
-  discoverYamanoteSources,
+  discoverLineSources,
 } from './source-discovery.js';
 
 const OPERATOR_ID = 'jr-east';
-const LINE_ID = createLineId(OPERATOR_ID, 'yamanote');
 
 export interface YamanotePipelineOptions {
-  mode: 'sample' | 'full-yamanote';
-  directions: YamanoteDirection[];
+  lineKey: string;
+  mode: 'sample' | 'full-line' | 'full-yamanote';
+  directions: string[];
   services: YamanoteService[];
   maxTrips?: number;
   maxDetails: number;
@@ -82,8 +81,8 @@ export async function runYamanotePipeline(
   options: YamanotePipelineOptions,
 ): Promise<YamanotePipelineResult> {
   validateOptions(options);
-  if (options.mode === 'full-yamanote')
-    await requireSampleMarker(options.outputRoot);
+  const line = getJrEastLineDefinition(options.lineKey);
+  if (options.mode !== 'sample') await requireSampleMarker(options.outputRoot);
 
   const collector = new JrEastHttpCollector(options.collector);
   const responses: CollectedResponse[] = [];
@@ -97,17 +96,18 @@ export async function runYamanotePipeline(
 
   const indexResponse = await collector.collect(
     request(
-      TOKYO_STATION_INDEX_URL,
+      line.sourceIndexUrl,
       'station-index-html',
       edition.observedRawEditionKey,
     ),
   );
   const indexPage = page(indexResponse, collector.collectorVersion);
   responses.push(indexResponse);
-  const discovery = discoverYamanoteSources(
+  const discovery = discoverLineSources(
     indexPage.html,
     indexPage.manifest,
     edition,
+    line,
   );
   const selectedSources = discovery.sources.filter(
     (source) =>
@@ -118,18 +118,35 @@ export async function runYamanotePipeline(
   const matrixParser = new YamanoteMatrixParser();
   const detailParser = new JrEastTrainDetailParser();
   const matrixPages: ParsedMatrixPage[] = [];
-  const stationPages: Array<{ source: YamanoteSource; page: FetchedPage }> = [];
+  const stationPages: Array<{ source: JrEastSource; page: FetchedPage }> = [];
   for (const source of selectedSources) {
     const matrixResponse = await collector.collect(
       request(
         source.matrixUrl,
-        'yamanote-matrix-html',
+        `${line.lineKey}-matrix-html`,
         edition.observedRawEditionKey,
       ),
     );
     const matrixPage = page(matrixResponse, collector.collectorVersion);
     responses.push(matrixResponse);
-    matrixPages.push(matrixParser.parse(matrixPage.html, matrixPage.manifest));
+    const direction = line.directions.find(
+      (candidate) => candidate.id === source.direction,
+    );
+    if (!direction) {
+      throw new JrEastPipelineError(
+        'PAGE_STRUCTURE_CHANGED',
+        `Direction ${source.direction} is not registered for ${line.lineKey}`,
+        source.matrixUrl,
+      );
+    }
+    matrixPages.push(
+      matrixParser.parse(matrixPage.html, matrixPage.manifest, {
+        lineKey: line.lineKey,
+        direction: source.direction,
+        service: source.service,
+        matrixHeadingIncludes: direction.matrixHeadingIncludes,
+      }),
+    );
 
     const stationResponse = await collector.collect(
       request(
@@ -208,6 +225,7 @@ export async function runYamanotePipeline(
     manifests,
     generatedAt,
     parserVersion: `${matrixParser.parserVersion}+${detailParser.parserVersion}`,
+    line,
   });
 
   const diagnostics: PipelineDiagnostic[] = [
@@ -246,7 +264,7 @@ export async function runYamanotePipeline(
     schemaVersion: '1.0',
     datasetVersion: dataset.metadata.datasetVersion,
     operator: OPERATOR_ID,
-    line: 'yamanote',
+    line: line.lineKey,
     edition,
     mode: options.mode,
     collectorVersion: collector.collectorVersion,
@@ -288,6 +306,7 @@ function buildDataset(input: {
   manifests: RawArtifactManifest[];
   generatedAt: string;
   parserVersion: string;
+  line: ReturnType<typeof getJrEastLineDefinition>;
 }): NormalizedTimetable {
   const calendarStart = input.details
     .map((detail) => detail.calendarStart)
@@ -322,9 +341,17 @@ function buildDataset(input: {
     ...new Set(input.candidates.map((candidate) => candidate.service)),
   ];
   const calendars = services.map((service) =>
-    buildCalendar(service, calendarStart, calendarEnd, input.matrixPages),
+    buildCalendar(
+      input.line.lineKey,
+      service,
+      calendarStart,
+      calendarEnd,
+      input.matrixPages,
+    ),
   );
-  const trips = input.candidates.map((candidate) => buildTrip(candidate));
+  const trips = input.candidates.map((candidate) =>
+    buildTrip(candidate, input.line.lineKey),
+  );
   const metadata = createDatasetMetadata(
     {
       operator: OPERATOR_ID,
@@ -342,10 +369,10 @@ function buildDataset(input: {
     ],
     lines: [
       {
-        id: LINE_ID,
+        id: createLineId(OPERATOR_ID, input.line.lineKey),
         operatorId: OPERATOR_ID,
-        nameJa: '山手線',
-        nameEn: 'Yamanote Line',
+        nameJa: input.line.nameJa,
+        nameEn: input.line.nameEn,
       },
     ],
     stations: [...stationMap.values()],
@@ -355,6 +382,7 @@ function buildDataset(input: {
 }
 
 function buildCalendar(
+  lineKey: string,
   service: YamanoteService,
   startDate: string,
   endDate: string,
@@ -370,7 +398,7 @@ function buildCalendar(
     }));
   const weekday = service === 'weekday';
   return {
-    id: `${OPERATOR_ID}:yamanote:${service}`,
+    id: `${OPERATOR_ID}:${lineKey}:${service}`,
     startDate,
     endDate,
     monday: weekday,
@@ -389,7 +417,7 @@ function buildCalendar(
   };
 }
 
-function buildTrip(candidate: MatrixTripCandidate): Trip {
+function buildTrip(candidate: MatrixTripCandidate, lineKey: string): Trip {
   const firstEvent = firstTime(candidate);
   const origin = candidate.stops[0]!;
   const destination = candidate.stops.at(-1)!;
@@ -397,7 +425,7 @@ function buildTrip(candidate: MatrixTripCandidate): Trip {
     internalTripId: createTripId({
       operator: OPERATOR_ID,
       edition: candidate.sourceReference.sourceEdition,
-      line: 'yamanote',
+      line: lineKey,
       direction: candidate.direction,
       trainNumber: candidate.trainNumber,
       origin: origin.stationNameJa,
@@ -405,7 +433,7 @@ function buildTrip(candidate: MatrixTripCandidate): Trip {
       variant: `${candidate.service}-${candidate.columnIndex}`,
     }),
     operator: OPERATOR_ID,
-    lineId: LINE_ID,
+    lineId: createLineId(OPERATOR_ID, lineKey),
     direction: candidate.direction,
     trainNumber: candidate.trainNumber,
     trainType: candidate.trainType,
@@ -414,7 +442,7 @@ function buildTrip(candidate: MatrixTripCandidate): Trip {
       OPERATOR_ID,
       destination.stationNameJa,
     ),
-    serviceId: `${OPERATOR_ID}:yamanote:${candidate.service}`,
+    serviceId: `${OPERATOR_ID}:${lineKey}:${candidate.service}`,
     sourceEdition: candidate.sourceReference.sourceEdition,
     sourceUrl: candidate.sourceReference.sourceUrl,
     sourceReference: candidate.sourceReference,
@@ -516,7 +544,7 @@ async function requireSampleMarker(outputRoot: string): Promise<void> {
   } catch (error) {
     throw new JrEastPipelineError(
       'PARSE_FAILED',
-      `Full-Yamanote mode requires a successful sample marker at ${marker}`,
+      `Full-line mode requires a successful sample marker at ${marker}`,
       undefined,
       { cause: error },
     );

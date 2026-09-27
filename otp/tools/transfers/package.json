@@ -1,0 +1,16 @@
+{
+  "name": "@tcache/otp-transfer-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build-map": "node build-station-complexes.mjs",
+    "regression": "node run-transfer-regression.mjs",
+    "report": "node report-transfer-quality.mjs",
+    "validate-walks": "node validate-complex-walks.mjs",
+    "test": "node --test test/*.node.mjs"
+  },
+  "dependencies": {
+    "fflate": "0.8.2"
+  }
+}

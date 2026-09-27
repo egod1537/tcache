@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="index,follow">
+<meta name="viewport" content="width=device-width">
+<meta name="format-detection" content="telephone=no">
+<title>時刻表：JR東日本</title>
+<meta name="description" content="JR東日本の駅の時刻表についてご案内しています。">
+<meta property="og:title" content="時刻表：JR東日本">
+<meta property="og:description" content="JR東日本の駅の時刻表についてご案内しています。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://timetables.jreast.co.jp/">
+<meta property="og:site_name" content="JR東日本：東日本旅客鉄道株式会社">
+<meta property="og:image" content="https://www.jreast.co.jp/assets/img/ogp.png">
+<link rel="icon" href="https://www.jreast.co.jp/assets/img/favicon.ico" sizes="48x48">
+<link rel="icon" href="https://www.jreast.co.jp/assets/img/favicon.svg" sizes="any" type="image/svg+xml">
+<link rel="apple-touch-icon" href="https://www.jreast.co.jp/assets/img/apple-touch-icon.png">
+<link rel="canonical" href="https://timetables.jreast.co.jp/">
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='//www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-T6RWTC');</script>
+<!-- End Google Tag Manager -->
+<!-- ライブラリ -->
+<script src="https://www.jreast.co.jp/assets/js/lib/swiper-bundle.min.js" defer></script>
+<link rel="stylesheet" href="https://www.jreast.co.jp/assets/css/swiper-bundle.min.css">
+<!-- 共通CSS -->
+<!--<link rel="stylesheet" href="https://www.jreast.co.jp/assets/css/common.css">-->
+<link rel="stylesheet" href="./assets/css/common.css">
+<!--<link rel="stylesheet" href="https://www.jreast.co.jp/assets/css/style.css">-->
+<link rel="stylesheet" href="./assets/css/style.css">
+<link rel="stylesheet" href="https://www.jreast.co.jp/assets/css/header.css">
+<link rel="stylesheet" href="https://www.jreast.co.jp/assets/css/footer.css">
+<!-- 共通JS -->
+<script src="https://www.jreast.co.jp/assets/js/common.js" defer></script>
+<script src="https://www.jreast.co.jp/assets/js/header_inc_timetable.js" defer></script>
+<script src="https://www.jreast.co.jp/assets/js/footer_inc_timetable.js" defer></script>
+<!-- 個別CSS -->
+<link rel="stylesheet" href="https://www.jreast.co.jp/assets/css/compatible.css">
+<link rel="stylesheet" href="./timetable/css/timetable-common.css">
+<link rel="stylesheet" href="./timetable/css/timetable-top.css">
+<!-- 個別JS -->
+<script src="https://www.jreast.co.jp/map/js/openlayers.js"></script>
+<script src="https://www.jreast.co.jp/material/js/jquery.js"></script>
+<script src="./timetable/map/js/jquery.cookie.js"></script>
+<script src="./timetable/map/js/routemap.js"></script>
+<script src="./timetable/js/recommend-slider_2025new.js"></script>
+<script type="text/javascript" src="./announce.js"></script>
+<script type="text/javascript">
+<!--
+$(document).ready(function(){
+announce_INIT('./','2610','top',0,0,0,'JRデータの内容は、株式会社交通新聞社発行の「JR時刻表」2026年10月号に基づいています。');
+});
+//-->
+</script>
+</head>
+<body>
+<noscript>
+<iframe src="//www.googletagmanager.com/ns.html?id=GTM-T6RWTC" title="Google Tag Manager" height="0" width="0" style="display:none;visibility:hidden"></iframe>
+</noscript>
+<!-- JR東共通ヘッダー -->
+<header id="jre_mtd_header" class="timetable_header"></header>
+<!-- // JR東共通ヘッダー -->
+<div class="l-content">
+<main class="l-main">
+<!-- パンくずリスト -->
+<nav class="l-breadcrumb l-breadcrumb--top" aria-label="パンくず">
+<ol class="l-breadcrumb__list" itemscope="itemscope" itemtype="https://schema.org/BreadcrumbList">
+<li itemprop="itemListElement" itemscope="itemscope" itemtype="https://schema.org/ListItem">
+<a href="https://www.jreast.co.jp/" itemprop="item"><span itemprop="name">JR東日本トップ</span></a>
+<meta itemprop="position" content="1">
+</li>
+<li itemprop="itemListElement" itemscope="itemscope" itemtype="https://schema.org/ListItem">
+<a href="https://www.jreast.co.jp/railway/" itemprop="item"><span itemprop="name">鉄道・きっぷ</span></a>
+<meta itemprop="position" content="2">
+</li>
+<li itemprop="itemListElement" itemscope="itemscope" itemtype="https://schema.org/ListItem">
+<a href="/" itemprop="item"><span itemprop="name">時刻表</span></a>
+<meta itemprop="position" content="3">
+</li>
+</ol>
+</nav>
+<div class="c-heading-lv1">
+<h1 class="c-heading-lv1__inner">
+<span class="c-heading-lv1__icon u-service-icon-timetable">時刻表</span>
+</h1>
+</div>
+<div class="l-bg-gray announce">
+<div class="l-section">
+<div class="c-toggle c-toggle--noborder timetable-headinfo js-toggle u-mt-none is-active">
+<button class="c-toggle__trigger js-toggle-trigger" title="お知らせ" aria-label="お知らせ" aria-controls="timetable_headinfo" aria-expanded="false">
+<span>お知らせ</span>
+</button>
+<div class="c-toggle__content" id="timetable_headinfo">
+<div class="c-toggle__content__inner">
+<!-- お知らせ -->
+<ul class="timetable-headinfo__list announceList">
+</ul>
+<!-- // お知らせ -->
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- recomend slider -->
+<div class="l-section u-mt-60">
+<div class="c-slider timetable-recommendslider swiper js-timetable-slider">
+<ul class="swiper-wrapper c-loading loading-rtbnr-timetable" id="timetable-rt-sliderContents">
+<li id="rt_top01" class="swiper-slide"></li>
+<li id="rt_top02" class="swiper-slide"></li>
+<li id="rt_top03" class="swiper-slide"></li>
+<li class="default_container" style="margin:auto;">
+<a href="https://www.jreast-app.jp/?c=jreappstart&amp;pid=jreast-app" target="_blank">
+<figure>
+<img src="https://www.jreast.co.jp/img/bnr/top/recommend/jreapp_sp.png" alt="JR東日本アプリ">
+</figure>
+<span class="screen-reader-text">別ウィンドウで開きます</span>
+</a>
+</li>
+</ul>
+<div class="c-slider__ctl">
+<div class="c-slider__pagination"></div>
+<button class="swiper-button-prev" title="前へ"></button>
+<button class="swiper-button-next" title="次へ"></button>
+<button class="c-slider__pause is-play" title="停止／開始" tabindex="0" aria-label="Play Pause"></button>
+</div>
+</div>
+</div>
+<div class="l-section u-mt-xxl">
+<ul class="c-grid c-grid--4up">
+<li class="c-anchor-button c-anchor-button--border">
+<a href="#content1" class="c-anchor-button__inner"><span>駅名から検索</span></a>
+</li>
+<li class="c-anchor-button c-anchor-button--border">
+<a href="#content2" class="c-anchor-button__inner"><span>路線・都県・五十音<br class="u-pcbr">から検索</span></a>
+</li>
+<li class="c-anchor-button c-anchor-button--border">
+<a href="#content3" class="c-anchor-button__inner"><span>新幹線の停車駅から検索</span></a>
+</li>
+<li class="c-anchor-button c-anchor-button--border">
+<a href="#content4" class="c-anchor-button__inner"><span>路線図から検索</span></a>
+</li>
+</ul>
+</div>
+<!-- 駅名から検索 -->
+<section class="l-bg-gray u-mt-xxl" id="content1">
+<div class="l-section l-default">
+<div class="c-heading-lv2">
+<h2 class="c-heading-lv2__icon">駅名から検索</h2>
+</div>
+<!-- 駅名検索 -->
+<div class="timetable-stationsearch">
+<form action="/cgi-bin/st_search.cgi" method="get" id="stationsearch" class="searchArea">
+<div class="timetable-stationsearch__searchbox">
+<input name="mode" value="0" type="hidden">
+<div class="c-input">
+<input type="text" class="textArea" name="ekimei" value="" placeholder="「駅」を除く漢字、ひらがな、カタカナで入力">
+<span class="station">駅</span>
+</div>
+<input type="submit" class="searchbtn" value="検索">
+</div>
+</form>
+<dl class="timetable-stationsearch__link">
+<dt class="c-heading-lv4">よく検索される駅</dt>
+<dd>
+<ul>
+<li><a href="./timetable/list1039.html">東京</a></li>
+<li><a href="./timetable/list0866.html">新宿</a></li>
+<li><a href="./timetable/list0204.html">上野</a></li>
+<li><a href="./timetable/list0788.html">品川</a></li>
+<li><a href="./timetable/list1638.html">横浜</a></li>
+<li><a href="./timetable/list1227.html">八王子</a></li>
+<li><a href="./timetable/list0671.html">甲府</a></li>
+<li><a href="./timetable/list0350.html">大宮</a></li>
+<li><a href="./timetable/list0934.html">高崎</a></li>
+<li><a href="./timetable/list0248.html">宇都宮</a></li>
+<li><a href="./timetable/list1471.html">水戸</a></li>
+<li><a href="./timetable/list0989.html">千葉</a></li>
+<li><a href="./timetable/list1352.html">福島</a></li>
+<li><a href="./timetable/list0913.html">仙台</a></li>
+<li><a href="./timetable/list1565.html">盛岡</a></li>
+<li><a href="./timetable/list0854.html">新青森</a></li>
+<li><a href="./timetable/list1600.html">山形</a></li>
+<li><a href="./timetable/list0039.html">秋田</a></li>
+<li><a href="./timetable/list1137.html">新潟</a></li>
+<li><a href="./timetable/list1105.html">長野</a></li>
+</ul>
+</dd>
+</dl>
+</div>
+<!-- // 駅名検索 -->
+</div>
+</section>
+<!-- 路線・都県・五十音から検索 -->
+<section class="l-section l-default timetable-top-routesearch u-mt-xxl" id="content2">
+<div class="c-heading-lv2">
+<h2 class="c-heading-lv2__icon">路線・都県・五十音から検索</h2>
+</div>
+<!-- // 路線・都県・五十音から検索 -->
+<div class="timetable-routesearch">
+<p class="c-text">（おわかりになる項目のみ選択）</p>
+<form action="/cgi-bin/st_search.cgi" method="get">
+<div class="timetable-routesearch__searchbox">
+<dl class="timetable-routesearch__select">
+<dt>路線</dt>
+<dd class="c-select">
+<select name="rosen" id="selectRosen">
+<option value="">選択して下さい</option>
+<option value="1">吾妻線</option>
+<option value="73">秋田新幹線</option>
+<option value="3">左沢線</option>
+<option value="4">飯山線</option>
+<option value="5">石巻線</option>
+<option value="6">五日市線</option>
+<option value="7">伊東線</option>
+<option value="9">羽越本線</option>
+<option value="10">内房線</option>
+<option value="82">宇都宮線</option>
+<option value="11">越後線</option>
+<option value="12">奥羽本線</option>
+<option value="13">青梅線</option>
+<option value="14">大糸線</option>
+<option value="15">大船渡線</option>
+<option value="16">大湊線</option>
+<option value="17">男鹿線</option>
+<option value="18">鹿島線</option>
+<option value="19">釜石線</option>
+<option value="20">烏山線</option>
+<option value="21">川越線</option>
+<option value="22">北上線</option>
+<option value="23">久留里線</option>
+<option value="24">京浜東北線</option>
+<option value="25">京葉線</option>
+<option value="26">気仙沼線</option>
+<option value="27">小海線</option>
+<option value="28">五能線</option>
+<option value="29">埼京線</option>
+<option value="30">相模線</option>
+<option value="31">篠ノ井線</option>
+<option value="74">上越新幹線</option>
+<option value="32">上越線</option>
+<option value="33">常磐・成田線</option>
+<option value="34">常磐線</option>
+<option value="35">信越本線</option>
+<option value="36">水郡線</option>
+<option value="37">仙山線</option>
+<option value="38">仙石線</option>
+<option value="78">仙石東北ライン</option>
+<option value="39">総武線</option>
+<option value="40">総武線快速</option>
+<option value="41">総武本線</option>
+<option value="42">外房線</option>
+<option value="43">高崎線</option>
+<option value="44">田沢湖線</option>
+<option value="45">只見線</option>
+<option value="46">中央本線</option>
+<option value="47">津軽線</option>
+<option value="48">鶴見線</option>
+<option value="49">東海道線</option>
+<option value="50">東金線</option>
+<option value="75">東北・北海道新幹線</option>
+<option value="51">東北本線</option>
+<option value="52">成田線</option>
+<option value="53">南武線</option>
+<option value="54">日光線</option>
+<option value="55">根岸線</option>
+<option value="56">白新線</option>
+<option value="57">八高線</option>
+<option value="58">八戸線</option>
+<option value="59">花輪線</option>
+<option value="60">磐越西線</option>
+<option value="61">磐越東線</option>
+<option value="76">北陸新幹線</option>
+<option value="62">水戸線</option>
+<option value="63">武蔵野線</option>
+<option value="64">弥彦線</option>
+<option value="77">山形新幹線</option>
+<option value="65">山田線</option>
+<option value="66">山手線</option>
+<option value="67">横須賀線</option>
+<option value="68">横浜線</option>
+<option value="69">米坂線</option>
+<option value="70">陸羽西線</option>
+<option value="71">陸羽東線</option>
+<option value="72">両毛線</option>
+</select>
+</dd>
+</dl>
+<dl class="timetable-routesearch__select">
+<dt>都県</dt>
+<dd class="c-select">
+<select name="token" id="selectToken">
+<option value="">選択して下さい</option>
+<option value="13">東京都</option>
+<option value="12">千葉県</option>
+<option value="11">埼玉県</option>
+<option value="14">神奈川県</option>
+<option value="19">山梨県</option>
+<option value="10">群馬県</option>
+<option value="22">静岡県</option>
+<option value="8">茨城県</option>
+<option value="9">栃木県</option>
+<option value="20">長野県</option>
+<option value="15">新潟県</option>
+<option value="7">福島県</option>
+<option value="6">山形県</option>
+<option value="4">宮城県</option>
+<option value="5">秋田県</option>
+<option value="3">岩手県</option>
+<option value="2">青森県</option>
+</select>
+</dd>
+</dl>
+<dl class="timetable-routesearch__select">
+<dt>五十音</dt>
+<dd class="c-select">
+<select name="50on" id="select50on">
+<option value="">選択して下さい</option>
+<option>あ</option>
+<option>い</option>
+<option>う</option>
+<option>え</option>
+<option>お</option>
+<option>か</option>
+<option>き</option>
+<option>く</option>
+<option>け</option>
+<option>こ</option>
+<option>さ</option>
+<option>し</option>
+<option>す</option>
+<option>せ</option>
+<option>そ</option>
+<option>た</option>
+<option>ち</option>
+<option>つ</option>
+<option>て</option>
+<option>と</option>
+<option>な</option>
+<option>に</option>
+<option>ぬ</option>
+<option>ね</option>
+<option>の</option>
+<option>は</option>
+<option>ひ</option>
+<option>ふ</option>
+<option>へ</option>
+<option>ほ</option>
+<option>ま</option>
+<option>み</option>
+<option>む</option>
+<option>め</option>
+<option>も</option>
+<option>や</option>
+<option>ゆ</option>
+<option>よ</option>
+<option>ら</option>
+<option>り</option>
+<option>る</option>
+<option>れ</option>
+<option>ろ</option>
+<option>わ</option>
+</select>
+</dd>
+</dl>
+<div class="searchbtn">
+<input type="submit" value="検索" class="searchBtn">
+<i class="u-icon-mask-search"></i>
+</div>
+</div>
+</form>
+</div>
+<!-- // 路線・都県・五十音から検索 -->
+</section>
+<!-- 新幹線の停車駅から検索 -->
+<section class="l-bg-gray u-mt-xxl" id="content3">
+<div class="l-section l-default">
+<div class="c-heading-lv2">
+<h2 class="c-heading-lv2__icon">新幹線の停車駅から検索</h2>
+</div>
+<div class="c-grid c-grid--3up">
+<!-- 東北・北海道新幹線 -->
+<div class="c-toggle timetable-top-stationlist js-toggle">
+<button class="c-toggle__trigger js-toggle-trigger" aria-label="東北・北海道新幹線" aria-controls="toggle1" aria-expanded="false">
+<span>東北・北海道新幹線</span>
+</button>
+<div class="c-toggle__content" id="toggle1">
+<div class="c-toggle__content__inner">
+<ul class="timetable-top-stationlist__list">
+<li><a href="timetable/list1039.html">東京（とうきょう）<span>東京都</span></a></li>
+<li><a href="timetable/list0204.html">上野（うえの）<span>東京都</span></a></li>
+<li><a href="timetable/list0350.html">大宮（おおみや）<span>埼玉県</span></a></li>
+<li><a href="timetable/list0401.html">小山（おやま）<span>栃木県</span></a></li>
+<li><a href="timetable/list0248.html">宇都宮（うつのみや）<span>栃木県</span></a></li>
+<li><a href="timetable/list1118.html">那須塩原（なすしおばら）<span>栃木県</span></a></li>
+<li><a href="timetable/list0869.html">新白河（しんしらかわ）<span>福島県</span></a></li>
+<li><a href="timetable/list0675.html">郡山（こおりやま）<span>福島県</span></a></li>
+<li><a href="timetable/list1352.html">福島（ふくしま）<span>福島県</span></a></li>
+<li><a href="timetable/list0851.html">白石蔵王（しろいしざおう）<span>宮城県</span></a></li>
+<li><a href="timetable/list0913.html">仙台（せんだい）<span>宮城県</span></a></li>
+<li><a href="timetable/list1388.html">古川（ふるかわ）<span>宮城県</span></a></li>
+<li><a href="timetable/list0632.html">くりこま高原（くりこまこうげん）<span>宮城県</span></a></li>
+<li><a href="timetable/list0140.html">一ノ関（いちのせき）<span>岩手県</span></a></li>
+<li><a href="timetable/list1462.html">水沢江刺（みずさわえさし）<span>岩手県</span></a></li>
+<li><a href="timetable/list0564.html">北上（きたかみ）<span>岩手県</span></a></li>
+<li><a href="timetable/list0878.html">新花巻（しんはなまき）<span>岩手県</span></a></li>
+<li><a href="timetable/list1565.html">盛岡（もりおか）<span>岩手県</span></a></li>
+<li><a href="timetable/list1193.html">いわて沼宮内（いわてぬまくない）<span>岩手県</span></a></li>
+<li><a href="timetable/list1185.html">二戸（にのへ）<span>岩手県</span></a></li>
+<li><a href="timetable/list1230.html">八戸（はちのへ）<span>青森県</span></a></li>
+<li><a href="timetable/list1725.html">七戸十和田（しちのへとわだ）<span>青森県</span></a></li>
+<li><a href="timetable/list0854.html">新青森（しんあおもり）<span>青森県</span></a></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- 山形新幹線 -->
+<div class="c-toggle timetable-top-stationlist js-toggle">
+<button class="c-toggle__trigger js-toggle-trigger" aria-label="山形新幹線" aria-controls="toggle2" aria-expanded="false">
+<span>山形新幹線</span>
+</button>
+<div class="c-toggle__content" id="toggle2">
+<div class="c-toggle__content__inner">
+<ul class="timetable-top-stationlist__list">
+<li><a href="timetable/list1039.html">東京（とうきょう）<span>東京都</span></a></li>
+<li><a href="timetable/list0204.html">上野（うえの）<span>東京都</span></a></li>
+<li><a href="timetable/list0350.html">大宮（おおみや）<span>埼玉県</span></a></li>
+<li><a href="timetable/list0248.html">宇都宮（うつのみや）<span>栃木県</span></a></li>
+<li><a href="timetable/list0675.html">郡山（こおりやま）<span>福島県</span></a></li>
+<li><a href="timetable/list1352.html">福島（ふくしま）<span>福島県</span></a></li>
+<li><a href="timetable/list1648.html">米沢（よねざわ）<span>山形県</span></a></li>
+<li><a href="timetable/list0942.html">高畠（たかはた）<span>山形県</span></a></li>
+<li><a href="timetable/list0036.html">赤湯（あかゆ）<span>山形県</span></a></li>
+<li><a href="timetable/list0496.html">かみのやま温泉（かみのやまおんせん）<span>山形県</span></a></li>
+<li><a href="timetable/list1600.html">山形（やまがた）<span>山形県</span></a></li>
+<li><a href="timetable/list1032.html">天童（てんどう）<span>山形県</span></a></li>
+<li><a href="timetable/list0466.html">さくらんぼ東根（さくらんぼひがしね）<span>山形県</span></a></li>
+<li><a href="timetable/list0964.html">村山（むらやま）<span>山形県</span></a></li>
+<li><a href="timetable/list0305.html">大石田（おおいしだ）<span>山形県</span></a></li>
+<li><a href="timetable/list0867.html">新庄（しんじょう）<span>山形県</span></a></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- 秋田新幹線 -->
+<div class="c-toggle timetable-top-stationlist js-toggle">
+<button class="c-toggle__trigger js-toggle-trigger" aria-label="秋田新幹線" aria-controls="toggle3" aria-expanded="false">
+<span>秋田新幹線</span>
+</button>
+<div class="c-toggle__content" id="toggle3">
+<div class="c-toggle__content__inner">
+<ul class="timetable-top-stationlist__list">
+<li><a href="timetable/list1039.html">東京（とうきょう）<span>東京都</span></a></li>
+<li><a href="timetable/list0204.html">上野（うえの）<span>東京都</span></a></li>
+<li><a href="timetable/list0350.html">大宮（おおみや）<span>埼玉県</span></a></li>
+<li><a href="timetable/list0913.html">仙台（せんだい）<span>宮城県</span></a></li>
+<li><a href="timetable/list1388.html">古川（ふるかわ）<span>宮城県</span></a></li>
+<li><a href="timetable/list0632.html">くりこま高原（くりこまこうげん）<span>宮城県</span></a></li>
+<li><a href="timetable/list0140.html">一ノ関（いちのせき）<span>岩手県</span></a></li>
+<li><a href="timetable/list1462.html">水沢江刺（みずさわえさし）<span>岩手県</span></a></li>
+<li><a href="timetable/list0564.html">北上（きたかみ）<span>岩手県</span></a></li>
+<li><a href="timetable/list0878.html">新花巻（しんはなまき）<span>岩手県</span></a></li>
+<li><a href="timetable/list1565.html">盛岡（もりおか）<span>岩手県</span></a></li>
+<li><a href="timetable/list0782.html">雫石（しずくいし）<span>岩手県</span></a></li>
+<li><a href="timetable/list0955.html">田沢湖（たざわこ）<span>秋田県</span></a></li>
+<li><a href="timetable/list0421.html">角館（かくのだて）<span>秋田県</span></a></li>
+<li><a href="timetable/list0346.html">大曲（おおまがり）<span>秋田県</span></a></li>
+<li><a href="timetable/list0039.html">秋田（あきた）<span>秋田県</span></a></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- 上越新幹線 -->
+<div class="c-toggle timetable-top-stationlist js-toggle">
+<button class="c-toggle__trigger js-toggle-trigger" aria-label="上越新幹線" aria-controls="toggle4" aria-expanded="false">
+<span>上越新幹線</span>
+</button>
+<div class="c-toggle__content" id="toggle4">
+<div class="c-toggle__content__inner">
+<ul class="timetable-top-stationlist__list">
+<li><a href="timetable/list1039.html">東京（とうきょう）<span>東京都</span></a></li>
+<li><a href="timetable/list0204.html">上野（うえの）<span>東京都</span></a></li>
+<li><a href="timetable/list0350.html">大宮（おおみや）<span>埼玉県</span></a></li>
+<li><a href="timetable/list0625.html">熊谷（くまがや）<span>埼玉県</span></a></li>
+<li><a href="timetable/list1715.html">本庄早稲田（ほんじょうわせだ）<span>埼玉県</span></a></li>
+<li><a href="timetable/list0934.html">高崎（たかさき）<span>群馬県</span></a></li>
+<li><a href="timetable/list0844.html">上毛高原（じょうもうこうげん）<span>群馬県</span></a></li>
+<li><a href="timetable/list0285.html">越後湯沢（えちごゆざわ）<span>新潟県</span></a></li>
+<li><a href="timetable/list0408.html">ガーラ湯沢（がーらゆざわ）<span>新潟県</span></a></li>
+<li><a href="timetable/list0257.html">浦佐（うらさ）<span>新潟県</span></a></li>
+<li><a href="timetable/list1085.html">長岡（ながおか）<span>新潟県</span></a></li>
+<li><a href="timetable/list1018.html">燕三条（つばめさんじょう）<span>新潟県</span></a></li>
+<li><a href="timetable/list1137.html">新潟（にいがた）<span>新潟県</span></a></li>
+</ul>
+</div>
+</div>
+</div>
+<!-- 北陸新幹線 -->
+<div class="c-toggle timetable-top-stationlist js-toggle">
+<button class="c-toggle__trigger js-toggle-trigger" aria-label="北陸新幹線" aria-controls="toggle5" aria-expanded="false">
+<span>北陸新幹線</span>
+</button>
+<div class="c-toggle__content" id="toggle5">
+<div class="c-toggle__content__inner">
+<ul class="timetable-top-stationlist__list">
+<li><a href="timetable/list1039.html">東京（とうきょう）<span>東京都</span></a></li>
+<li><a href="timetable/list0204.html">上野（うえの）<span>東京都</span></a></li>
+<li><a href="timetable/list0350.html">大宮（おおみや）<span>埼玉県</span></a></li>
+<li><a href="timetable/list0625.html">熊谷（くまがや）<span>埼玉県</span></a></li>
+<li><a href="timetable/list1715.html">本庄早稲田（ほんじょうわせだ）<span>埼玉県</span></a></li>
+<li><a href="timetable/list0934.html">高崎（たかさき）<span>群馬県</span></a></li>
+<li><a href="timetable/list0096.html">安中榛名（あんなかはるな）<span>群馬県</span></a></li>
+<li><a href="timetable/list0518.html">軽井沢（かるいざわ）<span>長野県</span></a></li>
+<li><a href="timetable/list0736.html">佐久平（さくだいら）<span>長野県</span></a></li>
+<li><a href="timetable/list0203.html">上田（うえだ）<span>長野県</span></a></li>
+<li><a href="timetable/list1105.html">長野（ながの）<span>長野県</span></a></li>
+<li><a href="timetable/list0102.html">飯山（いいやま）<span>長野県</span></a></li>
+<li><a href="timetable/list1732.html">上越妙高（じょうえつみょうこう）<span>新潟県</span></a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- 路線図から検索 -->
+<section class="l-section l-default u-mt-xxl" id="content4">
+<div class="c-heading-lv2">
+<h2>路線図から検索</h2>
+</div>
+<div id="mapSearch">
+<div class="rowContainer">
+<div class="routemap">
+<div class="tabList">
+<ul class="rowContainer">
+<li class="kanto"><a href="map_kanto" class="on" title="関東エリア">関東エリア</a></li>
+<li class="shinetsu"><a href="map_shinetsu" title="信越エリア">信越エリア</a></li>
+<li class="tohoku"><a href="map_tohoku" title="東北エリア">東北エリア</a></li>
+</ul>
+</div>
+<div id="mapWrap">
+<div id="map"></div>
+</div>
+<div class="gaugeBox">
+<a class="zoomBtn in" href="">＋</a>
+<a class="zoomBtn out" href="">－</a>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- ご注意 -->
+<div class="l-section l-default u-mt-xxl u-mb-xxl cautionBox">
+<dl class="c-box c-box--note timetable-notes">
+<dt class="c-box__title u-text-center">ご注意</dt>
+<dd class="c-box__content l-default textBox"></dd>
+</dl>
+</div>
+<!-- // ご注意 -->
+<!-- JR時刻表 20XX年X月号 -->
+<div class="l-section l-default u-mt-xxl u-mb-xxxl cautionBox02"></div>
+<!-- // JR時刻表 20XX年X月号 -->
+<!-- パンくずリスト -->
+<nav class="l-breadcrumb l-breadcrumb--bottom" aria-label="パンくず"></nav>
+</main>
+</div>
+<!-- // #mainContents-->
+<!-- JR東共通フッター -->
+<footer id="jre_mtd_footer" class="timetable_footer"></footer>
+<!-- // JR東共通フッター -->
+</body>
+</html>

@@ -34,6 +34,7 @@ for ((index = 0; index < route_count; index++)); do
   request_file="${run_dir}/route-${index}.request.json"
   response_file="${run_dir}/route-${index}.response.json"
   result_file="${run_dir}/results/route-${index}.json"
+  result_temporary="${result_file}.tmp.$$"
   jq ".routes[${index}]" "${test_config}" >"${route_file}"
   route_id="$(jq -r '.id' "${route_file}")"
 
@@ -59,16 +60,22 @@ for ((index = 0; index < route_count; index++)); do
     }' >"${request_file}"
 
   echo "Smoke ${route_id}"
-  curl --fail-with-body --silent --show-error \
+  query_duration_seconds="$(curl --fail-with-body --silent --show-error \
     --header 'Content-Type: application/json' \
     --header 'Accept-Language: en' \
     --header 'OTPTimeout: 180000' \
     --data-binary "@${request_file}" \
     --output "${response_file}" \
-    "${GRAPHQL_URL}"
+    --write-out '%{time_total}' \
+    "${GRAPHQL_URL}")"
+  query_latency_ms="$(awk -v seconds="${query_duration_seconds}" 'BEGIN { printf "%d", (seconds * 1000) + 0.5 }')"
 
   node "${SCRIPT_DIR}/evaluate-integrated-smoke.mjs" \
     "${route_file}" "${response_file}" "${result_file}"
+  jq --argjson queryLatencyMs "${query_latency_ms}" \
+    '.queryLatencyMs = $queryLatencyMs' \
+    "${result_file}" >"${result_temporary}"
+  mv "${result_temporary}" "${result_file}"
 done
 
 summary="${run_dir}/summary.json"
@@ -86,13 +93,13 @@ jq -s \
 
 report="${run_dir}/report.md"
 {
-  printf '# Tokyo JR East + Toei OTP smoke test\n\n'
+  printf '# Tokyo JR East + Toei + Tokyo Metro OTP smoke test\n\n'
   printf -- '- Departure: `%s`\n' "${departure_time}"
   printf -- '- Status: **%s**\n' "$(jq -r '.status' "${summary}")"
   printf -- '- Passed: %s; failed: %s\n\n' "$(jq '.passed' "${summary}")" "$(jq '.failed' "${summary}")"
-  printf '| Test | Category | Status | Duration | Transfers | Feeds | Failure |\n'
-  printf '| --- | --- | --- | ---: | ---: | --- | --- |\n'
-  jq -r '.results[] | "| \(.id) | \(.category) | \(.status) | \(.durationSeconds // "—") | \(.transfers // "—") | \((.feeds // []) | join(" + ")) | \(.failureCategory // "") |"' "${summary}"
+  printf '| Test | Category | Status | Duration | Query latency | Transfers | Feeds | Failure |\n'
+  printf '| --- | --- | --- | ---: | ---: | ---: | --- | --- |\n'
+  jq -r '.results[] | "| \(.id) | \(.category) | \(.status) | \(.durationSeconds // "—") | \(.queryLatencyMs // "—") ms | \(.transfers // "—") | \((.feeds // []) | join(" + ")) | \(.failureCategory // "") |"' "${summary}"
   printf '\nEach passing itinerary has positive duration, ordered legs, transit stops, identifiable agency/feed IDs, and the category-specific feed composition.\n'
 } >"${report}"
 

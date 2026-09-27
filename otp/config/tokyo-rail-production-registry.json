@@ -1,0 +1,378 @@
+{
+  "schemaVersion": "1.0",
+  "registryVersion": "tokyo-rail-production-candidate-2026-09-27",
+  "scope": {
+    "purpose": "personal-education-and-research",
+    "externalDistribution": false,
+    "commercialUse": false,
+    "geography": "Tokyo metropolitan PoC"
+  },
+  "requiredFeedCount": 12,
+  "minimumRegressionCases": 100,
+  "criticalStationComplexIds": [
+    "tokyo:tokyo",
+    "tokyo:shinjuku",
+    "tokyo:shibuya",
+    "tokyo:ueno",
+    "tokyo:ikebukuro",
+    "tokyo:shinagawa",
+    "tokyo:yokohama",
+    "tokyo:otemachi",
+    "tokyo:asakusa",
+    "tokyo:kita-senju",
+    "tokyo:kichijoji",
+    "tokyo:nakano",
+    "tokyo:musashi-kosugi",
+    "tokyo:kawasaki",
+    "tokyo:nippori",
+    "tokyo:haneda-airport"
+  ],
+  "feeds": [
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "operator": "JR East",
+      "sourceType": "normalized-official-timetable",
+      "sourceRegistry": "config/jr-east-expanded-source-registry.json",
+      "adapterVersion": "jr-east-matrix/1.0.0",
+      "currentSourceStatus": "LOCAL_READY",
+      "inputEnvironmentVariable": "TOKYO_RAIL_JR_EAST_GTFS",
+      "inputFilename": "jr-east.gtfs.zip",
+      "lines": [
+        {
+          "id": "yamanote",
+          "name": "Yamanote",
+          "routeCode": "JY",
+          "required": true
+        },
+        {
+          "id": "chuo",
+          "name": "Chuo Rapid",
+          "routeCode": "JC",
+          "required": true
+        },
+        {
+          "id": "chuo-sobu",
+          "name": "Chuo-Sobu Local",
+          "routeCode": "JB",
+          "required": true
+        },
+        {
+          "id": "keihin-tohoku",
+          "name": "Keihin-Tohoku",
+          "routeCode": "JK",
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-metro",
+      "operator": "Tokyo Metro",
+      "sourceType": "official-gtfs",
+      "sourceRegistry": "config/tokyo-metro-source.json",
+      "adapterVersion": "official-gtfs-pass-through/1.0.0",
+      "currentSourceStatus": "BLOCKED_AUTH",
+      "inputEnvironmentVariable": "TOKYO_RAIL_METRO_GTFS",
+      "inputFilename": "tokyo-metro.gtfs.zip",
+      "lines": [
+        { "id": "ginza", "name": "Ginza", "routeCode": "G", "required": true },
+        {
+          "id": "marunouchi",
+          "name": "Marunouchi",
+          "routeCode": "M",
+          "required": true
+        },
+        {
+          "id": "hibiya",
+          "name": "Hibiya",
+          "routeCode": "H",
+          "required": true
+        },
+        { "id": "tozai", "name": "Tozai", "routeCode": "T", "required": true },
+        {
+          "id": "chiyoda",
+          "name": "Chiyoda",
+          "routeCode": "C",
+          "required": true
+        },
+        {
+          "id": "yurakucho",
+          "name": "Yurakucho",
+          "routeCode": "Y",
+          "required": true
+        },
+        {
+          "id": "hanzomon",
+          "name": "Hanzomon",
+          "routeCode": "Z",
+          "required": true
+        },
+        {
+          "id": "namboku",
+          "name": "Namboku",
+          "routeCode": "N",
+          "required": true
+        },
+        {
+          "id": "fukutoshin",
+          "name": "Fukutoshin",
+          "routeCode": "F",
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-toei-rail",
+      "operator": "Toei Rail",
+      "sourceType": "public-gtfs",
+      "sourceRegistry": "DATA_SOURCES.md",
+      "adapterVersion": "official-gtfs-pass-through/1.0.0",
+      "currentSourceStatus": "READY",
+      "inputEnvironmentVariable": "TOKYO_RAIL_TOEI_RAIL_GTFS",
+      "inputFilename": "toei-train-gtfs.zip",
+      "lines": [
+        {
+          "id": "asakusa",
+          "name": "Asakusa",
+          "routeCode": "A",
+          "required": true
+        },
+        { "id": "mita", "name": "Mita", "routeCode": "I", "required": true },
+        {
+          "id": "shinjuku",
+          "name": "Shinjuku",
+          "routeCode": "S",
+          "required": true
+        },
+        { "id": "oedo", "name": "Oedo", "routeCode": "E", "required": true }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-toei-bus",
+      "operator": "Toei Bus",
+      "sourceType": "public-gtfs",
+      "sourceRegistry": "DATA_SOURCES.md",
+      "adapterVersion": "official-gtfs-pass-through/1.0.0",
+      "currentSourceStatus": "READY",
+      "inputEnvironmentVariable": "TOKYO_RAIL_TOEI_BUS_GTFS",
+      "inputFilename": "toei-bus-gtfs.zip",
+      "lines": [
+        {
+          "id": "network",
+          "name": "Toei Bus network",
+          "routeCode": null,
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-tokyu",
+      "operator": "Tokyu",
+      "sourceType": "official-api-json",
+      "sourceRegistry": "config/private-core-source-registry.json",
+      "adapterVersion": "odpt-station-timetable/1.0.0",
+      "currentSourceStatus": "BLOCKED_AUTH",
+      "inputEnvironmentVariable": "TOKYO_RAIL_TOKYU_GTFS",
+      "inputFilename": "tokyu.gtfs.zip",
+      "lines": [
+        {
+          "id": "toyoko",
+          "name": "Toyoko",
+          "routeCode": "TY",
+          "required": true
+        },
+        {
+          "id": "den-en-toshi",
+          "name": "Den-en-toshi",
+          "routeCode": "DT",
+          "required": true
+        },
+        {
+          "id": "meguro",
+          "name": "Meguro",
+          "routeCode": "MG",
+          "required": true
+        },
+        {
+          "id": "oimachi",
+          "name": "Oimachi",
+          "routeCode": "OM",
+          "required": true
+        },
+        {
+          "id": "ikegami",
+          "name": "Ikegami",
+          "routeCode": "IK",
+          "required": true
+        },
+        {
+          "id": "tamagawa",
+          "name": "Tamagawa",
+          "routeCode": "TM",
+          "required": true
+        },
+        {
+          "id": "setagaya",
+          "name": "Setagaya",
+          "routeCode": "SG",
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-keio",
+      "operator": "Keio",
+      "sourceType": "official-gtfs",
+      "sourceRegistry": "config/private-core-source-registry.json",
+      "adapterVersion": "official-gtfs-pass-through/1.0.0",
+      "currentSourceStatus": "BLOCKED_AUTH",
+      "inputEnvironmentVariable": "TOKYO_RAIL_KEIO_GTFS",
+      "inputFilename": "keio.gtfs.zip",
+      "lines": [
+        { "id": "keio", "name": "Keio", "routeCode": "KO", "required": true },
+        {
+          "id": "inokashira",
+          "name": "Inokashira",
+          "routeCode": "IN",
+          "required": true
+        },
+        { "id": "takao", "name": "Takao", "routeCode": "KO", "required": true },
+        {
+          "id": "sagamihara",
+          "name": "Sagamihara",
+          "routeCode": "KO",
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-odakyu",
+      "operator": "Odakyu",
+      "sourceType": "official-api-json",
+      "sourceRegistry": "config/private-core-source-registry.json",
+      "adapterVersion": "odpt-station-timetable/1.0.0",
+      "currentSourceStatus": "BLOCKED_AUTH",
+      "inputEnvironmentVariable": "TOKYO_RAIL_ODAKYU_GTFS",
+      "inputFilename": "odakyu.gtfs.zip",
+      "lines": [
+        {
+          "id": "odawara",
+          "name": "Odawara",
+          "routeCode": "OH",
+          "required": true
+        },
+        {
+          "id": "enoshima",
+          "name": "Enoshima",
+          "routeCode": "OE",
+          "required": true
+        },
+        { "id": "tama", "name": "Tama", "routeCode": "OT", "required": true }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-keikyu",
+      "operator": "Keikyu",
+      "sourceType": "official-api-json",
+      "sourceRegistry": "config/private-outer-source-registry.json",
+      "adapterVersion": "odpt-station-timetable/1.0.0",
+      "currentSourceStatus": "BLOCKED_AUTH",
+      "inputEnvironmentVariable": "TOKYO_RAIL_KEIKYU_GTFS",
+      "inputFilename": "keikyu.gtfs.zip",
+      "lines": [
+        { "id": "main", "name": "Main", "routeCode": "KK", "required": true },
+        {
+          "id": "airport",
+          "name": "Airport",
+          "routeCode": "KK",
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-keisei",
+      "operator": "Keisei",
+      "sourceType": "unresolved",
+      "sourceRegistry": "config/private-outer-source-registry.json",
+      "adapterVersion": null,
+      "currentSourceStatus": "BLOCKED_SOURCE",
+      "inputEnvironmentVariable": "TOKYO_RAIL_KEISEI_GTFS",
+      "inputFilename": "keisei.gtfs.zip",
+      "lines": [
+        {
+          "id": "main",
+          "name": "Keisei Main",
+          "routeCode": "KS",
+          "required": true
+        },
+        {
+          "id": "narita-sky-access",
+          "name": "Narita Sky Access general service",
+          "routeCode": "KS",
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-seibu",
+      "operator": "Seibu",
+      "sourceType": "official-api-json",
+      "sourceRegistry": "config/private-outer-source-registry.json",
+      "adapterVersion": "odpt-station-timetable/1.0.0",
+      "currentSourceStatus": "BLOCKED_AUTH",
+      "inputEnvironmentVariable": "TOKYO_RAIL_SEIBU_GTFS",
+      "inputFilename": "seibu.gtfs.zip",
+      "lines": [
+        {
+          "id": "ikebukuro",
+          "name": "Ikebukuro",
+          "routeCode": "SI",
+          "required": true
+        },
+        {
+          "id": "shinjuku",
+          "name": "Shinjuku",
+          "routeCode": "SS",
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-tobu",
+      "operator": "Tobu",
+      "sourceType": "official-gtfs",
+      "sourceRegistry": "config/private-outer-source-registry.json",
+      "adapterVersion": "official-gtfs-pass-through/1.0.0",
+      "currentSourceStatus": "BLOCKED_AUTH",
+      "inputEnvironmentVariable": "TOKYO_RAIL_TOBU_GTFS",
+      "inputFilename": "tobu.gtfs.zip",
+      "lines": [
+        { "id": "tojo", "name": "Tojo", "routeCode": "TJ", "required": true },
+        {
+          "id": "skytree",
+          "name": "Skytree urban section",
+          "routeCode": "TS",
+          "required": true
+        }
+      ]
+    },
+    {
+      "feedId": "jp-tokyo-sotetsu",
+      "operator": "Sotetsu",
+      "sourceType": "official-gtfs",
+      "sourceRegistry": "config/private-outer-source-registry.json",
+      "adapterVersion": "official-gtfs-pass-through/1.0.0",
+      "currentSourceStatus": "BLOCKED_AUTH",
+      "inputEnvironmentVariable": "TOKYO_RAIL_SOTETSU_GTFS",
+      "inputFilename": "sotetsu.gtfs.zip",
+      "lines": [
+        { "id": "main", "name": "Main", "routeCode": "SO", "required": true },
+        {
+          "id": "izumino",
+          "name": "Izumino",
+          "routeCode": "SO",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

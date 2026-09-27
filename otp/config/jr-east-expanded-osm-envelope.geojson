@@ -1,0 +1,36 @@
+{
+  "type": "FeatureCollection",
+  "name": "jr-east-expanded-osm-envelope",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "description": "Existing Tokyo/Toei coverage plus narrow Chuo-Sobu east, Keihin-Tohoku north, and Keihin-Tohoku/Negishi south corridors"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [139.16, 35.56],
+            [139.5, 35.56],
+            [139.5, 35.3],
+            [139.76, 35.3],
+            [139.76, 35.56],
+            [139.95, 35.56],
+            [139.95, 35.58],
+            [140.15, 35.58],
+            [140.15, 35.75],
+            [139.95, 35.75],
+            [139.95, 35.86],
+            [139.76, 35.86],
+            [139.76, 35.95],
+            [139.6, 35.95],
+            [139.6, 35.86],
+            [139.16, 35.86],
+            [139.16, 35.56]
+          ]
+        ]
+      }
+    }
+  ]
+}

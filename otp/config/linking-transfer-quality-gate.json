@@ -1,0 +1,246 @@
+{
+  "schemaVersion": "1.0",
+  "baselinePath": "otp/baselines/tokyo-linking-transfer.json",
+  "metricDefinitions": {
+    "stopCohort": "location_type=0 stops referenced by at least one stop_times route",
+    "linkedStop": "A cohort stop with no IsolatedStop or PrunedStopIsland warning",
+    "unlinkedTransferRatio": "StopNotLinkedForTransfers warning events divided by cohort total stops",
+    "snappingDistance": "Point-to-nearest walkable OSM segment distance across the full stop cohort"
+  },
+  "fail": {
+    "validatorErrorsMax": 0,
+    "totalStopsMin": 4134,
+    "snappingMeasurementsMissingMax": 0,
+    "isolatedStopRatioMax": 0,
+    "prunedStopIslandsMax": 35,
+    "snappingP95MaxMeters": 10.4,
+    "smokePassRateMin": 1,
+    "smokeRequiredCaseCount": 51,
+    "transferRegressionPassRateMin": 1,
+    "transferRequiredCaseCount": 20,
+    "complexWalkRequiredCaseCount": 37,
+    "crossFeedTransferStationCountMin": 21,
+    "failOnCriticalStationWarning": true,
+    "failOnP0IsolatedOrPruned": true,
+    "perFeed": {
+      "jp-tokyo-jr-east": {
+        "linkedStopsMin": 110,
+        "isolatedStopsMax": 0,
+        "unlinkedTransferStopsMax": 32,
+        "prunedStopIslandsMax": 0,
+        "snappingP95MaxMeters": 3.8
+      },
+      "jp-tokyo-toei-rail": {
+        "linkedStopsMin": 149,
+        "isolatedStopsMax": 0,
+        "unlinkedTransferStopsMax": 6,
+        "prunedStopIslandsMax": 0,
+        "snappingP95MaxMeters": 11
+      },
+      "jp-tokyo-toei-bus": {
+        "linkedStopsMin": 3647,
+        "isolatedStopsMax": 0,
+        "unlinkedTransferStopsMax": 140,
+        "prunedStopIslandsMax": 35,
+        "snappingP95MaxMeters": 10.4
+      },
+      "jp-tokyo-metro": {
+        "linkedStopsMin": 185,
+        "isolatedStopsMax": 0,
+        "unlinkedTransferStopsMax": 0,
+        "prunedStopIslandsMax": 0,
+        "snappingP95MaxMeters": 11
+      }
+    }
+  },
+  "warn": {
+    "unlinkedTransferRatioAbsoluteIncrease": 0,
+    "snappingP95RelativeIncrease": 0.25,
+    "snappingP95AbsoluteIncreaseMeters": 2,
+    "priorityP2Increase": 0,
+    "priorityP3Increase": 0
+  },
+  "criticalStations": [
+    {
+      "id": "tokyo",
+      "name": "Tokyo",
+      "members": [{ "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:東京" }]
+    },
+    {
+      "id": "shinjuku",
+      "name": "Shinjuku",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:新宿" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "301" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "428" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "M08" }
+      ]
+    },
+    {
+      "id": "shibuya",
+      "name": "Shibuya",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:渋谷" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "G01" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "Z01" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "F16" }
+      ]
+    },
+    {
+      "id": "ueno",
+      "name": "Ueno",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:上野" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "G16" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "H18" }
+      ]
+    },
+    {
+      "id": "shinagawa",
+      "name": "Shinagawa",
+      "members": [{ "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:品川" }]
+    },
+    {
+      "id": "gotanda",
+      "name": "Gotanda",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:五反田" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "105" }
+      ]
+    },
+    {
+      "id": "meguro",
+      "name": "Meguro",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:目黒" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "201" }
+      ]
+    },
+    {
+      "id": "shimbashi",
+      "name": "Shimbashi",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:新橋" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "110" }
+      ]
+    },
+    {
+      "id": "sugamo",
+      "name": "Sugamo",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:巣鴨" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "215" }
+      ]
+    },
+    {
+      "id": "yoyogi",
+      "name": "Yoyogi",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:代々木" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "427" }
+      ]
+    },
+    {
+      "id": "nippori",
+      "name": "Nippori",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:日暮里" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "501" }
+      ]
+    },
+    {
+      "id": "nishi-nippori",
+      "name": "Nishi-nippori",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:西日暮里" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "502" }
+      ]
+    },
+    {
+      "id": "hamamatsucho-daimon",
+      "name": "Hamamatsucho / Daimon",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:浜松町" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "109" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "421" }
+      ]
+    },
+    {
+      "id": "okachimachi",
+      "name": "Okachimachi / Ueno-okachimachi",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:御徒町" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "410" }
+      ]
+    },
+    {
+      "id": "otsuka",
+      "name": "Otsuka",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:大塚" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "623" }
+      ]
+    },
+    {
+      "id": "tamachi-mita",
+      "name": "Tamachi / Mita",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:田町" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "108" }
+      ]
+    },
+    {
+      "id": "omiya",
+      "name": "Omiya",
+      "members": [{ "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:大宮" }]
+    },
+    {
+      "id": "yokohama",
+      "name": "Yokohama",
+      "members": [{ "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:横浜" }]
+    },
+    {
+      "id": "chiba",
+      "name": "Chiba",
+      "members": [{ "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:千葉" }]
+    },
+    {
+      "id": "ikebukuro",
+      "name": "Ikebukuro",
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:池袋" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "M25" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "Y09" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "F09" }
+      ]
+    },
+    {
+      "id": "otemachi",
+      "name": "Otemachi",
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "209" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "M18" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "T09" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "C11" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "Z08" }
+      ]
+    },
+    {
+      "id": "ginza",
+      "name": "Ginza",
+      "members": [
+        { "feedId": "jp-tokyo-metro", "stationCode": "G09" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "M16" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "H09" }
+      ]
+    },
+    {
+      "id": "kita-senju",
+      "name": "Kita-senju",
+      "members": [
+        { "feedId": "jp-tokyo-metro", "stationCode": "H22" },
+        { "feedId": "jp-tokyo-metro", "stationCode": "C18" }
+      ]
+    }
+  ]
+}

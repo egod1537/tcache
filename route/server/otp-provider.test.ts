@@ -172,6 +172,14 @@ describe('OpenTripPlanner HTTP adapter', () => {
       graphBuildId: 'graph-a',
       gtfsDatasetVersion: 'toei-2026-09',
       osmDatasetVersion: 'tokyo-2026-09',
+      qualityGateStatus: 'PASS',
+      isolatedStopCount: 0,
+      unlinkedTransferCount: 132,
+      prunedStopIslandCount: 35,
+      smokePassRate: 1,
+      transferRegressionPassRate: 1,
+      baselineUnlinkedDelta: 0,
+      baselinePrunedDelta: 0,
     });
     const response = await provider.getRoute(
       request(),
@@ -234,6 +242,69 @@ describe('OpenTripPlanner HTTP adapter', () => {
     expect(createRouteCacheKey(request(), 'ekispert')).not.toBe(
       createRouteCacheKey(request(), 'otp', {}, first.cacheKeySeed),
     );
+  });
+
+  it('reports quality-gate diagnostics without changing the cache identity', async () => {
+    const provider = new OtpRouteProvider({
+      baseUrl: 'http://otp:8080',
+      enabled: true,
+      fetch: vi.fn(async () => new Response('{}', { status: 200 })),
+      graphBuildId: 'graph-a',
+      qualityGateStatus: 'PASS',
+      totalStopCount: 5000,
+      linkedStopCount: 4990,
+      isolatedStopCount: 0,
+      isolatedStopRatio: 0,
+      unlinkedTransferCount: 132,
+      unlinkedTransferRatio: 0.0264,
+      prunedStopIslandCount: 35,
+      snappingDistanceP50Meters: 1.5,
+      snappingDistanceP95Meters: 7.2,
+      snappingDistanceMaxMeters: 54,
+      crossFeedStationComplexCount: 32,
+      smokePassRate: 1,
+      transferRegressionPassRate: 1,
+      baselineUnlinkedDelta: 0,
+      baselinePrunedDelta: 0,
+      feedStatuses: [
+        {
+          feedId: 'jp-tokyo-jr-east',
+          operator: 'JR East',
+          validatorStatus: 'PASS',
+          graphIncluded: true,
+          linkedRatio: 1,
+          status: 'VERIFIED',
+        },
+      ],
+    });
+
+    await expect(provider.getDiagnostics()).resolves.toMatchObject({
+      reachable: true,
+      graphBuildId: 'graph-a',
+      qualityGateStatus: 'PASS',
+      totalStopCount: 5000,
+      linkedStopCount: 4990,
+      isolatedStopCount: 0,
+      isolatedStopRatio: 0,
+      unlinkedTransferCount: 132,
+      unlinkedTransferRatio: 0.0264,
+      prunedStopIslandCount: 35,
+      snappingDistanceP50Meters: 1.5,
+      snappingDistanceP95Meters: 7.2,
+      snappingDistanceMaxMeters: 54,
+      crossFeedStationComplexCount: 32,
+      smokePassRate: 1,
+      transferRegressionPassRate: 1,
+      baselineUnlinkedDelta: 0,
+      baselinePrunedDelta: 0,
+      feedStatuses: [
+        expect.objectContaining({
+          feedId: 'jp-tokyo-jr-east',
+          status: 'VERIFIED',
+        }),
+      ],
+    });
+    expect(provider.cacheMetadata).toEqual({ graphBuildId: 'graph-a' });
   });
 
   it('declares every structured error code accepted by Route Jobs', () => {

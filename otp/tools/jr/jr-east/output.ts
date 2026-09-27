@@ -17,9 +17,9 @@ export interface YamanoteRunManifest {
   schemaVersion: '1.0';
   datasetVersion: string;
   operator: 'jr-east';
-  line: 'yamanote';
+  line: string;
   edition: ObservedEdition;
-  mode: 'sample' | 'full-yamanote';
+  mode: 'sample' | 'full-line' | 'full-yamanote';
   collectorVersion: string;
   parserVersions: string[];
   generatedAt: string;

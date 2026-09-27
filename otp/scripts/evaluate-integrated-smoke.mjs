@@ -24,12 +24,11 @@ export function evaluateSmokeResponse(route, response) {
   );
   const selected = candidates.find((candidate) => candidate.matchesExpectation);
   if (!selected) {
-    const category =
-      route.category === 'JR_TOEI_TRANSFER'
-        ? 'TRANSFER_ERROR'
-        : route.category === 'JR_ONLY'
-          ? 'STATION_MAPPING_ERROR'
-          : 'ROUTING_QUALITY_ERROR';
+    const category = route.category.endsWith('_TRANSFER')
+      ? 'TRANSFER_ERROR'
+      : route.category === 'JR_ONLY'
+        ? 'STATION_MAPPING_ERROR'
+        : 'ROUTING_QUALITY_ERROR';
     return failure(
       route,
       category,
@@ -72,14 +71,26 @@ function evaluateItinerary(route, itinerary, index) {
       transitLegs.map((leg) => leg?.agency?.name).filter(nonEmptyString),
     ),
   ].sort();
+  const routes = [
+    ...new Set(
+      transitLegs
+        .map((leg) => leg?.route?.shortName ?? leg?.route?.gtfsId)
+        .filter(nonEmptyString),
+    ),
+  ].sort();
   const requiredFeeds = route.requiredFeeds ?? [];
+  const requiredRoutes = route.requiredRoutes ?? [];
   const allowedFeeds = route.allowedFeeds;
   const containsRequired = requiredFeeds.every((feed) => feeds.includes(feed));
+  const containsRequiredRoutes = requiredRoutes.every((requiredRoute) =>
+    routes.includes(requiredRoute),
+  );
   const containsOnlyAllowed =
     !allowedFeeds || feeds.every((feed) => allowedFeeds.includes(feed));
   const transferRequirement =
-    route.category !== 'JR_TOEI_TRANSFER' ||
+    !route.category.endsWith('_TRANSFER') ||
     Number(itinerary?.numberOfTransfers ?? 0) >= 1;
+  const qualityConstraints = evaluateQualityConstraints(route, itinerary, legs);
   const temporalOrderValid =
     positiveDuration(itinerary) &&
     ordered(itinerary?.start, itinerary?.end) &&
@@ -114,17 +125,26 @@ function evaluateItinerary(route, itinerary, index) {
     transfers: Number(itinerary?.numberOfTransfers ?? 0),
     feeds,
     agencies,
+    routes,
     transitLegCount: transitLegs.length,
     temporalOrderValid,
     stopSequenceValid,
     operatorIdentifiable,
     matchesExpectation:
       containsRequired &&
+      containsRequiredRoutes &&
       containsOnlyAllowed &&
       transferRequirement &&
       temporalOrderValid &&
       stopSequenceValid &&
-      operatorIdentifiable,
+      operatorIdentifiable &&
+      qualityConstraints.valid,
+    walkSeconds: qualityConstraints.walkSeconds,
+    distanceMeters: qualityConstraints.distanceMeters,
+    directDistanceMeters: qualityConstraints.directDistanceMeters,
+    distanceDetourFactor: qualityConstraints.distanceDetourFactor,
+    qualityConstraintsValid: qualityConstraints.valid,
+    qualityConstraintFailures: qualityConstraints.failures,
     legs: legs.map((leg) => ({
       mode: leg?.mode ?? null,
       transitLeg: leg?.transitLeg ?? false,
@@ -137,6 +157,89 @@ function evaluateItinerary(route, itinerary, index) {
       arrival: leg?.end?.scheduledTime ?? null,
     })),
   };
+}
+
+function evaluateQualityConstraints(route, itinerary, legs) {
+  const constraints = route.qualityConstraints;
+  if (!constraints) {
+    return {
+      valid: true,
+      failures: [],
+      walkSeconds: Number(itinerary?.walkTime ?? 0),
+      distanceMeters: sumLegDistance(legs),
+      directDistanceMeters: directDistance(route),
+      distanceDetourFactor: null,
+    };
+  }
+  const failures = [];
+  const transfers = Number(itinerary?.numberOfTransfers);
+  const durationSeconds = Number(itinerary?.duration);
+  const walkSeconds = Number(itinerary?.walkTime);
+  const distanceMeters = sumLegDistance(legs);
+  const directDistanceMeters = directDistance(route);
+  const distanceDetourFactor =
+    directDistanceMeters > 0 && distanceMeters > 0
+      ? distanceMeters / directDistanceMeters
+      : null;
+  if (!Number.isFinite(transfers) || transfers > constraints.maxTransfers) {
+    failures.push('MAX_TRANSFERS_EXCEEDED');
+  }
+  if (
+    !Number.isFinite(walkSeconds) ||
+    walkSeconds > constraints.maxWalkSeconds
+  ) {
+    failures.push('MAX_WALK_TIME_EXCEEDED');
+  }
+  if (
+    !Number.isFinite(durationSeconds) ||
+    durationSeconds > constraints.maxDurationSeconds
+  ) {
+    failures.push('MAX_DURATION_EXCEEDED');
+  }
+  if (
+    !Number.isFinite(distanceDetourFactor) ||
+    distanceDetourFactor > constraints.maxDistanceDetourFactor
+  ) {
+    failures.push('MAX_DISTANCE_DETOUR_EXCEEDED');
+  }
+  return {
+    valid: failures.length === 0,
+    failures,
+    walkSeconds,
+    distanceMeters,
+    directDistanceMeters,
+    distanceDetourFactor,
+  };
+}
+
+function sumLegDistance(legs) {
+  return legs.reduce((sum, leg) => sum + Number(leg?.distance ?? 0), 0);
+}
+
+function directDistance(route) {
+  const origin = route.origin;
+  const destination = route.destination;
+  if (
+    !Number.isFinite(origin?.latitude) ||
+    !Number.isFinite(origin?.longitude) ||
+    !Number.isFinite(destination?.latitude) ||
+    !Number.isFinite(destination?.longitude)
+  ) {
+    return 0;
+  }
+  const radians = (degrees) => (degrees * Math.PI) / 180;
+  const latitudeDelta = radians(destination.latitude - origin.latitude);
+  const longitudeDelta = radians(destination.longitude - origin.longitude);
+  const originLatitude = radians(origin.latitude);
+  const destinationLatitude = radians(destination.latitude);
+  const haversine =
+    Math.sin(latitudeDelta / 2) ** 2 +
+    Math.cos(originLatitude) *
+      Math.cos(destinationLatitude) *
+      Math.sin(longitudeDelta / 2) ** 2;
+  return (
+    6_371_000 * 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine))
+  );
 }
 
 function failure(route, failureCategory, message, details = {}) {

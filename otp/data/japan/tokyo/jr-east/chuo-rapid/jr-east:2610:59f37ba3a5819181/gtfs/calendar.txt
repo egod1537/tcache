@@ -1,0 +1,3 @@
+service_id,monday,tuesday,wednesday,thursday,friday,saturday,sunday,start_date,end_date
+jr-east:chuo-rapid:holiday,0,0,0,0,0,1,1,20260918,20261231
+jr-east:chuo-rapid:weekday,1,1,1,1,1,0,0,20260918,20261231

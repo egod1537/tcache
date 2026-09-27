@@ -1,0 +1,524 @@
+{
+  "schemaVersion": "1.0",
+  "baselineBuildId": "tokyo-jr-toei-332c766ffba102df",
+  "capturedAt": "2026-09-27T10:03:11.405Z",
+  "reviewStatus": "APPROVED",
+  "immutableUntilExplicitRecapture": true,
+  "metrics": {
+    "linking": {
+      "schemaVersion": "1.0",
+      "generatedAt": "2026-09-27T10:00:59.190Z",
+      "buildId": "tokyo-jr-toei-332c766ffba102df",
+      "definitions": {
+        "stopCohort": "location_type=0 stops referenced by at least one stop_times route",
+        "linkedStop": "A cohort stop with no IsolatedStop or PrunedStopIsland warning",
+        "unlinkedTransferRatio": "StopNotLinkedForTransfers warning events divided by cohort total stops",
+        "snappingDistance": "Point-to-nearest walkable OSM segment distance across the full stop cohort"
+      },
+      "totalStops": 3869,
+      "linkedStops": 3826,
+      "linkedStopsByFeed": {
+        "jp-tokyo-jr-east": 30,
+        "jp-tokyo-toei-bus": 3647,
+        "jp-tokyo-toei-rail": 149
+      },
+      "isolatedStops": 0,
+      "isolatedStopRatio": 0,
+      "unlinkedTransferStops": 132,
+      "unlinkedTransferRatio": 0.03411734,
+      "prunedStopIslands": 35,
+      "osmSnappingDistanceMeters": {
+        "all": {
+          "population": 3869,
+          "measuredCount": 3869,
+          "missingCount": 0,
+          "p50": 1.7,
+          "p95": 6.9,
+          "max": 54
+        },
+        "byFeed": {
+          "jp-tokyo-jr-east": {
+            "population": 30,
+            "measuredCount": 30,
+            "missingCount": 0,
+            "p50": 0.6,
+            "p95": 2.5,
+            "max": 2.8
+          },
+          "jp-tokyo-toei-bus": {
+            "population": 3690,
+            "measuredCount": 3690,
+            "missingCount": 0,
+            "p50": 1.7,
+            "p95": 6.9,
+            "max": 54
+          },
+          "jp-tokyo-toei-rail": {
+            "population": 149,
+            "measuredCount": 149,
+            "missingCount": 0,
+            "p50": 1.2,
+            "p95": 7.3,
+            "max": 14.2
+          }
+        }
+      },
+      "warningPriorities": {
+        "P3": 125,
+        "P2": 33,
+        "P1": 11
+      },
+      "perFeed": {
+        "jp-tokyo-jr-east": {
+          "totalStops": 30,
+          "linkedStops": 30,
+          "linkingFailureStops": 0,
+          "isolatedStops": 0,
+          "unlinkedTransferStops": 0,
+          "prunedStopIslands": 0,
+          "osmSnappingDistanceMeters": {
+            "population": 30,
+            "measuredCount": 30,
+            "missingCount": 0,
+            "p50": 0.6,
+            "p95": 2.5,
+            "max": 2.8
+          }
+        },
+        "jp-tokyo-toei-bus": {
+          "totalStops": 3690,
+          "linkedStops": 3647,
+          "linkingFailureStops": 43,
+          "isolatedStops": 0,
+          "unlinkedTransferStops": 127,
+          "prunedStopIslands": 35,
+          "osmSnappingDistanceMeters": {
+            "population": 3690,
+            "measuredCount": 3690,
+            "missingCount": 0,
+            "p50": 1.7,
+            "p95": 6.9,
+            "max": 54
+          }
+        },
+        "jp-tokyo-toei-rail": {
+          "totalStops": 149,
+          "linkedStops": 149,
+          "linkingFailureStops": 0,
+          "isolatedStops": 0,
+          "unlinkedTransferStops": 5,
+          "prunedStopIslands": 0,
+          "osmSnappingDistanceMeters": {
+            "population": 149,
+            "measuredCount": 149,
+            "missingCount": 0,
+            "p50": 1.2,
+            "p95": 7.3,
+            "max": 14.2
+          }
+        }
+      },
+      "criticalStations": [
+        {
+          "id": "tokyo",
+          "name": "Tokyo",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:東京",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "shinjuku",
+          "name": "Shinjuku",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:新宿",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "301",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "428",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "shibuya",
+          "name": "Shibuya",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:渋谷",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "ueno",
+          "name": "Ueno",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:上野",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "shinagawa",
+          "name": "Shinagawa",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:品川",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "gotanda",
+          "name": "Gotanda",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:五反田",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "105",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "meguro",
+          "name": "Meguro",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:目黒",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "201",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "shimbashi",
+          "name": "Shimbashi",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:新橋",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "110",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "sugamo",
+          "name": "Sugamo",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:巣鴨",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "215",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "yoyogi",
+          "name": "Yoyogi",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:代々木",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "427",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "nippori",
+          "name": "Nippori",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:日暮里",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "501",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "nishi-nippori",
+          "name": "Nishi-nippori",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:西日暮里",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "502",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "hamamatsucho-daimon",
+          "name": "Hamamatsucho / Daimon",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:浜松町",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "109",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "421",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "okachimachi",
+          "name": "Okachimachi / Ueno-okachimachi",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:御徒町",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "410",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "otsuka",
+          "name": "Otsuka",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:大塚",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "623",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        },
+        {
+          "id": "tamachi-mita",
+          "name": "Tamachi / Mita",
+          "status": "PASS",
+          "members": [
+            {
+              "feedId": "jp-tokyo-jr-east",
+              "stopId": "jr-east:田町",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            },
+            {
+              "feedId": "jp-tokyo-toei-rail",
+              "stopId": "108",
+              "present": true,
+              "warningTypes": [],
+              "priority": null,
+              "status": "PASS"
+            }
+          ]
+        }
+      ],
+      "criticalStationFailures": [],
+      "p0IsolatedOrPruned": [],
+      "validatorErrors": 0,
+      "sourcePaths": {
+        "linkingDiagnosis": "diagnostics/linking/otp-linking-issues.json",
+        "preflight": "manifests/preflight.json"
+      }
+    },
+    "transfer": {
+      "schemaVersion": "1.0",
+      "generatedAt": "2026-09-27T10:00:59.191Z",
+      "buildId": "tokyo-jr-toei-332c766ffba102df",
+      "crossFeedTransferStationCount": 16,
+      "walkValidatedStationComplexCount": 22,
+      "smokeTests": {
+        "status": "PASS",
+        "passed": 11,
+        "failed": 0,
+        "total": 11,
+        "passRate": 1
+      },
+      "transferRegression": {
+        "status": "PASS",
+        "passed": 20,
+        "failed": 0,
+        "total": 20,
+        "passRate": 1,
+        "verifiedStationComplexes": 8,
+        "averageTransferWalkingTimeSeconds": 409.1,
+        "abnormalZeroSecondTransfers": 0,
+        "stationInternalTransfersOver15Minutes": 0
+      },
+      "complexWalkValidation": {
+        "status": "PASS",
+        "passed": 28,
+        "failed": 0,
+        "total": 28,
+        "passRate": 1
+      },
+      "transferQualityStatus": "PASS",
+      "explicitTransferRules": 0,
+      "sourcePaths": {
+        "smoke": "smoke-tests/20260927T100049Z/summary.json",
+        "transferRegression": "diagnostics/transfers/transfer-regression-cases.json",
+        "complexWalkValidation": "diagnostics/transfers/complex-walk-validation.json",
+        "stationComplexMap": "diagnostics/transfers/station-complex-map.json"
+      }
+    }
+  }
+}

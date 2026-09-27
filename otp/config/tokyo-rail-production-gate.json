@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0",
+  "requiredFeedCount": 12,
+  "requiredRegressionCaseCount": 148,
+  "minimumRegressionCaseCount": 100,
+  "minimumTransferRegressionCaseCount": 20,
+  "validatorErrorsMax": 0,
+  "isolatedStopRatioMax": 0,
+  "snappingP95HardMaxMeters": 15,
+  "smokePassRateMin": 1,
+  "transferRegressionPassRateMin": 1,
+  "maximumBaselineRelativeRegression": {
+    "snappingP95": 0.25,
+    "graphBytes": 0.5,
+    "buildDuration": 0.5,
+    "startupDuration": 0.5,
+    "memory": 0.5,
+    "queryP95": 0.5
+  },
+  "criticalStationComplexIds": [
+    "tokyo:tokyo",
+    "tokyo:shinjuku",
+    "tokyo:shibuya",
+    "tokyo:ueno",
+    "tokyo:ikebukuro",
+    "tokyo:shinagawa",
+    "tokyo:yokohama",
+    "tokyo:otemachi",
+    "tokyo:asakusa",
+    "tokyo:kita-senju",
+    "tokyo:kichijoji",
+    "tokyo:nakano",
+    "tokyo:musashi-kosugi",
+    "tokyo:kawasaki",
+    "tokyo:nippori",
+    "tokyo:haneda-airport"
+  ],
+  "promotionPolicy": "PASS requires an explicitly approved 12-feed baseline. A failed candidate must not update builds/latest."
+}

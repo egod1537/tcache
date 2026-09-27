@@ -26,5 +26,17 @@ jq \
   "${manifest}" >"${temporary_manifest}"
 mv "${temporary_manifest}" "${manifest}"
 
+identity_env="${build_root}/manifests/tcache.env"
+if [[ -f "${identity_env}" ]]; then
+  temporary_env="${identity_env}.tmp.$$"
+  awk -v base_url="${OTP_URL}" \
+    'BEGIN { updated = 0 }
+     /^OTP_BASE_URL=/ { print "OTP_BASE_URL=" base_url; updated = 1; next }
+     { print }
+     END { if (!updated) print "OTP_BASE_URL=" base_url }' \
+    "${identity_env}" >"${temporary_env}"
+  mv "${temporary_env}" "${identity_env}"
+fi
+
 echo "Integrated OTP startup and graph load succeeded."
 echo "Build identity environment: ${build_root}/manifests/tcache.env"

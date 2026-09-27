@@ -1,6 +1,6 @@
 # OpenTripPlanner Tokyo PoC
 
-This directory contains the isolated OpenTripPlanner environment plus the local JR East + Toei integration build used by the experimental tcache OTP route provider. OTP remains disabled by default in tcache and is never selected by the production provider policy unless explicitly enabled.
+This directory contains the isolated OpenTripPlanner environment plus the local JR East + Toei + Tokyo Metro integration build used by the experimental tcache OTP route provider. OTP remains disabled by default in tcache and is never selected by the production provider policy unless explicitly enabled.
 
 The PoC pins OpenTripPlanner `2.10.0` and Java is supplied by the official container image. OTP reads its base directory from `/var/opentripplanner`, which is mounted from `data/tokyo`. Route checks use the current GTFS GraphQL `planConnection` query at `/otp/gtfs/v1`; the removed REST routing API is not used.
 
@@ -37,7 +37,10 @@ Verified configuration:
 | Realtime           | Disabled; static GTFS only                                                                          |
 | Heap               | `-Xmx6g` by default                                                                                 |
 
-Copy `.env.example` to `.env` only when overriding ports, image, or heap. No API key is required for the documented public snapshot URLs.
+Copy `.env.example` to `.env` only when overriding ports, image, or heap. The
+public Toei snapshots need no key. The official Tokyo Metro GTFS requires a
+free ODPT developer credential supplied as `TOKYO_METRO_ODPT_KEY`; the key is
+never persisted.
 
 ## Reproduce the PoC
 
@@ -58,23 +61,207 @@ Open GraphiQL at <http://localhost:8080/graphiql>. Stop the isolated server with
 ./scripts/stop-tokyo.sh
 ```
 
-## JR East + Toei integrated build
+## JR East + Toei + Tokyo Metro integrated build
 
-After generating the local Yamanote GTFS, build, start, and verify the combined graph with:
+After generating the local JR East GTFS, collect the official Tokyo Metro
+feed and quality-gate the combined graph with:
 
 ```bash
-OTP_PORT=28081 ./scripts/build-integrated-tokyo.sh
-OTP_PORT=28081 ./scripts/run-integrated-tokyo.sh
-OTP_PORT=28081 ./scripts/smoke-integrated-tokyo.sh
+TOKYO_METRO_ODPT_KEY=... ./scripts/fetch-tokyo-metro.sh
+OTP_PORT=28081 ./scripts/build-and-approve-integrated-tokyo.sh
 ```
 
-The build uses stable feed IDs `jp-tokyo-jr-east`, `jp-tokyo-toei-rail`, and `jp-tokyo-toei-bus`. It runs the pinned official MobilityData validator against every feed, rejects any validator error, checks the service date, coordinates, and feed-ID uniqueness, then writes the graph only if preflight passes.
+`build-integrated-tokyo.sh` alone creates or updates the `candidate` symlink; it
+never changes the approved `latest` graph. The combined command starts the
+candidate, reruns linking metrics, 11 existing smoke cases plus 40 Metro
+integration cases, 20 transfer OD regressions, and all reviewed
+station-complex walks, then evaluates the
+production quality gate. Only a `PASS` candidate is promoted to `latest`. On
+failure, the candidate remains available for diagnosis and the previous
+approved graph is restarted and retained.
 
-Versioned output is stored at `data/japan/tokyo/builds/<build-id>/` with immutable staged inputs, validator reports, graph/import report, smoke-test JSON and Markdown, input lineage, and `manifests/build-manifest.json`. `data/japan/tokyo/builds/latest` points to the current build. Build identity is derived from OTP version, source hashes, OSM hash, and build configuration rather than wall-clock time.
+The build uses stable feed IDs `jp-tokyo-jr-east`, `jp-tokyo-toei-rail`,
+`jp-tokyo-toei-bus`, and `jp-tokyo-metro`. It runs the pinned official
+MobilityData validator against every feed, rejects any validator error, checks
+all nine Metro route codes, the service date, coordinates, and feed-ID
+uniqueness, then writes the graph only if preflight passes. Original Tokyo
+Metro trips, `block_id`, stop hierarchy, platforms, and entrances are preserved
+without synthetic through-service merging.
 
-To connect tcache locally, copy the values from `data/japan/tokyo/builds/latest/manifests/tcache.env` into the server environment. The testbed status page then shows OTP reachability, graph build ID, and GTFS/OSM dataset versions. This does not alter the default production provider policy.
+Versioned output is stored at `data/japan/tokyo/builds/<build-id>/` with immutable staged inputs, validator reports, graph/import report, smoke-test JSON and Markdown, input lineage, and `manifests/build-manifest.json`. `data/japan/tokyo/builds/latest` points only to the approved build, while `candidate` points to the most recently built graph. Build identity is derived from OTP version, source hashes, OSM hash, and build configuration rather than wall-clock time.
 
-The integrated smoke suite covers three JR-only routes, three Toei-only routes, three JR↔Toei transfers, and two routes that include Toei Bus. Failures are classified as `GTFS_DATA_ERROR`, `STATION_MAPPING_ERROR`, `OSM_LINKING_ERROR`, `OTP_BUILD_ERROR`, `SERVICE_DATE_ERROR`, `TRANSFER_ERROR`, or `ROUTING_QUALITY_ERROR`; incomplete data is never treated as success.
+To connect tcache locally, copy the values from `data/japan/tokyo/builds/latest/manifests/tcache.env` into the server environment. The testbed status page then shows OTP reachability, graph build ID, GTFS/OSM dataset versions, quality-gate status, linking warning counts, regression pass rates, and baseline deltas. This does not alter the default production provider policy.
+
+The integrated smoke suite retains three JR-only routes, three Toei-only
+routes, three JR↔Toei transfers, and two routes that include Toei Bus. It adds
+20 Metro-internal ODs spanning G/M/H/T/C/Y/Z/N/F, 10 JR↔Metro ODs, and 10
+Toei↔Metro ODs. Failures are classified as `GTFS_DATA_ERROR`,
+`STATION_MAPPING_ERROR`, `OSM_LINKING_ERROR`, `OTP_BUILD_ERROR`,
+`SERVICE_DATE_ERROR`, `TRANSFER_ERROR`, or `ROUTING_QUALITY_ERROR`; incomplete
+data is never treated as success.
+
+The approved expanded JR graph also contains Chuo Rapid (JC), Chuo-Sobu Local
+(JB), and Keihin-Tohoku/Negishi (JK). Its dedicated suite runs ten
+route-specific ODs per new line and requires the requested route code in the
+selected itinerary. Collection, mapping, validator, linking, and graph results
+are recorded in [reports/jr-east-expansion-report.md](reports/jr-east-expansion-report.md).
+
+Analyze OTP stop/street linking warnings without modifying the graph:
+
+```bash
+pnpm --filter @tcache/otp-linking-tools diagnose
+```
+
+The reproducible tool and classification limits are documented in [tools/linking/README.md](tools/linking/README.md). Reports are written under `data/japan/tokyo/builds/latest/diagnostics/linking/`.
+
+Reviewed stop-to-OSM corrections live in `config/stop-osm-override-review.json`. The linking tools generate a provenance-complete `stop-osm-overrides.json`, apply only active high-confidence reviewed entries to derived GTFS copies, and refuse a source GTFS hash mismatch. Original GTFS archives remain immutable; low-confidence bus candidates are never applied. The final improvement report, before/after metrics, mapping review CSV, and exact-stop routing regression are generated under the same diagnostics directory. OTP linking thresholds are not changed by this workflow.
+
+Review and verify cross-feed station complexes and transfers with the integrated OTP process running:
+
+```bash
+OTP_BASE_URL=http://localhost:18082 ./scripts/check-transfer-quality.sh
+```
+
+The workflow expands the reviewed definitions in `config/station-complex-review.json`, keeps automatic name/distance candidates inactive, checks direct pedestrian paths across every reviewed complex, and runs the 20 OD cases in `config/transfer-regression-suite.json`. The suite covers JR→Toei, Toei→JR, Toei line changes, bus→subway, and subway→bus. It rejects different-stop zero-second movement, internal walks over 15 minutes, the wrong feed order, and unexpected transfer stations. Source GTFS archives are not modified, and no explicit transfer rule is produced unless a reviewed path failure demonstrates that one is needed.
+
+Results are written to `data/japan/tokyo/builds/latest/diagnostics/transfers/`: `station-complex-map.json`, `transfer-rules.json`, `transfer-regression-cases.json`, `complex-walk-validation.json`, and `transfer-quality-report.md`. The current report also verifies that the original integrated smoke suite remains 11/11 PASS.
+
+## Tokyu / Keio / Odakyu source preparation
+
+The private-core source registry classifies Keio as official GTFS (`TYPE_A`)
+and Tokyu/Odakyu as official ODPT JSON (`TYPE_B`). Collect all three Challenge
+2026 sources atomically with:
+
+```bash
+ODPT_CHALLENGE_KEY=... ./scripts/fetch-private-core.sh
+```
+
+The key is never persisted. Keio remains an unchanged source GTFS. Tokyu and
+Odakyu are adapted into the common normalized schema with the shared parser:
+
+```bash
+pnpm --filter @tcache/jr-timetable-tools adapt:private-core -- \
+  --operator tokyu \
+  --raw-directory data/japan/tokyo/private-core/tokyu/latest/raw \
+  --output-directory data/japan/tokyo/private-core/tokyu/latest \
+  --source-edition challenge-2026-observed-key \
+  --service-start-date YYYY-MM-DD \
+  --service-end-date YYYY-MM-DD
+```
+
+Run the same command with `--operator odakyu`. The adapter emits coordinate
+candidates, not approved mappings. A human/OSM review must change them to
+`confirmed` before the common GTFS generator is allowed to build a feed. It
+does not infer cross-line through-service merges.
+
+The private-core smoke contract contains 32 required ODs: 20 operator-only,
+six private↔JR, and six private↔Metro. These cases are not added to the
+production quality gate until all three feeds have validator error 0 and the
+reviewed station mappings have been measured in an OTP candidate graph.
+
+## Keikyu / Keisei / Seibu / Tobu / Sotetsu source preparation
+
+The private-outer registry classifies Keikyu and Seibu as official ODPT JSON
+(`TYPE_B`), Tobu and Sotetsu as official GTFS (`TYPE_A`), and Keisei as
+fail-closed (`TYPE_D`). Collect only the four available official sources with:
+
+```bash
+ODPT_CHALLENGE_KEY=... ./scripts/fetch-private-outer.sh
+```
+
+The key is never persisted. Keikyu and Seibu reuse the common normalized
+adapter by passing `--operator keikyu` or `--operator seibu` to
+`adapt:private-core`. Tobu and Sotetsu archives remain unchanged and are
+checked by the official-GTFS source-contract inspector before graph staging.
+No cross-operator through trip is synthesized.
+
+Keisei is intentionally not collected: no current official train-level
+machine source has been verified for the required general service. The
+collector exits nonzero for `PRIVATE_OUTER_OPERATOR=keisei` or `all`, rather
+than inserting an unofficial feed or inferring complete trips from station
+pages.
+
+The private-outer contract defines 35 airport/private/cross-feed ODs and a
+prospective 12-feed config. It stays inactive until all five feeds have
+validator error 0. Once a candidate exists, integrated smoke results include
+per-query latency and the following command writes graph size, build/startup
+time, memory, and latency p50/p95/max:
+
+```bash
+pnpm --filter @tcache/otp-quality-gate collect-performance -- \
+  --build-root otp/data/japan/tokyo/builds/candidate
+```
+
+Current status and remaining blockers are recorded in
+[reports/private-outer-integration-report.md](reports/private-outer-integration-report.md).
+
+## Final 12-feed Tokyo rail production candidate
+
+The final registry is `config/tokyo-rail-production-registry.json`. It fixes
+the 12 feed IDs, minimum line coverage, input environment variables, and 16
+critical station complexes. The final regression generator combines all prior
+suites into 148 unique ODs:
+
+```bash
+pnpm --filter @tcache/otp-quality-gate assemble-regression
+```
+
+Each prepared feed must be represented in a source snapshot conforming to
+`schemas/tokyo-rail-source-snapshot.schema.json`. The snapshot separates raw
+source SHA from generated/pass-through GTFS SHA and records timetable edition,
+GTFS version, parser structure, station count, parse coverage, validator
+errors, and collection time. Normal refreshes that change bytes require a
+review record tied to the previous source SHA.
+
+Build and gate the complete candidate with:
+
+```bash
+TOKYO_RAIL_SOURCE_SNAPSHOT=/absolute/path/source-snapshot.json \
+  ./scripts/build-and-approve-final-tokyo-rail.sh
+```
+
+The registry lists the `TOKYO_RAIL_*_GTFS` variable required for each feed.
+The build fails before OTP if any of the 12 inputs is absent, its GTFS SHA does
+not match the snapshot, the validator reports an error, or the regression date
+is outside a feed's service window.
+
+Baselines are explicit review actions and are never created by a normal build:
+
+```bash
+pnpm --filter @tcache/otp-quality-gate capture-source-baseline -- \
+  --snapshot /absolute/path/source-snapshot.json \
+  --reviewed-by REVIEWER --review-reference TICKET
+
+pnpm --filter @tcache/otp-quality-gate capture-production-baseline -- \
+  --build-root otp/data/japan/tokyo/builds/candidate \
+  --reviewed-by REVIEWER --review-reference TICKET
+```
+
+The first clean 12-feed gate run generates coverage, linking, transfer, and
+performance metrics but stops before promotion when the production baseline is
+absent. A later PASS is the only path that atomically updates `builds/latest`.
+The current status is documented in
+[reports/tokyo-rail-production-integration-report.md](reports/tokyo-rail-production-integration-report.md)
+and the generated line table is
+[reports/tokyo-rail-coverage-report.md](reports/tokyo-rail-coverage-report.md).
+
+## Linking / transfer production quality gate
+
+The reviewed baseline is stored in
+`baselines/tokyo-linking-transfer.json`; thresholds and per-feed budgets are in
+`config/linking-transfer-quality-gate.json`. A normal build must not recapture
+the baseline. Baseline replacement is an explicit review action:
+
+```bash
+pnpm --filter @tcache/otp-quality-gate capture-baseline -- \
+  --build-root otp/data/japan/tokyo/builds/latest
+```
+
+Every gated build writes `quality/linking-quality.json`,
+`quality/transfer-quality.json`, `quality/gate-result.json`,
+`quality/regression-report.md`, and `quality/baseline-diff.md`. Metric cohort
+definitions, hard failures, warnings, critical stations, and reproduction
+commands are documented in [tools/quality/README.md](tools/quality/README.md).
 
 `download-tokyo-data.sh` reuses existing files. Set `FORCE_DOWNLOAD=true` to refresh all mutable snapshots. The script writes `data/tokyo/data-metadata.json` with the download timestamp, byte sizes, and checksums.
 

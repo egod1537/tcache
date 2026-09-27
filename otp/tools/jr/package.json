@@ -16,6 +16,10 @@
       "types": "./jr-east/index.ts",
       "default": "./jr-east/index.ts"
     },
+    "./private-core": {
+      "types": "./private-core/index.ts",
+      "default": "./private-core/index.ts"
+    },
     "./gtfs": {
       "types": "./gtfs/index.ts",
       "default": "./gtfs/index.ts"
@@ -24,7 +28,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "build:gtfs:yamanote": "tsx gtfs/cli.ts",
+    "build:gtfs": "tsx gtfs/cli.ts",
     "collect:yamanote": "tsx jr-east/cli.ts",
+    "collect:line": "tsx jr-east/cli.ts",
+    "merge:expanded": "tsx jr-east/merge-expanded.ts",
+    "mapping:expanded": "node mapping/generate-expanded-mapping.mjs",
+    "adapt:private-core": "tsx private-core/cli.ts",
     "smoke:jreast": "tsx jr-east/cli.ts --mode sample --direction outer --service weekday --max-trips 2 --max-details 1",
     "test:integration:gtfs": "RUN_MOBILITYDATA_VALIDATOR=1 vitest run test/gtfs-validator.integration.test.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",

@@ -4,6 +4,39 @@ export interface OtpDatasetIdentity {
   osmDatasetVersion?: string;
 }
 
+export interface OtpQualityDiagnostics {
+  qualityGateStatus?: string;
+  totalStopCount?: number;
+  linkedStopCount?: number;
+  isolatedStopCount?: number;
+  isolatedStopRatio?: number;
+  unlinkedTransferCount?: number;
+  unlinkedTransferRatio?: number;
+  prunedStopIslandCount?: number;
+  snappingDistanceP50Meters?: number;
+  snappingDistanceP95Meters?: number;
+  snappingDistanceMaxMeters?: number;
+  crossFeedStationComplexCount?: number;
+  smokePassRate?: number;
+  transferRegressionPassRate?: number;
+  baselineUnlinkedDelta?: number;
+  baselinePrunedDelta?: number;
+  feedStatuses?: OtpFeedStatus[];
+}
+
+export interface OtpFeedStatus {
+  feedId: string;
+  operator: string;
+  datasetVersion?: string | null;
+  sourceAgeHours?: number | null;
+  validatorStatus: string;
+  graphIncluded: boolean;
+  linkedRatio?: number | null;
+  unlinkedTransferRatio?: number | null;
+  regressionPassRate?: number | null;
+  status: string;
+}
+
 export interface OtpGraphqlRequest {
   operationName: 'PlanTokyo';
   query: string;

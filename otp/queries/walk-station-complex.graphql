@@ -1,0 +1,41 @@
+query WalkStationComplex(
+  $origin: PlanLabeledLocationInput!
+  $destination: PlanLabeledLocationInput!
+  $dateTime: PlanDateTimeInput!
+  $first: Int!
+) {
+  planConnection(
+    origin: $origin
+    destination: $destination
+    dateTime: $dateTime
+    first: $first
+    modes: { direct: [WALK] }
+  ) {
+    routingErrors {
+      code
+      description
+    }
+    edges {
+      node {
+        duration
+        walkTime
+        walkDistance
+        legs {
+          mode
+          duration
+          distance
+          from {
+            name
+            lat
+            lon
+          }
+          to {
+            name
+            lat
+            lon
+          }
+        }
+      }
+    }
+  }
+}

@@ -58,6 +58,7 @@ export interface GtfsGenerationIssue {
     | 'AGENCY_CONFIG_MISSING'
     | 'ROUTE_CONFIG_MISSING'
     | 'DIRECTION_POLICY_MISSING'
+    | 'TRIP_CALLED_STOPS_TOO_FEW'
     | 'STOP_TIME_MISSING'
     | 'GTFS_TIME_REGRESSION';
   path: string;

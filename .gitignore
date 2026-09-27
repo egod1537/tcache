@@ -32,3 +32,9 @@ otp/data/japan/tokyo/jr-east/yamanote/*
 !otp/data/japan/tokyo/jr-east/yamanote/.gitkeep
 otp/data/japan/tokyo/builds/*
 !otp/data/japan/tokyo/builds/.gitkeep
+otp/data/japan/tokyo/osm/*
+!otp/data/japan/tokyo/osm/.gitkeep
+otp/data/japan/tokyo/private-core/*
+!otp/data/japan/tokyo/private-core/README.md
+otp/data/japan/tokyo/private-outer/*
+!otp/data/japan/tokyo/private-outer/README.md

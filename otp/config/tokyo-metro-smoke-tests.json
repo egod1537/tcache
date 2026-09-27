@@ -1,0 +1,595 @@
+{
+  "schemaVersion": "1.0",
+  "departureTime": "2026-09-29T10:00:00+09:00",
+  "itineraryCount": 12,
+  "routes": [
+    {
+      "id": "metro-g-shibuya-asakusa",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "destination": {
+        "name": "Asakusa",
+        "latitude": 35.711,
+        "longitude": 139.797
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["G"]
+    },
+    {
+      "id": "metro-g-ueno-ginza",
+      "category": "METRO_ONLY",
+      "origin": { "name": "Ueno", "latitude": 35.7136, "longitude": 139.7762 },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["G"]
+    },
+    {
+      "id": "metro-g-ginza-shimbashi",
+      "category": "METRO_ONLY",
+      "origin": { "name": "Ginza", "latitude": 35.6719, "longitude": 139.765 },
+      "destination": {
+        "name": "Shimbashi",
+        "latitude": 35.667,
+        "longitude": 139.7587
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["G"]
+    },
+    {
+      "id": "metro-m-shinjuku-ikebukuro",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.691,
+        "longitude": 139.7005
+      },
+      "destination": {
+        "name": "Ikebukuro",
+        "latitude": 35.7303,
+        "longitude": 139.7109
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["M"]
+    },
+    {
+      "id": "metro-m-tokyo-ginza",
+      "category": "METRO_ONLY",
+      "origin": { "name": "Tokyo", "latitude": 35.6813, "longitude": 139.7668 },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["M"]
+    },
+    {
+      "id": "metro-m-otemachi-kasumigaseki",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "destination": {
+        "name": "Kasumigaseki",
+        "latitude": 35.6735,
+        "longitude": 139.7508
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["M"]
+    },
+    {
+      "id": "metro-h-kita-senju-akihabara",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Kita-senju",
+        "latitude": 35.7494,
+        "longitude": 139.805
+      },
+      "destination": {
+        "name": "Akihabara",
+        "latitude": 35.6984,
+        "longitude": 139.7731
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["H"]
+    },
+    {
+      "id": "metro-h-roppongi-ginza",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Roppongi",
+        "latitude": 35.6628,
+        "longitude": 139.731
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["H"]
+    },
+    {
+      "id": "metro-t-nakano-otemachi",
+      "category": "METRO_ONLY",
+      "origin": { "name": "Nakano", "latitude": 35.706, "longitude": 139.6658 },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["T"]
+    },
+    {
+      "id": "metro-t-nihombashi-nishi-funabashi",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Nihombashi",
+        "latitude": 35.682,
+        "longitude": 139.7745
+      },
+      "destination": {
+        "name": "Nishi-funabashi",
+        "latitude": 35.7075,
+        "longitude": 139.959
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["T"]
+    },
+    {
+      "id": "metro-c-yoyogi-uehara-otemachi",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Yoyogi-uehara",
+        "latitude": 35.669,
+        "longitude": 139.6797
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["C"]
+    },
+    {
+      "id": "metro-c-nishi-nippori-kita-senju",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Nishi-nippori",
+        "latitude": 35.7321,
+        "longitude": 139.7668
+      },
+      "destination": {
+        "name": "Kita-senju",
+        "latitude": 35.7494,
+        "longitude": 139.805
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["C"]
+    },
+    {
+      "id": "metro-y-ikebukuro-yurakucho",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Ikebukuro",
+        "latitude": 35.7303,
+        "longitude": 139.7109
+      },
+      "destination": {
+        "name": "Yurakucho",
+        "latitude": 35.6751,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["Y"]
+    },
+    {
+      "id": "metro-y-toyosu-iidabashi",
+      "category": "METRO_ONLY",
+      "origin": { "name": "Toyosu", "latitude": 35.655, "longitude": 139.796 },
+      "destination": {
+        "name": "Iidabashi",
+        "latitude": 35.702,
+        "longitude": 139.745
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["Y"]
+    },
+    {
+      "id": "metro-z-shibuya-otemachi",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["Z"]
+    },
+    {
+      "id": "metro-z-kinshicho-hanzomon",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Kinshicho",
+        "latitude": 35.6967,
+        "longitude": 139.8143
+      },
+      "destination": {
+        "name": "Hanzomon",
+        "latitude": 35.6857,
+        "longitude": 139.7416
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["Z"]
+    },
+    {
+      "id": "metro-n-meguro-komagome",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Meguro",
+        "latitude": 35.6339,
+        "longitude": 139.7156
+      },
+      "destination": {
+        "name": "Komagome",
+        "latitude": 35.7365,
+        "longitude": 139.7469
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["N"]
+    },
+    {
+      "id": "metro-n-iidabashi-azabu-juban",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Iidabashi",
+        "latitude": 35.702,
+        "longitude": 139.745
+      },
+      "destination": {
+        "name": "Azabu-juban",
+        "latitude": 35.6547,
+        "longitude": 139.737
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["N"]
+    },
+    {
+      "id": "metro-f-shibuya-ikebukuro",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "destination": {
+        "name": "Ikebukuro",
+        "latitude": 35.7303,
+        "longitude": 139.7109
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["F"]
+    },
+    {
+      "id": "metro-f-shinjuku-sanchome-meiji-jingumae",
+      "category": "METRO_ONLY",
+      "origin": {
+        "name": "Shinjuku-sanchome",
+        "latitude": 35.6907,
+        "longitude": 139.7065
+      },
+      "destination": {
+        "name": "Meiji-jingumae",
+        "latitude": 35.669,
+        "longitude": 139.703
+      },
+      "requiredFeeds": ["jp-tokyo-metro"],
+      "allowedFeeds": ["jp-tokyo-metro"],
+      "requiredRoutes": ["F"]
+    },
+    {
+      "id": "jr-metro-omiya-asakusa",
+      "category": "JR_METRO_TRANSFER",
+      "origin": { "name": "Omiya", "latitude": 35.9064, "longitude": 139.6238 },
+      "destination": {
+        "name": "Asakusa",
+        "latitude": 35.711,
+        "longitude": 139.797
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-shinjuku-akasaka-mitsuke",
+      "category": "JR_METRO_TRANSFER",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.689,
+        "longitude": 139.7003
+      },
+      "destination": {
+        "name": "Akasaka-mitsuke",
+        "latitude": 35.677,
+        "longitude": 139.737
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-shibuya-ginza",
+      "category": "JR_METRO_TRANSFER",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-ueno-roppongi",
+      "category": "JR_METRO_TRANSFER",
+      "origin": { "name": "Ueno", "latitude": 35.7136, "longitude": 139.7762 },
+      "destination": {
+        "name": "Roppongi",
+        "latitude": 35.6628,
+        "longitude": 139.731
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-chiba-otemachi",
+      "category": "JR_METRO_TRANSFER",
+      "origin": { "name": "Chiba", "latitude": 35.6134, "longitude": 140.1133 },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-yokohama-otemachi",
+      "category": "JR_METRO_TRANSFER",
+      "origin": {
+        "name": "Yokohama",
+        "latitude": 35.4658,
+        "longitude": 139.6223
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-kichijoji-ginza",
+      "category": "JR_METRO_TRANSFER",
+      "origin": {
+        "name": "Kichijoji",
+        "latitude": 35.703,
+        "longitude": 139.5797
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-akihabara-kasumigaseki",
+      "category": "JR_METRO_TRANSFER",
+      "origin": {
+        "name": "Akihabara",
+        "latitude": 35.6984,
+        "longitude": 139.7731
+      },
+      "destination": {
+        "name": "Kasumigaseki",
+        "latitude": 35.6735,
+        "longitude": 139.7508
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-kawasaki-ikebukuro",
+      "category": "JR_METRO_TRANSFER",
+      "origin": {
+        "name": "Kawasaki",
+        "latitude": 35.5314,
+        "longitude": 139.6969
+      },
+      "destination": {
+        "name": "Ikebukuro",
+        "latitude": 35.7303,
+        "longitude": 139.7109
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "jr-metro-nakano-toyosu",
+      "category": "JR_METRO_TRANSFER",
+      "origin": { "name": "Nakano", "latitude": 35.706, "longitude": 139.6658 },
+      "destination": {
+        "name": "Toyosu",
+        "latitude": 35.655,
+        "longitude": 139.796
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-tochomae-ginza",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": {
+        "name": "Tochomae",
+        "latitude": 35.6917,
+        "longitude": 139.692
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-daimon-akasaka-mitsuke",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": { "name": "Daimon", "latitude": 35.6568, "longitude": 139.754 },
+      "destination": {
+        "name": "Akasaka-mitsuke",
+        "latitude": 35.677,
+        "longitude": 139.737
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-shinjuku-nishiguchi-otemachi",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": {
+        "name": "Shinjuku-nishiguchi",
+        "latitude": 35.694,
+        "longitude": 139.699
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-kuramae-otemachi",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": { "name": "Kuramae", "latitude": 35.703, "longitude": 139.79 },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-mita-kita-senju",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": { "name": "Mita", "latitude": 35.648, "longitude": 139.749 },
+      "destination": {
+        "name": "Kita-senju",
+        "latitude": 35.7494,
+        "longitude": 139.805
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-jimbocho-ueno",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": {
+        "name": "Jimbocho",
+        "latitude": 35.6953,
+        "longitude": 139.7582
+      },
+      "destination": {
+        "name": "Ueno",
+        "latitude": 35.7136,
+        "longitude": 139.7762
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-higashi-nihombashi-ikebukuro",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": {
+        "name": "Higashi-nihombashi",
+        "latitude": 35.692,
+        "longitude": 139.785
+      },
+      "destination": {
+        "name": "Ikebukuro",
+        "latitude": 35.7303,
+        "longitude": 139.7109
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-morishita-shibuya",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": {
+        "name": "Morishita",
+        "latitude": 35.688,
+        "longitude": 139.798
+      },
+      "destination": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-nerima-toyosu",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": { "name": "Nerima", "latitude": 35.737, "longitude": 139.653 },
+      "destination": {
+        "name": "Toyosu",
+        "latitude": 35.655,
+        "longitude": 139.796
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    },
+    {
+      "id": "toei-metro-asakusa-ginza",
+      "category": "TOEI_METRO_TRANSFER",
+      "origin": {
+        "name": "Asakusa Toei",
+        "latitude": 35.7089,
+        "longitude": 139.7965
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-metro"]
+    }
+  ]
+}

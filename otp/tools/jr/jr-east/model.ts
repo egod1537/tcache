@@ -5,6 +5,7 @@ import type {
 } from '../common/index.js';
 
 export type YamanoteDirection = 'outer' | 'inner';
+export type JrEastDirection = string;
 export type YamanoteService = 'weekday' | 'holiday';
 
 export type JrEastFailureCode =
@@ -22,8 +23,9 @@ export interface ObservedEdition {
   evidence: string;
 }
 
-export interface YamanoteSource {
-  direction: YamanoteDirection;
+export interface JrEastSource {
+  lineKey: string;
+  direction: JrEastDirection;
   service: YamanoteService;
   directionLabel: string;
   serviceLabel: string;
@@ -31,10 +33,12 @@ export interface YamanoteSource {
   stationTimetableUrl: string;
 }
 
+export type YamanoteSource = JrEastSource;
+
 export interface SourceDiscovery {
   edition: ObservedEdition;
   sourceIndexUrl: string;
-  sources: YamanoteSource[];
+  sources: JrEastSource[];
 }
 
 export interface ParsedMatrixStop {
@@ -52,7 +56,7 @@ export interface MatrixTripCandidate {
   trainNumber: string;
   trainType: string;
   operationCondition: string;
-  direction: YamanoteDirection;
+  direction: JrEastDirection;
   service: YamanoteService;
   columnIndex: number;
   sourceReference: SourceReference;
@@ -60,7 +64,7 @@ export interface MatrixTripCandidate {
 }
 
 export interface ParsedMatrixPage {
-  direction: YamanoteDirection;
+  direction: JrEastDirection;
   directionLabel: string;
   service: YamanoteService;
   serviceLabel: string;
@@ -79,7 +83,7 @@ export interface DetailTripCandidate {
   trainType: string;
   operationConditions: string[];
   sourceReference: SourceReference;
-  direction?: YamanoteDirection;
+  direction?: JrEastDirection;
   service?: YamanoteService;
   stops: ParsedDetailStop[];
 }
@@ -95,7 +99,7 @@ export interface ParsedTrainDetail {
 export interface ConflictRecord {
   code: 'MATRIX_DETAIL_CONFLICT' | 'AMBIGUOUS_DETAIL_MATCH';
   trainNumber: string;
-  direction: YamanoteDirection;
+  direction: JrEastDirection;
   service: YamanoteService;
   matrixSourceUrl: string;
   detailSourceUrl: string;

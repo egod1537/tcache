@@ -1,0 +1,2 @@
+feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version
+tcache Tokyo OTP Personal Research PoC,https://timetables.jreast.co.jp/,ja,20260918,20261231,jr-east:2610:59f37ba3a5819181+jr-normalized-gtfs/1.0.0

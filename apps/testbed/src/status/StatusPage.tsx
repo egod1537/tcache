@@ -38,6 +38,23 @@ function formatUptime(seconds: number) {
     .join(' ');
 }
 
+function formatPassRate(value: number | undefined) {
+  return value === undefined ? '—' : `${(value * 100).toFixed(1)}%`;
+}
+
+function formatDelta(value: number | undefined) {
+  if (value === undefined) return '—';
+  return value > 0 ? `+${value}` : String(value);
+}
+
+function formatMeters(value: number | undefined) {
+  return value === undefined ? '—' : `${value.toFixed(1)} m`;
+}
+
+function formatHours(value: number | null | undefined) {
+  return value === null || value === undefined ? '—' : `${value.toFixed(1)} h`;
+}
+
 export function StatusPage({ status }: StatusPageProps) {
   const service = status.service;
   const otp = status.providerDiagnostics?.providers.find(
@@ -178,6 +195,86 @@ export function StatusPage({ status }: StatusPageProps) {
                   </code>
                 </td>
               </tr>
+              <tr>
+                <th scope="row">Quality gate</th>
+                <td>
+                  <Tag
+                    intent={
+                      otp?.qualityGateStatus === 'PASS'
+                        ? Intent.SUCCESS
+                        : Intent.DANGER
+                    }
+                    minimal
+                  >
+                    {otp?.qualityGateStatus ?? '—'}
+                  </Tag>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Isolated / unlinked / pruned</th>
+                <td>
+                  {otp?.isolatedStopCount ?? '—'} /{' '}
+                  {otp?.unlinkedTransferCount ?? '—'} /{' '}
+                  {otp?.prunedStopIslandCount ?? '—'}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Stops linked / total</th>
+                <td>
+                  {otp?.linkedStopCount ?? '—'} / {otp?.totalStopCount ?? '—'}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Isolated / transfer ratio</th>
+                <td>
+                  {formatPassRate(otp?.isolatedStopRatio)} /{' '}
+                  {formatPassRate(otp?.unlinkedTransferRatio)}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">OSM snap p50 / p95 / max</th>
+                <td>
+                  {formatMeters(otp?.snappingDistanceP50Meters)} /{' '}
+                  {formatMeters(otp?.snappingDistanceP95Meters)} /{' '}
+                  {formatMeters(otp?.snappingDistanceMaxMeters)}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Cross-feed station complexes</th>
+                <td>{otp?.crossFeedStationComplexCount ?? '—'}</td>
+              </tr>
+              <tr>
+                <th scope="row">Smoke / transfer regression</th>
+                <td>
+                  {formatPassRate(otp?.smokePassRate)} /{' '}
+                  {formatPassRate(otp?.transferRegressionPassRate)}
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">Baseline delta (unlinked / pruned)</th>
+                <td>
+                  {formatDelta(otp?.baselineUnlinkedDelta)} /{' '}
+                  {formatDelta(otp?.baselinePrunedDelta)}
+                </td>
+              </tr>
+              {otp?.feedStatuses?.map((feed) => (
+                <tr key={feed.feedId}>
+                  <th scope="row">{feed.operator}</th>
+                  <td>
+                    <code className={Classes.MONOSPACE_TEXT}>
+                      {feed.feedId}
+                    </code>{' '}
+                    · {feed.status} · dataset {feed.datasetVersion ?? '—'} · age{' '}
+                    {formatHours(feed.sourceAgeHours)} · validator{' '}
+                    {feed.validatorStatus} · graph{' '}
+                    {feed.graphIncluded ? 'loaded' : 'missing'} · linked{' '}
+                    {formatPassRate(feed.linkedRatio ?? undefined)} · transfer{' '}
+                    {formatPassRate(feed.unlinkedTransferRatio ?? undefined)} ·
+                    regression{' '}
+                    {formatPassRate(feed.regressionPassRate ?? undefined)}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </Card>

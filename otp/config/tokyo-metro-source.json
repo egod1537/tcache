@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0",
+  "feedId": "jp-tokyo-metro",
+  "operator": "Tokyo Metro Co., Ltd.",
+  "sourceType": "official-gtfs",
+  "sourceUrl": "https://api.odpt.org/api/v4/files/TokyoMetro/data/TokyoMetro-Train-GTFS.zip",
+  "authentication": {
+    "type": "query-parameter",
+    "parameter": "acl:consumerKey",
+    "environmentVariable": "TOKYO_METRO_ODPT_KEY",
+    "registrationUrl": "https://developer.odpt.org/"
+  },
+  "publisherUrl": "https://www.tokyometro.jp/",
+  "catalogEvidence": {
+    "catalog": "Transitland",
+    "onestopId": "f-tokyometro~data~tokyometro~train~gtfs~jp",
+    "url": "https://www.transit.land/feeds/f-tokyometro~data~tokyometro~train~gtfs~jp"
+  },
+  "expectedRouteShortNames": ["G", "M", "H", "T", "C", "Y", "Z", "N", "F"],
+  "license": {
+    "name": "Public Transportation Open Data Basic License",
+    "termsUrl": "https://developer.odpt.org/",
+    "attribution": "Data source: Public Transportation Open Data Center / Tokyo Metro Co., Ltd.",
+    "scope": "local personal education and research; do not redistribute the downloaded feed from this repository"
+  }
+}

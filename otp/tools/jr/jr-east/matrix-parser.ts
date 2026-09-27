@@ -14,13 +14,20 @@ import {
   type HtmlRow,
 } from './html.js';
 import type {
+  JrEastDirection,
   MatrixTripCandidate,
   ParsedMatrixPage,
   ParsedMatrixStop,
   PipelineDiagnostic,
-  YamanoteDirection,
   YamanoteService,
 } from './model.js';
+
+export interface MatrixParseContext {
+  lineKey: string;
+  direction: JrEastDirection;
+  service: YamanoteService;
+  matrixHeadingIncludes: string;
+}
 
 interface StationMatrixRow {
   stationNameJa: string;
@@ -30,9 +37,13 @@ interface StationMatrixRow {
 }
 
 export class YamanoteMatrixParser {
-  readonly parserVersion = 'jr-east-yamanote-matrix/1.0.0';
+  readonly parserVersion = 'jr-east-matrix/2.1.0';
 
-  parse(html: string, manifest: RawArtifactManifest): ParsedMatrixPage {
+  parse(
+    html: string,
+    manifest: RawArtifactManifest,
+    context?: MatrixParseContext,
+  ): ParsedMatrixPage {
     const table = extractTableByClass(html, 'paper_table', manifest.sourceUrl);
     const rows = parseRows(table);
     const trainRow = findRow(rows, 'tableTr_trainNumber', manifest.sourceUrl);
@@ -62,8 +73,19 @@ export class YamanoteMatrixParser {
       html,
       /<h3\b[^>]*class=["'][^"']*(?:weekday|holiday)[^"']*["'][^>]*>([\s\S]*?)<\/h3>/i,
     );
-    const direction = parseDirection(directionLabel, manifest.sourceUrl);
+    const direction = parseDirection(
+      directionLabel,
+      manifest.sourceUrl,
+      context,
+    );
     const service = parseService(serviceLabel, manifest.sourceUrl);
+    if (context && service !== context.service) {
+      throw new JrEastPipelineError(
+        'CALENDAR_UNRESOLVED',
+        `Matrix service ${service} does not match registry service ${context.service}`,
+        manifest.sourceUrl,
+      );
+    }
     const stationRows = rows
       .filter((row) => isStationRow(row))
       .map((row) =>
@@ -87,17 +109,31 @@ export class YamanoteMatrixParser {
     ) {
       const trainNumber = trainNumbers[columnIndex]?.trim() ?? '';
       if (trainNumber.length === 0) continue;
+      if (
+        stationRows.some((row) =>
+          /^(?:\|\||┐)$/.test(row.values[columnIndex]?.trim() ?? ''),
+        )
+      ) {
+        diagnostics.push({
+          code: 'AMBIGUOUS_TRIP',
+          severity: 'warning',
+          message: `Column ${columnIndex} (${trainNumber}) uses a diagram continuation connector and is excluded until its through-service detail is reconciled`,
+          sourceUrl: manifest.sourceUrl,
+        });
+        continue;
+      }
       const stops = parseColumnStops(
         stationRows,
         columnIndex,
         trainNumber,
         manifest.sourceUrl,
       );
-      if (stops.length < 2) {
+      const calledStopCount = stops.filter((stop) => !stop.passThrough).length;
+      if (calledStopCount < 2) {
         diagnostics.push({
           code: 'AMBIGUOUS_TRIP',
           severity: 'warning',
-          message: `Column ${columnIndex} (${trainNumber}) has fewer than two observable stops`,
+          message: `Column ${columnIndex} (${trainNumber}) has fewer than two observable called stops`,
           sourceUrl: manifest.sourceUrl,
         });
         continue;
@@ -153,8 +189,9 @@ function parseColumnStops(
   }> = [];
   for (const row of rows) {
     const value = row.values[columnIndex]?.trim() ?? '';
-    if (value.length === 0 || value === '＝' || value === '=') continue;
-    if (/^(?:レ|通過|↓|\|\|)$/.test(value)) {
+    if (value.length === 0 || value === '＝' || value === '=' || value === '・')
+      continue;
+    if (/^(?:レ|通過|↓)$/.test(value)) {
       pending.push({ row, passThrough: true });
     } else if (/^\d{3,4}$/.test(value)) {
       pending.push({
@@ -281,7 +318,21 @@ function headingText(html: string, pattern: RegExp): string {
   return htmlText(pattern.exec(html)?.[1] ?? '');
 }
 
-function parseDirection(value: string, sourceUrl: string): YamanoteDirection {
+function parseDirection(
+  value: string,
+  sourceUrl: string,
+  context?: MatrixParseContext,
+): JrEastDirection {
+  if (context) {
+    if (!value.includes(context.matrixHeadingIncludes)) {
+      throw new JrEastPipelineError(
+        'PAGE_STRUCTURE_CHANGED',
+        `Matrix heading for ${context.lineKey}/${context.direction} no longer contains ${context.matrixHeadingIncludes}`,
+        sourceUrl,
+      );
+    }
+    return context.direction;
+  }
   if (value.includes('外回り')) return 'outer';
   if (value.includes('内回り')) return 'inner';
   throw new JrEastPipelineError(

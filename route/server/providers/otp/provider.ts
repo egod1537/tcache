@@ -17,9 +17,10 @@ import {
   toOtpTransitRequest,
 } from './mapper.js';
 import { parseOtpTransitResponse } from './parser.js';
-import type { OtpDatasetIdentity } from './types.js';
+import type { OtpDatasetIdentity, OtpQualityDiagnostics } from './types.js';
 
-export interface OtpRouteProviderOptions extends OtpDatasetIdentity {
+export interface OtpRouteProviderOptions
+  extends OtpDatasetIdentity, OtpQualityDiagnostics {
   baseUrl?: string;
   enabled?: boolean;
   timeoutMs?: number;
@@ -49,6 +50,7 @@ export class OtpRouteProvider implements RouteProvider {
   private readonly timeoutMs: number;
   private readonly fetchImpl: typeof fetch;
   private readonly datasetIdentity: OtpDatasetIdentity;
+  private readonly qualityDiagnostics: OtpQualityDiagnostics;
 
   constructor(options: OtpRouteProviderOptions = {}) {
     this.baseUrl = (options.baseUrl ?? DEFAULT_OTP_BASE_URL).replace(
@@ -62,6 +64,7 @@ export class OtpRouteProvider implements RouteProvider {
       this.unavailableReason = 'OTP_PROVIDER_ENABLED is false';
     }
     this.datasetIdentity = compactIdentity(options);
+    this.qualityDiagnostics = compactQualityDiagnostics(options);
     const metadata = {
       ...(options.otpVersion ? { otpVersion: options.otpVersion } : {}),
       ...this.datasetIdentity,
@@ -130,6 +133,7 @@ export class OtpRouteProvider implements RouteProvider {
       endpoint: this.baseUrl,
       experimental: true,
       ...this.cacheMetadata,
+      ...this.qualityDiagnostics,
     };
     if (!this.available) return { ...common, reachable: false };
     const controller = new AbortController();
@@ -158,6 +162,35 @@ export class OtpRouteProvider implements RouteProvider {
       { provider: 'otp', httpStatus: null, status: 'NOT_CONFIGURED' },
     );
   }
+}
+
+function compactQualityDiagnostics(
+  options: OtpRouteProviderOptions,
+): OtpQualityDiagnostics {
+  const keys = [
+    'qualityGateStatus',
+    'totalStopCount',
+    'linkedStopCount',
+    'isolatedStopCount',
+    'isolatedStopRatio',
+    'unlinkedTransferCount',
+    'unlinkedTransferRatio',
+    'prunedStopIslandCount',
+    'snappingDistanceP50Meters',
+    'snappingDistanceP95Meters',
+    'snappingDistanceMaxMeters',
+    'crossFeedStationComplexCount',
+    'smokePassRate',
+    'transferRegressionPassRate',
+    'baselineUnlinkedDelta',
+    'baselinePrunedDelta',
+    'feedStatuses',
+  ] as const;
+  return Object.fromEntries(
+    keys.flatMap((key) =>
+      options[key] === undefined ? [] : [[key, options[key]]],
+    ),
+  ) as OtpQualityDiagnostics;
 }
 
 function debugRequest(request: ReturnType<typeof toOtpTransitRequest>) {

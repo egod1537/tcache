@@ -10,6 +10,7 @@
     "common/**/*.ts",
     "gtfs/**/*.ts",
     "jr-east/**/*.ts",
+    "private-core/**/*.ts",
     "test/**/*.ts"
   ]
 }

@@ -1,0 +1,5 @@
+route_id,agency_id,route_short_name,route_long_name,route_type,route_color,route_text_color
+jr-east:chuo-rapid,jr-east,JC,中央線快速,2,,
+jr-east:chuo-sobu-local,jr-east,JB,中央・総武線各駅停車,2,,
+jr-east:keihin-tohoku,jr-east,JK,京浜東北線・根岸線,2,,
+jr-east:yamanote,jr-east,JY,山手線,2,,

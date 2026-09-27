@@ -10,7 +10,7 @@ collector -> immutable raw body + request manifest -> operator parser
           -> reproducible GTFS ZIP -> official MobilityData validation
 ```
 
-`common/` owns artifact storage, deterministic IDs and dataset versions, the service-day time model, schema parsing, validation, and collector/parser contracts. `jr-east/` implements the official public Yamanote timetable source. `gtfs/` is operator-neutral: agency, route type, direction policy, and feed publisher data are injected through a profile, so another normalized JR operator can reuse the same generator. Machine-readable JSON Schemas live in `otp/schemas/jr/`.
+`common/` owns artifact storage, deterministic IDs and dataset versions, the service-day time model, schema parsing, validation, and collector/parser contracts. `jr-east/` implements the official public JR East timetable matrix source using a line registry. `gtfs/` is operator-neutral: agency, route type, direction policy, and feed publisher data are injected through a profile, so another normalized JR operator can reuse the same generator. Machine-readable JSON Schemas live in `otp/schemas/jr/`.
 
 ## ID and time policy
 
@@ -84,3 +84,38 @@ CSV files use stable row/column ordering. The ZIP uses a fixed timestamp, and th
 pnpm --filter @tcache/jr-timetable-tools test
 pnpm --filter @tcache/jr-timetable-tools test:integration:gtfs
 ```
+
+## Expanded Tokyo JR profile
+
+The active registry covers Yamanote, Chuo Rapid, Chuo-Sobu Local, and
+Keihin-Tohoku/Negishi. Run the bounded sample before full collection for each
+line:
+
+```bash
+pnpm --filter @tcache/jr-timetable-tools collect:line -- \
+  --line chuo-rapid --mode sample --direction westbound \
+  --service weekday --max-trips 2 --max-details 1
+
+pnpm --filter @tcache/jr-timetable-tools collect:line -- \
+  --line chuo-rapid --mode full-line --direction both --service both
+```
+
+Merge validated line roots and generate the shared feed with the expanded
+profile:
+
+```bash
+pnpm --filter @tcache/jr-timetable-tools merge:expanded -- \
+  --inputs <yamanote-root>,<chuo-root>,<chuo-sobu-root>,<keihin-root>
+
+pnpm --filter @tcache/jr-timetable-tools build:gtfs -- \
+  --profile expanded --dataset-root <merged-root> \
+  --mapping otp/data/japan/tokyo/jr-east/mappings/expanded-osm-reviewed.json \
+  --zip-name jr-east-expanded.gtfs.zip
+```
+
+The registry and exact source entry pages are in
+`otp/config/jr-east-expanded-source-registry.json`. Matrix diagram continuation
+columns are rejected as unresolved instead of being stitched heuristically.
+Pass-through points remain in normalized evidence but are not emitted as GTFS
+boarding stops. The reviewed implementation results are summarized in
+`otp/reports/jr-east-expansion-report.md`.

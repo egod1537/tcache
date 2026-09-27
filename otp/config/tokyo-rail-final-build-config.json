@@ -1,0 +1,64 @@
+{
+  "configVersion": "tcache-tokyo-rail-12-feed-candidate-1",
+  "transitModelTimeZone": "Asia/Tokyo",
+  "transitServiceStart": "-P30D",
+  "transitServiceEnd": "P1Y",
+  "dataImportReport": true,
+  "buildReportDir": "graph/build-report",
+  "maxDataImportIssuesPerFile": 10000,
+  "platformEntriesLinking": true,
+  "osm": [
+    {
+      "source": "tokyo.osm.pbf",
+      "timeZone": "Asia/Tokyo",
+      "osmTagMapping": "default",
+      "includeOsmStationEntrances": true
+    }
+  ],
+  "transitFeeds": [
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-jr-east",
+      "source": "jr-east.gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-metro",
+      "source": "tokyo-metro.gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-toei-rail",
+      "source": "toei-train-gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-toei-bus",
+      "source": "toei-bus-gtfs.zip"
+    },
+    { "type": "gtfs", "feedId": "jp-tokyo-tokyu", "source": "tokyu.gtfs.zip" },
+    { "type": "gtfs", "feedId": "jp-tokyo-keio", "source": "keio.gtfs.zip" },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-odakyu",
+      "source": "odakyu.gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-keikyu",
+      "source": "keikyu.gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-keisei",
+      "source": "keisei.gtfs.zip"
+    },
+    { "type": "gtfs", "feedId": "jp-tokyo-seibu", "source": "seibu.gtfs.zip" },
+    { "type": "gtfs", "feedId": "jp-tokyo-tobu", "source": "tobu.gtfs.zip" },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-sotetsu",
+      "source": "sotetsu.gtfs.zip"
+    }
+  ]
+}

@@ -2,12 +2,15 @@ import type { RawArtifactManifest } from '../common/index.js';
 import { JrEastPipelineError } from './errors.js';
 import { classTokens, firstHref, htmlText, parseRows } from './html.js';
 import type {
+  JrEastSource,
   ObservedEdition,
   SourceDiscovery,
-  YamanoteDirection,
   YamanoteService,
-  YamanoteSource,
 } from './model.js';
+import {
+  getJrEastLineDefinition,
+  type JrEastLineDefinition,
+} from './line-registry.js';
 
 export const JR_EAST_TIMETABLE_ROOT = 'https://timetables.jreast.co.jp/';
 export const TOKYO_STATION_INDEX_URL =
@@ -51,6 +54,20 @@ export function discoverYamanoteSources(
   manifest: RawArtifactManifest,
   expectedEdition: ObservedEdition,
 ): SourceDiscovery {
+  return discoverLineSources(
+    html,
+    manifest,
+    expectedEdition,
+    getJrEastLineDefinition('yamanote'),
+  );
+}
+
+export function discoverLineSources(
+  html: string,
+  manifest: RawArtifactManifest,
+  expectedEdition: ObservedEdition,
+  line: JrEastLineDefinition,
+): SourceDiscovery {
   const pageEdition = discoverEdition(html, manifest.sourceUrl);
   if (
     pageEdition.observedRawEditionKey !== expectedEdition.observedRawEditionKey
@@ -62,11 +79,11 @@ export function discoverYamanoteSources(
     );
   }
 
-  const sources: YamanoteSource[] = [];
+  const sources: JrEastSource[] = [];
   for (const row of parseRows(html)) {
-    if (row.cells[0]?.text !== '山手線') continue;
+    if (row.cells[0]?.text !== line.sourceLineName) continue;
     const directionLabel = row.cells[1]?.text ?? '';
-    const direction = parseDirection(directionLabel, manifest.sourceUrl);
+    const direction = parseDirection(directionLabel, manifest.sourceUrl, line);
     for (const cell of row.cells.slice(2)) {
       const href = firstHref(cell.html);
       if (href === undefined) continue;
@@ -83,6 +100,7 @@ export function discoverYamanoteSources(
       const isMatrix = absoluteUrl.includes('/timetable-v/');
       if (existing === undefined) {
         sources.push({
+          lineKey: line.lineKey,
           direction,
           service,
           directionLabel,
@@ -102,10 +120,11 @@ export function discoverYamanoteSources(
     (source) =>
       source.matrixUrl.length > 0 && source.stationTimetableUrl.length > 0,
   );
-  if (completeSources.length !== 4) {
+  const expectedSourceCount = line.directions.length * 2;
+  if (completeSources.length !== expectedSourceCount) {
     throw new JrEastPipelineError(
       'PAGE_STRUCTURE_CHANGED',
-      `Expected four Yamanote direction/service sources, found ${completeSources.length}`,
+      `Expected ${expectedSourceCount} ${line.lineKey} direction/service sources, found ${completeSources.length}`,
       manifest.sourceUrl,
     );
   }
@@ -145,12 +164,18 @@ export function discoverDetailUrls(
   return [...new Set(result)];
 }
 
-function parseDirection(value: string, sourceUrl: string): YamanoteDirection {
-  if (value.includes('外回り')) return 'outer';
-  if (value.includes('内回り')) return 'inner';
+function parseDirection(
+  value: string,
+  sourceUrl: string,
+  line: JrEastLineDefinition,
+): string {
+  const matched = line.directions.find((direction) =>
+    value.includes(direction.sourceLabelIncludes),
+  );
+  if (matched) return matched.id;
   throw new JrEastPipelineError(
     'PAGE_STRUCTURE_CHANGED',
-    `Unrecognized Yamanote direction label: ${htmlText(value)}`,
+    `Unrecognized ${line.lineKey} direction label: ${htmlText(value)}`,
     sourceUrl,
   );
 }

@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "1.0",
+  "registryVersion": "tokyo-private-core-2026-09-27",
+  "scope": {
+    "purpose": "personal-education-and-research",
+    "externalDistribution": false,
+    "commercialUse": false
+  },
+  "authentication": {
+    "environmentVariable": "ODPT_CHALLENGE_KEY",
+    "credentialStored": false,
+    "registrationUrl": "https://developer.odpt.org/"
+  },
+  "license": {
+    "name": "Public Transport Open Data Challenge Limited License",
+    "url": "https://developer.odpt.org/terms"
+  },
+  "operators": [
+    {
+      "operatorId": "tokyu",
+      "feedId": "jp-tokyo-tokyu",
+      "nameJa": "東急電鉄",
+      "classification": "TYPE_B",
+      "status": "BLOCKED_AUTH",
+      "catalogUrl": "https://ckan.odpt.org/dataset/?organization=tokyu",
+      "sourceAdapter": "odpt-station-timetable/1.0.0",
+      "endpoints": {
+        "railways": "https://api-challenge.odpt.org/api/v4/odpt:Railway?odpt:operator=odpt.Operator:Tokyu",
+        "stations": "https://api-challenge.odpt.org/api/v4/odpt:Station?odpt:operator=odpt.Operator:Tokyu",
+        "stationTimetables": "https://api-challenge.odpt.org/api/v4/odpt:StationTimetable?odpt:operator=odpt.Operator:Tokyu"
+      },
+      "targetLines": [
+        { "key": "Toyoko", "nameJa": "東横線", "priority": 1 },
+        { "key": "DenEnToshi", "nameJa": "田園都市線", "priority": 2 },
+        { "key": "Meguro", "nameJa": "目黒線", "priority": 3 },
+        { "key": "Oimachi", "nameJa": "大井町線", "priority": 4 },
+        { "key": "Ikegami", "nameJa": "池上線", "priority": 5 },
+        { "key": "TokyuTamagawa", "nameJa": "東急多摩川線", "priority": 6 },
+        { "key": "Setagaya", "nameJa": "世田谷線", "priority": 7 }
+      ]
+    },
+    {
+      "operatorId": "keio",
+      "feedId": "jp-tokyo-keio",
+      "nameJa": "京王電鉄",
+      "classification": "TYPE_A",
+      "status": "BLOCKED_AUTH",
+      "catalogUrl": "https://ckan.odpt.org/dataset/keio_train",
+      "sourceAdapter": "official-gtfs-pass-through/1.0.0",
+      "endpoints": {
+        "gtfs": "https://api-challenge.odpt.org/api/v4/files/Keio/data/Keio-Train-GTFS.zip"
+      },
+      "targetLines": [
+        { "key": "Keio", "nameJa": "京王線", "priority": 1 },
+        { "key": "Inokashira", "nameJa": "井の頭線", "priority": 2 },
+        { "key": "Takao", "nameJa": "高尾線", "priority": 3 },
+        { "key": "Sagamihara", "nameJa": "相模原線", "priority": 4 }
+      ]
+    },
+    {
+      "operatorId": "odakyu",
+      "feedId": "jp-tokyo-odakyu",
+      "nameJa": "小田急電鉄",
+      "classification": "TYPE_B",
+      "status": "BLOCKED_AUTH",
+      "catalogUrl": "https://ckan.odpt.org/dataset/?organization=odakyu",
+      "sourceAdapter": "odpt-station-timetable/1.0.0",
+      "endpoints": {
+        "railways": "https://api-challenge.odpt.org/api/v4/odpt:Railway?odpt:operator=odpt.Operator:Odakyu",
+        "stations": "https://api-challenge.odpt.org/api/v4/odpt:Station?odpt:operator=odpt.Operator:Odakyu",
+        "stationTimetables": "https://api-challenge.odpt.org/api/v4/odpt:StationTimetable?odpt:operator=odpt.Operator:Odakyu"
+      },
+      "targetLines": [
+        {
+          "key": "Odawara",
+          "nameJa": "小田原線",
+          "priority": 1,
+          "initialGraphScope": "Shinjuku-Machida"
+        },
+        { "key": "Enoshima", "nameJa": "江ノ島線", "priority": 2 },
+        { "key": "Tama", "nameJa": "多摩線", "priority": 3 }
+      ]
+    }
+  ]
+}

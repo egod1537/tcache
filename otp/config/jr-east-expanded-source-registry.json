@@ -1,0 +1,101 @@
+{
+  "schemaVersion": "1.0",
+  "operator": "jr-east",
+  "scope": {
+    "purpose": "personal-education-and-research",
+    "externalDistribution": false,
+    "commercialUse": false
+  },
+  "lines": [
+    {
+      "lineKey": "yamanote",
+      "priority": 0,
+      "status": "active",
+      "officialNameJa": "山手線",
+      "officialNameEn": "Yamanote Line",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list1039.html",
+      "sourceLineName": "山手線",
+      "routeShortName": "JY"
+    },
+    {
+      "lineKey": "chuo-rapid",
+      "priority": 1,
+      "status": "active",
+      "officialNameJa": "中央線快速",
+      "officialNameEn": "Chuo Line (Rapid)",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list0866.html",
+      "sourceLineName": "中央線快速",
+      "routeShortName": "JC"
+    },
+    {
+      "lineKey": "chuo-sobu-local",
+      "priority": 2,
+      "status": "active",
+      "officialNameJa": "中央・総武線各駅停車",
+      "officialNameEn": "Chuo-Sobu Line (Local)",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list0866.html",
+      "sourceLineName": "中央・総武線各駅停車",
+      "routeShortName": "JB"
+    },
+    {
+      "lineKey": "keihin-tohoku",
+      "priority": 3,
+      "status": "active",
+      "officialNameJa": "京浜東北線・根岸線",
+      "officialNameEn": "Keihin-Tohoku-Negishi Line",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list1039.html",
+      "sourceLineName": "京浜東北線・根岸線",
+      "routeShortName": "JK"
+    },
+    {
+      "lineKey": "sobu-rapid",
+      "priority": 4,
+      "status": "planned",
+      "officialNameJa": "総武線快速",
+      "officialNameEn": "Sobu Line (Rapid)",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list1039.html",
+      "sourceLineName": "総武線快速",
+      "routeShortName": "JO"
+    },
+    {
+      "lineKey": "yokosuka",
+      "priority": 5,
+      "status": "planned",
+      "officialNameJa": "横須賀線",
+      "officialNameEn": "Yokosuka Line",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list1039.html",
+      "sourceLineName": "横須賀線",
+      "routeShortName": "JO"
+    },
+    {
+      "lineKey": "saikyo",
+      "priority": 6,
+      "status": "planned",
+      "officialNameJa": "埼京線・川越線",
+      "officialNameEn": "Saikyo-Kawagoe Line",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list0866.html",
+      "sourceLineName": "埼京線・川越線",
+      "routeShortName": "JA"
+    },
+    {
+      "lineKey": "shonan-shinjuku",
+      "priority": 7,
+      "status": "planned",
+      "officialNameJa": "湘南新宿ライン",
+      "officialNameEn": "Shonan-Shinjuku Line",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list0866.html",
+      "sourceLineName": "湘南新宿ライン",
+      "routeShortName": "JS"
+    },
+    {
+      "lineKey": "joban-tokyo",
+      "priority": 8,
+      "status": "planned",
+      "officialNameJa": "上野東京ライン(常磐線)",
+      "officialNameEn": "Joban Line (Tokyo urban section)",
+      "sourceIndexUrl": "https://timetables.jreast.co.jp/timetable/list1039.html",
+      "sourceLineName": "上野東京ライン(常磐線)",
+      "routeShortName": "JJ"
+    }
+  ]
+}

@@ -6,12 +6,23 @@ import {
   parseStationMappingSet,
 } from '../common/index.js';
 import { attachValidatorSummary, buildGtfs } from './build.js';
-import { JR_EAST_YAMANOTE_GTFS_CONFIG } from './profiles.js';
+import { GtfsGenerationError } from './model.js';
+import {
+  JR_EAST_EXPANDED_GTFS_CONFIG,
+  JR_EAST_YAMANOTE_GTFS_CONFIG,
+  createPrivateRailwayGtfsConfig,
+} from './profiles.js';
 import { runMobilityDataValidator } from './validator.js';
 
 const DEFAULT_MAPPING_PATH = fileURLToPath(
   new URL(
     '../../../data/japan/tokyo/jr-east/mappings/yamanote-osm-reviewed.json',
+    import.meta.url,
+  ),
+);
+const DEFAULT_EXPANDED_MAPPING_PATH = fileURLToPath(
+  new URL(
+    '../../../data/japan/tokyo/jr-east/mappings/expanded-osm-reviewed.json',
     import.meta.url,
   ),
 );
@@ -25,12 +36,18 @@ async function main(): Promise<void> {
   ]);
   const dataset = parseNormalizedTimetable(datasetInput);
   const stationMappingSet = parseStationMappingSet(stationMappingInput);
+  const config =
+    options.profile === 'expanded'
+      ? JR_EAST_EXPANDED_GTFS_CONFIG
+      : options.profile === 'private'
+        ? createPrivateRailwayGtfsConfig(dataset)
+        : JR_EAST_YAMANOTE_GTFS_CONFIG;
   let result = await buildGtfs({
     datasetRoot: options.datasetRoot,
     dataset,
     stationMappingSet,
-    config: JR_EAST_YAMANOTE_GTFS_CONFIG,
-    zipName: 'jr-east-yamanote.gtfs.zip',
+    config,
+    zipName: options.zipName,
   });
   if (!options.skipValidator) {
     const validator = await runMobilityDataValidator({
@@ -64,6 +81,8 @@ interface CliOptions {
   mappingPath: string;
   skipValidator: boolean;
   validatorVersion: string;
+  profile: 'yamanote' | 'expanded' | 'private';
+  zipName: string;
 }
 
 function parseArguments(args: string[]): CliOptions {
@@ -87,15 +106,31 @@ function parseArguments(args: string[]): CliOptions {
   }
   const datasetRoot = values.get('dataset-root');
   if (!datasetRoot) throw new Error('--dataset-root is required');
+  const profileValue = values.get('profile') ?? 'yamanote';
+  if (!['yamanote', 'expanded', 'private'].includes(profileValue)) {
+    throw new Error('--profile must be yamanote, expanded, or private');
+  }
+  const profile = profileValue as CliOptions['profile'];
   const skipValidator = values.get('skip-validator') ?? 'false';
   if (!['true', 'false'].includes(skipValidator)) {
     throw new Error('--skip-validator must be true or false');
   }
   return {
     datasetRoot: resolve(datasetRoot),
-    mappingPath: resolve(values.get('mapping') ?? DEFAULT_MAPPING_PATH),
+    mappingPath: resolve(
+      values.get('mapping') ??
+        (profile === 'expanded'
+          ? DEFAULT_EXPANDED_MAPPING_PATH
+          : DEFAULT_MAPPING_PATH),
+    ),
     skipValidator: skipValidator === 'true',
     validatorVersion: values.get('validator-version') ?? '8.0.1',
+    profile,
+    zipName:
+      values.get('zip-name') ??
+      (profile === 'expanded'
+        ? 'jr-east-expanded.gtfs.zip'
+        : 'jr-east-yamanote.gtfs.zip'),
   };
 }
 
@@ -109,6 +144,12 @@ function printHelp(): void {
   process.stdout.write(
     `  --mapping PATH                reviewed station mapping JSON\n`,
   );
+  process.stdout.write(
+    `  --profile yamanote|expanded|private    default: yamanote\n`,
+  );
+  process.stdout.write(
+    `  --zip-name FILE                output archive name\n`,
+  );
   process.stdout.write(`  --validator-version VERSION   default: 8.0.1\n`);
   process.stdout.write(`  --skip-validator true|false   default: false\n`);
 }
@@ -116,7 +157,13 @@ function printHelp(): void {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await main().catch((error: unknown) => {
     process.stderr.write(
-      `${error instanceof Error ? error.stack : String(error)}\n`,
+      `${
+        error instanceof GtfsGenerationError
+          ? JSON.stringify(error.issues, null, 2)
+          : error instanceof Error
+            ? error.stack
+            : String(error)
+      }\n`,
     );
     process.exitCode = 1;
   });

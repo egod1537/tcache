@@ -1,5 +1,5 @@
 {
-  "configVersion": "tcache-tokyo-jr-toei-poc-1",
+  "configVersion": "tcache-tokyo-jr-toei-metro-poc-1",
   "transitModelTimeZone": "Asia/Tokyo",
   "transitServiceStart": "-P30D",
   "transitServiceEnd": "P1Y",
@@ -19,7 +19,7 @@
     {
       "type": "gtfs",
       "feedId": "jp-tokyo-jr-east",
-      "source": "jr-east-yamanote.gtfs.zip"
+      "source": "jr-east.gtfs.zip"
     },
     {
       "type": "gtfs",
@@ -30,6 +30,11 @@
       "type": "gtfs",
       "feedId": "jp-tokyo-toei-bus",
       "source": "toei-bus-gtfs.zip"
+    },
+    {
+      "type": "gtfs",
+      "feedId": "jp-tokyo-metro",
+      "source": "tokyo-metro.gtfs.zip"
     }
   ]
 }

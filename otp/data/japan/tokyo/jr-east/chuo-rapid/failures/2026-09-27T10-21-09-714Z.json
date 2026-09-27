@@ -1,0 +1,7 @@
+{
+  "status": "FAILED",
+  "code": "PARSE_FAILED",
+  "message": "Unexpected matrix cell \"・\" for train 525T",
+  "sourceUrl": "https://timetables.jreast.co.jp/2610/timetable-v/658d1.html",
+  "failedAt": "2026-09-27T10:21:09.714Z"
+}

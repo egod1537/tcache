@@ -1,0 +1,520 @@
+{
+  "schemaVersion": "1.0",
+  "departureTime": "2026-09-29T10:00:00+09:00",
+  "itineraryCount": 12,
+  "description": "Ten route-specific weekday OD regressions for each newly activated JR East line. Every passing itinerary must contain the requested JR route short name.",
+  "routes": [
+    {
+      "id": "jc-tokyo-ochanomizu",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Tokyo",
+        "latitude": 35.681244,
+        "longitude": 139.7666095
+      },
+      "destination": {
+        "name": "Ochanomizu",
+        "latitude": 35.6995867,
+        "longitude": 139.7650133
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-tokyo-yotsuya",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Tokyo",
+        "latitude": 35.681244,
+        "longitude": 139.7666095
+      },
+      "destination": {
+        "name": "Yotsuya",
+        "latitude": 35.685895,
+        "longitude": 139.730612
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-ochanomizu-shinjuku",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Ochanomizu",
+        "latitude": 35.6995867,
+        "longitude": 139.7650133
+      },
+      "destination": {
+        "name": "Shinjuku",
+        "latitude": 35.6889594,
+        "longitude": 139.7002855
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-shinjuku-nakano",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6889594,
+        "longitude": 139.7002855
+      },
+      "destination": {
+        "name": "Nakano",
+        "latitude": 35.7058455,
+        "longitude": 139.665535
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-nakano-kichijoji",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Nakano",
+        "latitude": 35.7058455,
+        "longitude": 139.665535
+      },
+      "destination": {
+        "name": "Kichijoji",
+        "latitude": 35.7031228,
+        "longitude": 139.5802192
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-kichijoji-mitaka",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Kichijoji",
+        "latitude": 35.7031228,
+        "longitude": 139.5802192
+      },
+      "destination": {
+        "name": "Mitaka",
+        "latitude": 35.7027618,
+        "longitude": 139.5609353
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-mitaka-kokubunji",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Mitaka",
+        "latitude": 35.7027618,
+        "longitude": 139.5609353
+      },
+      "destination": {
+        "name": "Kokubunji",
+        "latitude": 35.7001003,
+        "longitude": 139.4803582
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-kokubunji-tachikawa",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Kokubunji",
+        "latitude": 35.7001003,
+        "longitude": 139.4803582
+      },
+      "destination": {
+        "name": "Tachikawa",
+        "latitude": 35.6980464,
+        "longitude": 139.4135506
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-tachikawa-hachioji",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Tachikawa",
+        "latitude": 35.6980464,
+        "longitude": 139.4135506
+      },
+      "destination": {
+        "name": "Hachioji",
+        "latitude": 35.6554416,
+        "longitude": 139.339487
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+    {
+      "id": "jc-hachioji-takao",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Hachioji",
+        "latitude": 35.6554416,
+        "longitude": 139.339487
+      },
+      "destination": {
+        "name": "Takao",
+        "latitude": 35.6422803,
+        "longitude": 139.2824029
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JC"]
+    },
+
+    {
+      "id": "jb-chiba-nishichiba",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Chiba",
+        "latitude": 35.6134053,
+        "longitude": 140.1124232
+      },
+      "destination": {
+        "name": "Nishi-Chiba",
+        "latitude": 35.6227646,
+        "longitude": 140.10318
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-nishichiba-inage",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Nishi-Chiba",
+        "latitude": 35.6227646,
+        "longitude": 140.10318
+      },
+      "destination": {
+        "name": "Inage",
+        "latitude": 35.6370209,
+        "longitude": 140.0924078
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-inage-makuhari",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Inage",
+        "latitude": 35.6370209,
+        "longitude": 140.0924078
+      },
+      "destination": {
+        "name": "Makuhari",
+        "latitude": 35.6593666,
+        "longitude": 140.0579166
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-makuhari-tsudanuma",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Makuhari",
+        "latitude": 35.6593666,
+        "longitude": 140.0579166
+      },
+      "destination": {
+        "name": "Tsudanuma",
+        "latitude": 35.6913124,
+        "longitude": 140.0201214
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-tsudanuma-funabashi",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Tsudanuma",
+        "latitude": 35.6913124,
+        "longitude": 140.0201214
+      },
+      "destination": {
+        "name": "Funabashi",
+        "latitude": 35.7015367,
+        "longitude": 139.9852165
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-funabashi-ichikawa",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Funabashi",
+        "latitude": 35.7015367,
+        "longitude": 139.9852165
+      },
+      "destination": {
+        "name": "Ichikawa North Exit",
+        "latitude": 35.7294602,
+        "longitude": 139.9074545
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-ichikawa-kinshicho",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Ichikawa North Exit",
+        "latitude": 35.7294602,
+        "longitude": 139.9074545
+      },
+      "destination": {
+        "name": "Kinshicho",
+        "latitude": 35.6965976,
+        "longitude": 139.8139656
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-kinshicho-akihabara",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Kinshicho",
+        "latitude": 35.6965976,
+        "longitude": 139.8139656
+      },
+      "destination": {
+        "name": "Akihabara",
+        "latitude": 35.6983647,
+        "longitude": 139.7730592
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-iidabashi-shinjuku",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Iidabashi",
+        "latitude": 35.7007786,
+        "longitude": 139.7439464
+      },
+      "destination": {
+        "name": "Shinjuku",
+        "latitude": 35.6889594,
+        "longitude": 139.7002855
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+    {
+      "id": "jb-nakano-mitaka",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Nakano",
+        "latitude": 35.7058455,
+        "longitude": 139.665535
+      },
+      "destination": {
+        "name": "Mitaka",
+        "latitude": 35.7027618,
+        "longitude": 139.5609353
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JB"]
+    },
+
+    {
+      "id": "jk-omiya-saitamashintoshin",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Omiya",
+        "latitude": 35.9064481,
+        "longitude": 139.6246669
+      },
+      "destination": {
+        "name": "Saitama-Shintoshin",
+        "latitude": 35.8936457,
+        "longitude": 139.6339646
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-urawa-kitaurawa",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Urawa",
+        "latitude": 35.85903,
+        "longitude": 139.6572911
+      },
+      "destination": {
+        "name": "Kita-Urawa",
+        "latitude": 35.8721594,
+        "longitude": 139.6461046
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-akabane-oji",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Akabane",
+        "latitude": 35.7782533,
+        "longitude": 139.7210464
+      },
+      "destination": {
+        "name": "Oji",
+        "latitude": 35.7523456,
+        "longitude": 139.7382632
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-oji-tabata",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Oji",
+        "latitude": 35.7523456,
+        "longitude": 139.7382632
+      },
+      "destination": {
+        "name": "Tabata",
+        "latitude": 35.7373845,
+        "longitude": 139.7617238
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-shinagawa-oimachi",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Shinagawa",
+        "latitude": 35.628654,
+        "longitude": 139.7385067
+      },
+      "destination": {
+        "name": "Oimachi",
+        "latitude": 35.6063926,
+        "longitude": 139.7348829
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-oimachi-omori",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Oimachi",
+        "latitude": 35.6063926,
+        "longitude": 139.7348829
+      },
+      "destination": {
+        "name": "Omori",
+        "latitude": 35.5885055,
+        "longitude": 139.7278528
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-omori-kamata",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Omori",
+        "latitude": 35.5885055,
+        "longitude": 139.7278528
+      },
+      "destination": {
+        "name": "Kamata",
+        "latitude": 35.5624707,
+        "longitude": 139.7159981
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-kamata-kawasaki",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Kamata",
+        "latitude": 35.5624707,
+        "longitude": 139.7159981
+      },
+      "destination": {
+        "name": "Kawasaki",
+        "latitude": 35.5314371,
+        "longitude": 139.6968497
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-kawasaki-yokohama",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Kawasaki",
+        "latitude": 35.5314371,
+        "longitude": 139.6968497
+      },
+      "destination": {
+        "name": "Yokohama",
+        "latitude": 35.4656482,
+        "longitude": 139.6225325
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    },
+    {
+      "id": "jk-yokohama-sakuragicho",
+      "category": "JR_ONLY",
+      "origin": {
+        "name": "Yokohama",
+        "latitude": 35.4656482,
+        "longitude": 139.6225325
+      },
+      "destination": {
+        "name": "Sakuragicho",
+        "latitude": 35.451018,
+        "longitude": 139.6309891
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-jr-east"],
+      "requiredRoutes": ["JK"]
+    }
+  ]
+}

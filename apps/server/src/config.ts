@@ -4,6 +4,7 @@ import {
   type RouteProviderPolicy,
   type RouteProviderPolicySource,
 } from '../../../route/server/resolver/provider-policy.js';
+import type { OtpFeedStatus } from '../../../route/server/providers/otp/types.js';
 
 export interface AppConfig {
   nodeEnv: string;
@@ -46,6 +47,23 @@ export interface AppConfig {
   otpGraphBuildId: string;
   otpGtfsDatasetVersion: string;
   otpOsmDatasetVersion: string;
+  otpQualityGateStatus: string;
+  otpTotalStopCount: number | null;
+  otpLinkedStopCount: number | null;
+  otpIsolatedStopCount: number | null;
+  otpIsolatedStopRatio: number | null;
+  otpUnlinkedTransferCount: number | null;
+  otpUnlinkedTransferRatio: number | null;
+  otpPrunedStopIslandCount: number | null;
+  otpSnappingDistanceP50Meters: number | null;
+  otpSnappingDistanceP95Meters: number | null;
+  otpSnappingDistanceMaxMeters: number | null;
+  otpCrossFeedStationComplexCount: number | null;
+  otpSmokePassRate: number | null;
+  otpTransferRegressionPassRate: number | null;
+  otpBaselineUnlinkedDelta: number | null;
+  otpBaselinePrunedDelta: number | null;
+  otpFeedStatuses: OtpFeedStatus[];
   aiJobTtlSeconds: number;
   aiCacheTtlSeconds: number;
   aiProviderTimeoutMs: number;
@@ -92,6 +110,47 @@ function readBoolean(
   if (normalized === 'true') return true;
   if (normalized === 'false') return false;
   throw new Error(`Invalid ${name}: ${value}`);
+}
+
+function readOptionalNumber(
+  name: string,
+  value: string | undefined,
+  minimum = Number.NEGATIVE_INFINITY,
+  maximum = Number.POSITIVE_INFINITY,
+): number | null {
+  if (value === undefined || value.trim() === '') return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < minimum || parsed > maximum) {
+    throw new Error(`Invalid ${name}: ${value}`);
+  }
+  return parsed;
+}
+
+function readOtpFeedStatuses(value: string | undefined): OtpFeedStatus[] {
+  if (!value?.trim()) return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new Error('Invalid OTP_FEED_STATUS_JSON: malformed JSON');
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error('Invalid OTP_FEED_STATUS_JSON: expected an array');
+  }
+  return parsed.map((item, index) => {
+    if (
+      typeof item !== 'object' ||
+      item === null ||
+      typeof (item as Record<string, unknown>).feedId !== 'string' ||
+      typeof (item as Record<string, unknown>).operator !== 'string' ||
+      typeof (item as Record<string, unknown>).validatorStatus !== 'string' ||
+      typeof (item as Record<string, unknown>).graphIncluded !== 'boolean' ||
+      typeof (item as Record<string, unknown>).status !== 'string'
+    ) {
+      throw new Error(`Invalid OTP_FEED_STATUS_JSON entry ${index}`);
+    }
+    return item as OtpFeedStatus;
+  });
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -205,6 +264,85 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     otpGraphBuildId: env.OTP_GRAPH_BUILD_ID?.trim() ?? '',
     otpGtfsDatasetVersion: env.OTP_GTFS_DATASET_VERSION?.trim() ?? '',
     otpOsmDatasetVersion: env.OTP_OSM_DATASET_VERSION?.trim() ?? '',
+    otpQualityGateStatus: env.OTP_QUALITY_GATE_STATUS?.trim() ?? '',
+    otpTotalStopCount: readOptionalNumber(
+      'OTP_TOTAL_STOP_COUNT',
+      env.OTP_TOTAL_STOP_COUNT,
+      0,
+    ),
+    otpLinkedStopCount: readOptionalNumber(
+      'OTP_LINKED_STOP_COUNT',
+      env.OTP_LINKED_STOP_COUNT,
+      0,
+    ),
+    otpIsolatedStopCount: readOptionalNumber(
+      'OTP_ISOLATED_STOP_COUNT',
+      env.OTP_ISOLATED_STOP_COUNT,
+      0,
+    ),
+    otpIsolatedStopRatio: readOptionalNumber(
+      'OTP_ISOLATED_STOP_RATIO',
+      env.OTP_ISOLATED_STOP_RATIO,
+      0,
+      1,
+    ),
+    otpUnlinkedTransferCount: readOptionalNumber(
+      'OTP_UNLINKED_TRANSFER_COUNT',
+      env.OTP_UNLINKED_TRANSFER_COUNT,
+      0,
+    ),
+    otpUnlinkedTransferRatio: readOptionalNumber(
+      'OTP_UNLINKED_TRANSFER_RATIO',
+      env.OTP_UNLINKED_TRANSFER_RATIO,
+      0,
+      1,
+    ),
+    otpPrunedStopIslandCount: readOptionalNumber(
+      'OTP_PRUNED_STOP_ISLAND_COUNT',
+      env.OTP_PRUNED_STOP_ISLAND_COUNT,
+      0,
+    ),
+    otpSnappingDistanceP50Meters: readOptionalNumber(
+      'OTP_SNAPPING_DISTANCE_P50_METERS',
+      env.OTP_SNAPPING_DISTANCE_P50_METERS,
+      0,
+    ),
+    otpSnappingDistanceP95Meters: readOptionalNumber(
+      'OTP_SNAPPING_DISTANCE_P95_METERS',
+      env.OTP_SNAPPING_DISTANCE_P95_METERS,
+      0,
+    ),
+    otpSnappingDistanceMaxMeters: readOptionalNumber(
+      'OTP_SNAPPING_DISTANCE_MAX_METERS',
+      env.OTP_SNAPPING_DISTANCE_MAX_METERS,
+      0,
+    ),
+    otpCrossFeedStationComplexCount: readOptionalNumber(
+      'OTP_CROSS_FEED_STATION_COMPLEX_COUNT',
+      env.OTP_CROSS_FEED_STATION_COMPLEX_COUNT,
+      0,
+    ),
+    otpSmokePassRate: readOptionalNumber(
+      'OTP_SMOKE_PASS_RATE',
+      env.OTP_SMOKE_PASS_RATE,
+      0,
+      1,
+    ),
+    otpTransferRegressionPassRate: readOptionalNumber(
+      'OTP_TRANSFER_REGRESSION_PASS_RATE',
+      env.OTP_TRANSFER_REGRESSION_PASS_RATE,
+      0,
+      1,
+    ),
+    otpBaselineUnlinkedDelta: readOptionalNumber(
+      'OTP_BASELINE_UNLINKED_DELTA',
+      env.OTP_BASELINE_UNLINKED_DELTA,
+    ),
+    otpBaselinePrunedDelta: readOptionalNumber(
+      'OTP_BASELINE_PRUNED_DELTA',
+      env.OTP_BASELINE_PRUNED_DELTA,
+    ),
+    otpFeedStatuses: readOtpFeedStatuses(env.OTP_FEED_STATUS_JSON),
     aiJobTtlSeconds: readPositiveInteger(
       'AI_JOB_TTL_SECONDS',
       env.AI_JOB_TTL_SECONDS,

@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "1.0",
+  "maximumSourceAgeHours": 1080,
+  "minimumParseCoverage": 0.95,
+  "maximumParseCoverageDecrease": 0.02,
+  "maximumStationCountRelativeChange": 0.05,
+  "requireApprovedBaseline": true,
+  "requireReviewForSourceHashChange": true,
+  "requireExactParserStructureVersion": true,
+  "validatorErrorsMax": 0,
+  "policy": "A normal timetable refresh may change bytes or versions, but promotion requires an explicit reviewedChange record and must remain inside station-count and parse-coverage anomaly budgets."
+}

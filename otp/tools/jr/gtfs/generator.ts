@@ -109,7 +109,8 @@ export function generateGtfsFeed(input: {
   for (const trip of [...dataset.trips].sort((left, right) =>
     left.internalTripId.localeCompare(right.internalTripId),
   )) {
-    for (const [index, stop] of trip.stopTimes.entries()) {
+    const calledStops = trip.stopTimes.filter((stop) => !stop.passThrough);
+    for (const [index, stop] of calledStops.entries()) {
       const arrival = stop.arrival ?? stop.departure;
       const departure = stop.departure ?? stop.arrival;
       stopTimes.push({
@@ -411,8 +412,16 @@ function validateInputs(input: {
     }
   }
   dataset.trips.forEach((trip, tripIndex) => {
+    const calledStops = trip.stopTimes.filter((stop) => !stop.passThrough);
+    if (calledStops.length < 2) {
+      issues.push({
+        code: 'TRIP_CALLED_STOPS_TOO_FEW',
+        path: `trips[${tripIndex}].stopTimes`,
+        message: `${trip.internalTripId} has fewer than two called stops`,
+      });
+    }
     trip.stopTimes.forEach((stop, stopIndex) => {
-      if (!stop.arrival && !stop.departure) {
+      if (!stop.passThrough && !stop.arrival && !stop.departure) {
         issues.push({
           code: 'STOP_TIME_MISSING',
           path: `trips[${tripIndex}].stopTimes[${stopIndex}]`,
@@ -430,24 +439,26 @@ function validateGeneratedStopTimes(
   const issues: GtfsGenerationIssue[] = [];
   dataset.trips.forEach((trip, tripIndex) => {
     let previous: ServiceDayTime | undefined;
-    trip.stopTimes.forEach((stop, stopIndex) => {
-      const arrival = stop.arrival ?? stop.departure;
-      const departure = stop.departure ?? stop.arrival;
-      for (const event of [arrival, departure]) {
-        if (
-          event &&
-          previous &&
-          serviceDaySeconds(event) < serviceDaySeconds(previous)
-        ) {
-          issues.push({
-            code: 'GTFS_TIME_REGRESSION',
-            path: `trips[${tripIndex}].stopTimes[${stopIndex}]`,
-            message: `GTFS time regresses in ${trip.internalTripId}`,
-          });
+    trip.stopTimes
+      .filter((stop) => !stop.passThrough)
+      .forEach((stop, stopIndex) => {
+        const arrival = stop.arrival ?? stop.departure;
+        const departure = stop.departure ?? stop.arrival;
+        for (const event of [arrival, departure]) {
+          if (
+            event &&
+            previous &&
+            serviceDaySeconds(event) < serviceDaySeconds(previous)
+          ) {
+            issues.push({
+              code: 'GTFS_TIME_REGRESSION',
+              path: `trips[${tripIndex}].stopTimes[${stopIndex}]`,
+              message: `GTFS time regresses in ${trip.internalTripId}`,
+            });
+          }
+          if (event) previous = event;
         }
-        if (event) previous = event;
-      }
-    });
+      });
   });
   return issues;
 }

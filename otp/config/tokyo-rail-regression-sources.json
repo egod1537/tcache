@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "minimumRouteCount": 100,
+  "expectedRouteCount": 148,
+  "defaultQualityConstraints": {
+    "maxTransfers": 5,
+    "maxWalkSeconds": 1800,
+    "maxDurationSeconds": 14400,
+    "maxDistanceDetourFactor": 6
+  },
+  "requiredFeedIds": [
+    "jp-tokyo-jr-east",
+    "jp-tokyo-metro",
+    "jp-tokyo-toei-rail",
+    "jp-tokyo-toei-bus",
+    "jp-tokyo-tokyu",
+    "jp-tokyo-keio",
+    "jp-tokyo-odakyu",
+    "jp-tokyo-keikyu",
+    "jp-tokyo-keisei",
+    "jp-tokyo-seibu",
+    "jp-tokyo-tobu",
+    "jp-tokyo-sotetsu"
+  ],
+  "sources": [
+    "config/integrated-smoke-tests.json",
+    "config/jr-east-expansion-smoke-tests.json",
+    "config/tokyo-metro-smoke-tests.json",
+    "config/private-core-smoke-tests.json",
+    "config/airport-regression-cases.json"
+  ]
+}

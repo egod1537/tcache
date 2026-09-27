@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tcache.local/schemas/tokyo-rail-source-snapshot.schema.json",
+  "title": "Tokyo rail source snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "capturedAt", "feeds"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "capturedAt": { "type": "string", "format": "date-time" },
+    "feeds": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "feedId",
+          "sourceSha256",
+          "gtfsSha256",
+          "parserStructureVersion",
+          "stationCount",
+          "parseCoverage",
+          "validatorErrorCount",
+          "collectedAt"
+        ],
+        "properties": {
+          "feedId": { "type": "string", "minLength": 1 },
+          "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "gtfsSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "sourceEdition": {
+            "type": ["object", "null"],
+            "properties": {
+              "observedRawKey": { "type": ["string", "null"] },
+              "humanReadableLabel": { "type": ["string", "null"] }
+            }
+          },
+          "gtfsVersion": { "type": ["string", "null"] },
+          "parserStructureVersion": { "type": "string", "minLength": 1 },
+          "stationCount": { "type": "integer", "minimum": 1 },
+          "sourceTripCount": { "type": ["integer", "null"], "minimum": 0 },
+          "parsedTripCount": { "type": ["integer", "null"], "minimum": 0 },
+          "parseCoverage": { "type": "number", "minimum": 0, "maximum": 1 },
+          "validatorErrorCount": { "type": "integer", "minimum": 0 },
+          "collectedAt": { "type": "string", "format": "date-time" },
+          "reviewedChange": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "previousSourceSha256",
+              "reviewedAt",
+              "reviewedBy",
+              "reason"
+            ],
+            "properties": {
+              "status": { "const": "APPROVED" },
+              "previousSourceSha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "reviewedAt": { "type": "string", "format": "date-time" },
+              "reviewedBy": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "anyOf": [
+          { "required": ["gtfsVersion"] },
+          { "required": ["sourceEdition"] }
+        ]
+      }
+    }
+  }
+}

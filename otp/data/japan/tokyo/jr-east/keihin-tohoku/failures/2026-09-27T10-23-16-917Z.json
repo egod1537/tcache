@@ -1,0 +1,7 @@
+{
+  "status": "FAILED",
+  "code": "PAGE_STRUCTURE_CHANGED",
+  "message": "Matrix heading for keihin-tohoku/southbound no longer contains 下り",
+  "sourceUrl": "https://timetables.jreast.co.jp/2610/timetable-v/623d1.html",
+  "failedAt": "2026-09-27T10:23:16.917Z"
+}

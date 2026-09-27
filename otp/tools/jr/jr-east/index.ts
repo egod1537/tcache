@@ -27,7 +27,9 @@ export function createJrEastLineId(stableLineKey: string): string {
 export * from './collector.js';
 export * from './detail-parser.js';
 export * from './errors.js';
+export * from './line-registry.js';
 export * from './matrix-parser.js';
+export * from './merge-expanded.js';
 export * from './model.js';
 export * from './output.js';
 export * from './pipeline.js';

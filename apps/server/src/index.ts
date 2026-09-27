@@ -85,6 +85,59 @@ const otpRouteProvider = new OtpRouteProvider({
   ...(config.otpOsmDatasetVersion
     ? { osmDatasetVersion: config.otpOsmDatasetVersion }
     : {}),
+  ...(config.otpQualityGateStatus
+    ? { qualityGateStatus: config.otpQualityGateStatus }
+    : {}),
+  ...(config.otpTotalStopCount === null
+    ? {}
+    : { totalStopCount: config.otpTotalStopCount }),
+  ...(config.otpLinkedStopCount === null
+    ? {}
+    : { linkedStopCount: config.otpLinkedStopCount }),
+  ...(config.otpIsolatedStopCount === null
+    ? {}
+    : { isolatedStopCount: config.otpIsolatedStopCount }),
+  ...(config.otpIsolatedStopRatio === null
+    ? {}
+    : { isolatedStopRatio: config.otpIsolatedStopRatio }),
+  ...(config.otpUnlinkedTransferCount === null
+    ? {}
+    : { unlinkedTransferCount: config.otpUnlinkedTransferCount }),
+  ...(config.otpUnlinkedTransferRatio === null
+    ? {}
+    : { unlinkedTransferRatio: config.otpUnlinkedTransferRatio }),
+  ...(config.otpPrunedStopIslandCount === null
+    ? {}
+    : { prunedStopIslandCount: config.otpPrunedStopIslandCount }),
+  ...(config.otpSnappingDistanceP50Meters === null
+    ? {}
+    : { snappingDistanceP50Meters: config.otpSnappingDistanceP50Meters }),
+  ...(config.otpSnappingDistanceP95Meters === null
+    ? {}
+    : { snappingDistanceP95Meters: config.otpSnappingDistanceP95Meters }),
+  ...(config.otpSnappingDistanceMaxMeters === null
+    ? {}
+    : { snappingDistanceMaxMeters: config.otpSnappingDistanceMaxMeters }),
+  ...(config.otpCrossFeedStationComplexCount === null
+    ? {}
+    : {
+        crossFeedStationComplexCount: config.otpCrossFeedStationComplexCount,
+      }),
+  ...(config.otpSmokePassRate === null
+    ? {}
+    : { smokePassRate: config.otpSmokePassRate }),
+  ...(config.otpTransferRegressionPassRate === null
+    ? {}
+    : { transferRegressionPassRate: config.otpTransferRegressionPassRate }),
+  ...(config.otpBaselineUnlinkedDelta === null
+    ? {}
+    : { baselineUnlinkedDelta: config.otpBaselineUnlinkedDelta }),
+  ...(config.otpBaselinePrunedDelta === null
+    ? {}
+    : { baselinePrunedDelta: config.otpBaselinePrunedDelta }),
+  ...(config.otpFeedStatuses.length === 0
+    ? {}
+    : { feedStatuses: config.otpFeedStatuses }),
 });
 const mockRouteProvider = new MockRouteProvider();
 const routeProviders = new RouteProviderRegistry([

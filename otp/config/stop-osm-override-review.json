@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0",
+  "createdAt": "2026-09-27T09:00:00Z",
+  "sourceBuildId": "tokyo-jr-toei-f53870f0c355acaf",
+  "affectedBuildIds": ["tokyo-jr-toei-332c766ffba102df"],
+  "maxEntranceDistanceMeters": 200,
+  "feedSources": {
+    "jp-tokyo-jr-east": {
+      "sha256": "7b9adc2a24e2b2ad83743efbc5c730f558be329c5cb2edcfc1b98d3125a74e92"
+    },
+    "jp-tokyo-toei-rail": {
+      "sha256": "dd5757062317dcf18b8eeaf8bf83f6624ecd3c9fc4fe99918981e5ec2b42d8c4"
+    },
+    "jp-tokyo-toei-bus": {
+      "sha256": "4bc851aad0b46962554b5559caec680710eb5a612563f1951779a2b99b389867"
+    }
+  },
+  "osm": {
+    "source": "https://download.geofabrik.de/asia/japan/kanto-latest.osm.pbf",
+    "sha256": "0747588374b2950a344bff998a8fcb0109624b2757b257ee5b297af52f90504d",
+    "sourceBytes": 513650154,
+    "snapshotTimestamp": "2026-09-26T20:22:51Z",
+    "extractBbox": [139.16, 35.56, 139.95, 35.86],
+    "extractStrategy": "complete_ways",
+    "extractSha256": "5edd49af689b176584536065c80a9e197f7494b54fcf46d7dc88becfe8a510bb",
+    "extractBytes": 179751784,
+    "extractTool": "osmium-tool 1.19.1",
+    "extractDurationSeconds": 5.12,
+    "extractMaxResidentSetBytes": 2621325312,
+    "referenceIntegrity": "PASS (0 missing way nodes)"
+  },
+  "reviewedStops": [
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:上野",
+      "reviewNote": "The nearest Park Gate remained on a pruned Ueno Park component. Use Hirokoji Gate on the connected south-side street frontage.",
+      "target": {
+        "distanceMeters": 186,
+        "elementType": "node",
+        "elementId": "4564491170",
+        "lat": 35.7119325,
+        "lon": 139.7757599,
+        "tags": {
+          "railway": "train_station_entrance",
+          "name:ja": "広小路口"
+        }
+      }
+    },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:品川" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:大塚" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:巣鴨" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:恵比寿" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:新大久保" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:有楽町" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:東京" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:田端" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:目黒" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:西日暮里" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:高輪ゲートウェイ" },
+    { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:鶯谷" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "101" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "102" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "103" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "104" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "105" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "106" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "107" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "207" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "218" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "224" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "225" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "226" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "317" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "403" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "432" },
+    { "feedId": "jp-tokyo-toei-rail", "stopId": "439" }
+  ]
+}

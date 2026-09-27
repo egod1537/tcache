@@ -1,0 +1,117 @@
+{
+  "schemaVersion": "1.0",
+  "registryVersion": "tokyo-private-outer-2026-09-27",
+  "scope": {
+    "purpose": "personal-education-and-research",
+    "externalDistribution": false,
+    "commercialUse": false
+  },
+  "authentication": {
+    "environmentVariable": "ODPT_CHALLENGE_KEY",
+    "credentialStored": false,
+    "registrationUrl": "https://developer.odpt.org/"
+  },
+  "license": {
+    "name": "Public Transport Open Data Challenge Limited License",
+    "url": "https://developer.odpt.org/terms"
+  },
+  "operators": [
+    {
+      "operatorId": "keikyu",
+      "feedId": "jp-tokyo-keikyu",
+      "nameJa": "京急電鉄",
+      "classification": "TYPE_B",
+      "status": "BLOCKED_AUTH",
+      "catalogUrl": "https://ckan.odpt.org/dataset/?organization=keikyu",
+      "sourceAdapter": "odpt-station-timetable/1.0.0",
+      "endpoints": {
+        "railways": "https://api-challenge.odpt.org/api/v4/odpt:Railway?odpt:operator=odpt.Operator:Keikyu",
+        "stations": "https://api-challenge.odpt.org/api/v4/odpt:Station?odpt:operator=odpt.Operator:Keikyu",
+        "stationTimetables": "https://api-challenge.odpt.org/api/v4/odpt:StationTimetable?odpt:operator=odpt.Operator:Keikyu"
+      },
+      "targetLines": [
+        { "key": "Main", "nameJa": "本線", "priority": 1 },
+        { "key": "Airport", "nameJa": "空港線", "priority": 2 }
+      ]
+    },
+    {
+      "operatorId": "keisei",
+      "feedId": "jp-tokyo-keisei",
+      "nameJa": "京成電鉄",
+      "classification": "TYPE_D",
+      "status": "BLOCKED_NO_TRAIN_LEVEL_MACHINE_SOURCE",
+      "catalogUrl": "https://www.keisei.co.jp/keisei/tetudou/accessj/",
+      "sourceAdapter": null,
+      "reason": "No current official GTFS/ODPT dataset was found. Official station timetables do not provide a verified train-level reconstruction contract for general Main Line and Narita Sky Access service.",
+      "paidLimitedExpressPolicy": "EXCLUDED_UNTIL_EXPLICITLY_MODELLED",
+      "evidenceUrls": [
+        "https://new-www.keisei.co.jp/keisei/tetudou/skyliner/jp/traffic/skyliner_timetable.php",
+        "https://www.keisei.co.jp/keisei/tetudou/accessj/"
+      ],
+      "targetLines": [
+        { "key": "Main", "nameJa": "京成本線", "priority": 1 },
+        {
+          "key": "NaritaSkyAccess",
+          "nameJa": "成田スカイアクセス線",
+          "priority": 2
+        }
+      ]
+    },
+    {
+      "operatorId": "seibu",
+      "feedId": "jp-tokyo-seibu",
+      "nameJa": "西武鉄道",
+      "classification": "TYPE_B",
+      "status": "BLOCKED_AUTH",
+      "catalogUrl": "https://ckan.odpt.org/dataset/?organization=seibu",
+      "sourceAdapter": "odpt-station-timetable/1.0.0",
+      "endpoints": {
+        "railways": "https://api-challenge.odpt.org/api/v4/odpt:Railway?odpt:operator=odpt.Operator:Seibu",
+        "stations": "https://api-challenge.odpt.org/api/v4/odpt:Station?odpt:operator=odpt.Operator:Seibu",
+        "stationTimetables": "https://api-challenge.odpt.org/api/v4/odpt:StationTimetable?odpt:operator=odpt.Operator:Seibu"
+      },
+      "targetLines": [
+        { "key": "Ikebukuro", "nameJa": "池袋線", "priority": 1 },
+        { "key": "Shinjuku", "nameJa": "新宿線", "priority": 2 }
+      ]
+    },
+    {
+      "operatorId": "tobu",
+      "feedId": "jp-tokyo-tobu",
+      "nameJa": "東武鉄道",
+      "classification": "TYPE_A",
+      "status": "BLOCKED_AUTH",
+      "catalogUrl": "https://ckan.odpt.org/dataset/tobu_train",
+      "sourceAdapter": "official-gtfs-pass-through/1.0.0",
+      "endpoints": {
+        "gtfs": "https://api-challenge.odpt.org/api/v4/files/Tobu/data/Tobu-Train-GTFS.zip"
+      },
+      "targetLines": [
+        { "key": "Tojo", "nameJa": "東上線", "priority": 1 },
+        {
+          "key": "Skytree",
+          "nameJa": "東武スカイツリーライン",
+          "priority": 2,
+          "initialGraphScope": "Asakusa-Kita-senju"
+        }
+      ]
+    },
+    {
+      "operatorId": "sotetsu",
+      "feedId": "jp-tokyo-sotetsu",
+      "nameJa": "相模鉄道",
+      "classification": "TYPE_A",
+      "status": "BLOCKED_AUTH",
+      "catalogUrl": "https://ckan.odpt.org/dataset/sotetsu_train",
+      "sourceAdapter": "official-gtfs-pass-through/1.0.0",
+      "endpoints": {
+        "gtfs": "https://api-challenge.odpt.org/api/v4/files/Sotetsu/data/Sotetsu-Train-GTFS.zip"
+      },
+      "targetLines": [
+        { "key": "Main", "nameJa": "本線", "priority": 1 },
+        { "key": "Izumino", "nameJa": "いずみ野線", "priority": 2 }
+      ],
+      "throughServicePolicy": "Preserve only source trips/block_ids; never synthesize JR/Tokyu through trips."
+    }
+  ]
+}

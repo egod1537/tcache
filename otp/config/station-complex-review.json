@@ -1,0 +1,1011 @@
+{
+  "schemaVersion": "1.0",
+  "reviewedAt": "2026-09-27",
+  "policy": "Reviewed groupings are diagnostic metadata only; they do not merge OTP stops or create transfers.",
+  "complexes": [
+    {
+      "id": "tokyo:gotanda",
+      "officialNameJa": "五反田",
+      "officialNameEn": "Gotanda",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 150,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes JY23/A05",
+        "adjacent coordinates",
+        "rail interchange context"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:五反田" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "105" }
+      ]
+    },
+    {
+      "id": "tokyo:meguro",
+      "officialNameJa": "目黒",
+      "officialNameEn": "Meguro",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 100,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes JY22/I01",
+        "adjacent coordinates"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:目黒" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "201" }
+      ]
+    },
+    {
+      "id": "tokyo:shimbashi",
+      "officialNameJa": "新橋",
+      "officialNameEn": "Shimbashi",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 180,
+      "matchEvidence": [
+        "station name and bus stop_desc",
+        "GTFS station codes JY29/A10",
+        "multimodal interchange context"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:新橋" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "110" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "0737",
+          "includeChildren": true
+        }
+      ]
+    },
+    {
+      "id": "tokyo:sugamo",
+      "officialNameJa": "巣鴨",
+      "officialNameEn": "Sugamo",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 160,
+      "matchEvidence": [
+        "station name and bus stop_desc",
+        "GTFS station codes JY11/I15",
+        "multimodal interchange context"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:巣鴨" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "215" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "0773",
+          "includeChildren": true
+        }
+      ]
+    },
+    {
+      "id": "tokyo:shinjuku",
+      "officialNameJa": "新宿",
+      "officialNameEn": "Shinjuku",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 450,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes JY17/S01/E27",
+        "two Toei line contexts",
+        "Tokyo Metro station code M08"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:新宿" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "301" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "428" },
+        { "feedId": "jp-tokyo-metro", "stopId": "M08" },
+        { "feedId": "jp-tokyo-keio", "stationCode": "KO01" },
+        { "feedId": "jp-tokyo-odakyu", "stopId": "odakyu:odawara-shinjuku" }
+      ]
+    },
+    {
+      "id": "tokyo:yoyogi",
+      "officialNameJa": "代々木",
+      "officialNameEn": "Yoyogi",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 100,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes JY18/E26",
+        "adjacent coordinates"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:代々木" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "427" }
+      ]
+    },
+    {
+      "id": "tokyo:nippori",
+      "officialNameJa": "日暮里",
+      "officialNameEn": "Nippori",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 180,
+      "matchEvidence": [
+        "bus stop_desc explicitly names JR and Nippori-Toneri Liner",
+        "GTFS station codes JY07/NT01",
+        "OSM entrance 9956308552 near bus platform 1178-03"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true,
+        "nearestReviewedEntrance": {
+          "osmElementType": "node",
+          "osmElementId": 9956308552
+        },
+        "validationMemberIds": [
+          "jp-tokyo-toei-rail:501",
+          "jp-tokyo-toei-bus:1178-03"
+        ]
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:日暮里" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "501" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "1178",
+          "includeChildren": true,
+          "entranceRelation": {
+            "status": "NEAR_REVIEWED_OSM_ENTRANCE",
+            "osmElementType": "node",
+            "osmElementId": 9956308552
+          }
+        },
+        { "feedId": "jp-tokyo-keisei", "stationCode": "KS02" }
+      ]
+    },
+    {
+      "id": "tokyo:nishi-nippori",
+      "officialNameJa": "西日暮里",
+      "officialNameEn": "Nishi-nippori",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 180,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes JY08/NT02",
+        "rail interchange context"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:西日暮里" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "502" }
+      ]
+    },
+    {
+      "id": "tokyo:hamamatsucho-daimon",
+      "officialNameJa": "浜松町・大門",
+      "officialNameEn": "Hamamatsucho / Daimon",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 260,
+      "matchEvidence": [
+        "official interchange pair context",
+        "GTFS station codes JY28/A09/E20",
+        "spatially adjacent station complex"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:浜松町" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "109" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "421" }
+      ]
+    },
+    {
+      "id": "tokyo:okachimachi-ueno-okachimachi",
+      "officialNameJa": "御徒町・上野御徒町",
+      "officialNameEn": "Okachimachi / Ueno-okachimachi",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 180,
+      "matchEvidence": [
+        "interchange name relationship",
+        "GTFS station codes JY04/E09",
+        "spatially adjacent station complex"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:御徒町" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "410" }
+      ]
+    },
+    {
+      "id": "tokyo:otsuka",
+      "officialNameJa": "大塚・大塚駅前",
+      "officialNameEn": "Otsuka",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 170,
+      "matchEvidence": [
+        "bus stop_desc names both JR and Toden",
+        "GTFS station codes JY12/SA23",
+        "adjacent coordinates"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:大塚" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "623" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "0241",
+          "includeChildren": true
+        }
+      ]
+    },
+    {
+      "id": "tokyo:tamachi-mita",
+      "officialNameJa": "田町・三田",
+      "officialNameEn": "Tamachi / Mita",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 160,
+      "matchEvidence": [
+        "official interchange pair context",
+        "GTFS station codes JY27/A08",
+        "spatially adjacent station complex"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:田町" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "108" }
+      ]
+    },
+    {
+      "id": "tokyo:mita",
+      "officialNameJa": "三田",
+      "officialNameEn": "Mita",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 180,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes A08/I04",
+        "two Toei line contexts"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "108" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "204" }
+      ]
+    },
+    {
+      "id": "tokyo:jimbocho",
+      "officialNameJa": "神保町",
+      "officialNameEn": "Jimbocho",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 150,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes I10/S06",
+        "bus stop_desc names both Toei lines"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "210" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "306" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "0761",
+          "includeChildren": true
+        }
+      ]
+    },
+    {
+      "id": "tokyo:kasuga",
+      "officialNameJa": "春日",
+      "officialNameEn": "Kasuga",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 160,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes I12/E07",
+        "two Toei line contexts"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "212" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "408" }
+      ]
+    },
+    {
+      "id": "tokyo:kuramae",
+      "officialNameJa": "蔵前",
+      "officialNameEn": "Kuramae",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 220,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes A17/E11",
+        "known street-level Toei interchange context"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "117" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "412" }
+      ]
+    },
+    {
+      "id": "tokyo:morishita",
+      "officialNameJa": "森下",
+      "officialNameEn": "Morishita",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 150,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes S11/E13",
+        "two Toei line contexts"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "311" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "414" }
+      ]
+    },
+    {
+      "id": "tokyo:higashi-nihombashi-bakuro-yokoyama",
+      "officialNameJa": "東日本橋・馬喰横山",
+      "officialNameEn": "Higashi-nihombashi / Bakuro-yokoyama",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 180,
+      "matchEvidence": [
+        "official interchange pair context",
+        "GTFS station codes A15/S09",
+        "spatially adjacent station complex"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "115" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "309" }
+      ]
+    },
+    {
+      "id": "tokyo:kumano-mae",
+      "officialNameJa": "熊野前",
+      "officialNameEn": "Kumano-mae",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 100,
+      "matchEvidence": [
+        "exact Japanese name",
+        "GTFS station codes NT04/SA09",
+        "adjacent Toei modes"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "504" },
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "609" }
+      ]
+    },
+    {
+      "id": "tokyo:asakusa",
+      "officialNameJa": "浅草・浅草雷門",
+      "officialNameEn": "Asakusa",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 260,
+      "matchEvidence": [
+        "bus stop_desc names Toei Asakusa Line",
+        "station and terminal naming context",
+        "adjacent coordinates"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "118" },
+        { "feedId": "jp-tokyo-tobu", "stationCode": "TS01" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "0032",
+          "includeChildren": true
+        }
+      ]
+    },
+    {
+      "id": "tokyo:roppongi",
+      "officialNameJa": "六本木",
+      "officialNameEn": "Roppongi",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 260,
+      "matchEvidence": [
+        "bus stop_desc names Toei Oedo Line",
+        "station name relationship",
+        "adjacent coordinates"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "424" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "1609",
+          "includeChildren": true
+        }
+      ]
+    },
+    {
+      "id": "tokyo:monzen-nakacho",
+      "officialNameJa": "門前仲町",
+      "officialNameEn": "Monzen-nakacho",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 260,
+      "matchEvidence": [
+        "exact Japanese name",
+        "bus stop_desc names Toei Oedo Line",
+        "adjacent coordinates"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "416" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "1544",
+          "includeChildren": true
+        }
+      ]
+    },
+    {
+      "id": "tokyo:shin-koiwa",
+      "officialNameJa": "新小岩・新小岩駅前",
+      "officialNameEn": "Shin-koiwa",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 120,
+      "matchEvidence": [
+        "bus stop_desc explicitly names JR Sobu Line Shin-koiwa",
+        "JR GTFS station code JB25",
+        "adjacent station and bus terminal coordinates"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true,
+        "validationMemberIds": [
+          "jp-tokyo-jr-east:jr-east:新小岩",
+          "jp-tokyo-toei-bus:0696-02"
+        ]
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:新小岩" },
+        {
+          "feedId": "jp-tokyo-toei-bus",
+          "stopId": "0696",
+          "includeChildren": true
+        }
+      ]
+    },
+    {
+      "id": "tokyo:shibuya",
+      "officialNameJa": "渋谷",
+      "officialNameEn": "Shibuya",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 350,
+      "matchEvidence": [
+        "exact Japanese name",
+        "JR station code JY20",
+        "Tokyo Metro station codes G01/Z01/F16",
+        "multiline interchange context"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:渋谷" },
+        { "feedId": "jp-tokyo-metro", "stopId": "G01" },
+        { "feedId": "jp-tokyo-metro", "stopId": "Z01" },
+        { "feedId": "jp-tokyo-metro", "stopId": "F16" },
+        { "feedId": "jp-tokyo-tokyu", "stopId": "tokyu:toyoko-shibuya" },
+        {
+          "feedId": "jp-tokyo-tokyu",
+          "stopId": "tokyu:denentoshi-shibuya"
+        },
+        { "feedId": "jp-tokyo-keio", "stationCode": "IN01" }
+      ]
+    },
+    {
+      "id": "tokyo:ikebukuro",
+      "officialNameJa": "池袋",
+      "officialNameEn": "Ikebukuro",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 350,
+      "matchEvidence": [
+        "exact Japanese name",
+        "JR station code JY13",
+        "Tokyo Metro station codes M25/Y09/F09",
+        "multiline interchange context"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:池袋" },
+        { "feedId": "jp-tokyo-metro", "stopId": "M25" },
+        { "feedId": "jp-tokyo-metro", "stopId": "Y09" },
+        { "feedId": "jp-tokyo-metro", "stopId": "F09" },
+        {
+          "feedId": "jp-tokyo-seibu",
+          "stopId": "seibu:ikebukuro-ikebukuro"
+        },
+        { "feedId": "jp-tokyo-tobu", "stationCode": "TJ01" }
+      ]
+    },
+    {
+      "id": "tokyo:otemachi",
+      "officialNameJa": "大手町",
+      "officialNameEn": "Otemachi",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 550,
+      "matchEvidence": [
+        "exact Japanese name",
+        "Toei station code I09",
+        "Tokyo Metro station codes M18/T09/C11/Z08",
+        "multiline station complex"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-toei-rail", "stopId": "209" },
+        { "feedId": "jp-tokyo-metro", "stopId": "M18" },
+        { "feedId": "jp-tokyo-metro", "stopId": "T09" },
+        { "feedId": "jp-tokyo-metro", "stopId": "C11" },
+        { "feedId": "jp-tokyo-metro", "stopId": "Z08" }
+      ]
+    },
+    {
+      "id": "tokyo:ginza",
+      "officialNameJa": "銀座",
+      "officialNameEn": "Ginza",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 300,
+      "matchEvidence": [
+        "exact Japanese name",
+        "Tokyo Metro station codes G09/M16/H09",
+        "multiline station complex"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-metro", "stopId": "G09" },
+        { "feedId": "jp-tokyo-metro", "stopId": "M16" },
+        { "feedId": "jp-tokyo-metro", "stopId": "H09" }
+      ]
+    },
+    {
+      "id": "tokyo:ueno",
+      "officialNameJa": "上野",
+      "officialNameEn": "Ueno",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 550,
+      "matchEvidence": [
+        "exact Japanese name",
+        "JR station codes JY05/JK30",
+        "Tokyo Metro station codes G16/H18",
+        "rail interchange context"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:上野" },
+        { "feedId": "jp-tokyo-metro", "stopId": "G16" },
+        { "feedId": "jp-tokyo-metro", "stopId": "H18" },
+        { "feedId": "jp-tokyo-keisei", "stationCode": "KS01" }
+      ]
+    },
+    {
+      "id": "tokyo:kita-senju",
+      "officialNameJa": "北千住",
+      "officialNameEn": "Kita-senju",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-local-review",
+      "maxMemberDistanceMeters": 300,
+      "matchEvidence": [
+        "exact Japanese name",
+        "Tokyo Metro station codes H22/C18",
+        "multiline station complex"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-metro", "stopId": "H22" },
+        { "feedId": "jp-tokyo-metro", "stopId": "C18" },
+        { "feedId": "jp-tokyo-tobu", "stationCode": "TS09" }
+      ]
+    },
+    {
+      "id": "tokyo:kichijoji",
+      "officialNameJa": "吉祥寺",
+      "officialNameEn": "Kichijoji",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 220,
+      "matchEvidence": [
+        "JR and Keio official interchange context",
+        "Keio station code IN17",
+        "exact Japanese station name"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:吉祥寺" },
+        { "feedId": "jp-tokyo-keio", "stationCode": "IN17" }
+      ]
+    },
+    {
+      "id": "tokyo:shimokitazawa",
+      "officialNameJa": "下北沢",
+      "officialNameEn": "Shimokitazawa",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 180,
+      "matchEvidence": [
+        "Keio official page identifies the Odakyu interchange",
+        "Keio station code IN05",
+        "Odakyu station code OH07"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-keio", "stationCode": "IN05" },
+        {
+          "feedId": "jp-tokyo-odakyu",
+          "stopId": "odakyu:odawara-shimokitazawa"
+        }
+      ]
+    },
+    {
+      "id": "tokyo:jiyugaoka",
+      "officialNameJa": "自由が丘",
+      "officialNameEn": "Jiyugaoka",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 150,
+      "matchEvidence": [
+        "Tokyu official station codes TY07/OM10",
+        "same-operator interchange",
+        "exact Japanese station name"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-tokyu", "stopId": "tokyu:toyoko-jiyugaoka" },
+        { "feedId": "jp-tokyo-tokyu", "stopId": "tokyu:oimachi-jiyugaoka" }
+      ]
+    },
+    {
+      "id": "tokyo:meidaimae",
+      "officialNameJa": "明大前",
+      "officialNameEn": "Meidaimae",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 150,
+      "matchEvidence": [
+        "Keio official same-station interchange",
+        "Keio/Inokashira line context",
+        "exact Japanese station name"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-keio", "stationCode": "KO06" },
+        { "feedId": "jp-tokyo-keio", "stationCode": "IN08" }
+      ]
+    },
+    {
+      "id": "tokyo:machida",
+      "officialNameJa": "町田",
+      "officialNameEn": "Machida",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 450,
+      "matchEvidence": [
+        "JR/Odakyu interchange context",
+        "Odakyu station code OH27",
+        "distinct buildings require non-zero walk validation"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:町田" },
+        { "feedId": "jp-tokyo-odakyu", "stopId": "odakyu:odawara-machida" }
+      ]
+    },
+    {
+      "id": "tokyo:tokyo",
+      "officialNameJa": "東京",
+      "officialNameEn": "Tokyo",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 500,
+      "matchEvidence": [
+        "JR Tokyo and Tokyo Metro Marunouchi M17 interchange context",
+        "distinct concourses require routed non-zero walk validation"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:東京" },
+        { "feedId": "jp-tokyo-metro", "stopId": "M17" }
+      ]
+    },
+    {
+      "id": "tokyo:shinagawa",
+      "officialNameJa": "品川",
+      "officialNameEn": "Shinagawa",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 350,
+      "matchEvidence": [
+        "JR/Keikyu official interchange context",
+        "Keikyu station code KK01"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:品川" },
+        { "feedId": "jp-tokyo-keikyu", "stationCode": "KK01" }
+      ]
+    },
+    {
+      "id": "tokyo:nakano",
+      "officialNameJa": "中野",
+      "officialNameEn": "Nakano",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 250,
+      "matchEvidence": [
+        "JR Chuo/Chuo-Sobu and Tokyo Metro Tozai interchange context",
+        "Tokyo Metro station code T01"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:中野" },
+        { "feedId": "jp-tokyo-metro", "stopId": "T01" }
+      ]
+    },
+    {
+      "id": "tokyo:kawasaki",
+      "officialNameJa": "川崎・京急川崎",
+      "officialNameEn": "Kawasaki / Keikyu-kawasaki",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 650,
+      "matchEvidence": [
+        "JR Kawasaki and Keikyu-kawasaki are a signed out-of-gate interchange",
+        "Keikyu station code KK20",
+        "separate station buildings require non-zero street walk validation"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:川崎" },
+        { "feedId": "jp-tokyo-keikyu", "stationCode": "KK20" }
+      ]
+    },
+    {
+      "id": "tokyo:haneda-airport",
+      "officialNameJa": "羽田空港",
+      "officialNameEn": "Haneda Airport",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 2500,
+      "matchEvidence": [
+        "Keikyu official station codes KK16/KK17",
+        "separate terminal stations intentionally remain separate members",
+        "airport regression requires terminal-specific routing"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-keikyu", "stationCode": "KK16" },
+        { "feedId": "jp-tokyo-keikyu", "stationCode": "KK17" }
+      ]
+    },
+    {
+      "id": "tokyo:yokohama",
+      "officialNameJa": "横浜",
+      "officialNameEn": "Yokohama",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 450,
+      "matchEvidence": [
+        "JR/Keikyu/Sotetsu official interchange context",
+        "Keikyu station code KK37",
+        "Sotetsu station code SO01"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:横浜" },
+        { "feedId": "jp-tokyo-keikyu", "stationCode": "KK37" },
+        { "feedId": "jp-tokyo-sotetsu", "stationCode": "SO01" }
+      ]
+    },
+    {
+      "id": "tokyo:musashi-kosugi",
+      "officialNameJa": "武蔵小杉",
+      "officialNameEn": "Musashi-kosugi",
+      "confidence": "HIGH",
+      "reviewedAt": "2026-09-27",
+      "reviewedBy": "tcache-source-contract-review",
+      "maxMemberDistanceMeters": 500,
+      "matchEvidence": [
+        "JR/Tokyu interchange context",
+        "Tokyu station codes TY11/MG11",
+        "Sotetsu through-service must be proven by source trips rather than a synthetic member"
+      ],
+      "walkPathReview": {
+        "status": "ROUTING_REGRESSION_REQUIRED",
+        "restrictedEdgeAvoidance": true
+      },
+      "members": [
+        { "feedId": "jp-tokyo-jr-east", "stopId": "jr-east:武蔵小杉" },
+        {
+          "feedId": "jp-tokyo-tokyu",
+          "stopId": "tokyu:toyoko-musashikosugi"
+        },
+        {
+          "feedId": "jp-tokyo-tokyu",
+          "stopId": "tokyu:meguro-musashikosugi"
+        }
+      ]
+    }
+  ],
+  "explicitRules": []
+}

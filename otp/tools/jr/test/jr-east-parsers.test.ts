@@ -57,6 +57,22 @@ describe('Yamanote matrix parser', () => {
       );
     }
   });
+
+  it('excludes unresolved through-service connector columns instead of guessing a trip', async () => {
+    const html = (await fixture('yamanote-matrix.html')).replace(
+      '>0001<',
+      '>||<',
+    );
+    const parsed = new YamanoteMatrixParser().parse(
+      html,
+      manifest(html, 'chuo-sobu-matrix-html'),
+    );
+
+    expect(parsed.candidates).toHaveLength(2);
+    expect(parsed.diagnostics).toContainEqual(
+      expect.objectContaining({ code: 'AMBIGUOUS_TRIP' }),
+    );
+  });
 });
 
 describe('train detail parser and conflict handling', () => {

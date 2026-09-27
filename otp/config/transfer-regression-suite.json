@@ -1,0 +1,367 @@
+{
+  "schemaVersion": "1.0",
+  "departureTime": "2026-09-29T10:00:00+09:00",
+  "itineraryCount": 20,
+  "cases": [
+    {
+      "id": "jr-tokyo-to-toei-roppongi",
+      "category": "JR_TO_TOEI",
+      "origin": {
+        "name": "Tokyo",
+        "latitude": 35.6815845,
+        "longitude": 139.7660203
+      },
+      "destination": {
+        "name": "Roppongi",
+        "latitude": 35.664106,
+        "longitude": 139.731354
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "feedOrder": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:hamamatsucho-daimon"
+    },
+    {
+      "id": "jr-ueno-to-toei-nishimagome",
+      "category": "JR_TO_TOEI",
+      "origin": {
+        "name": "Ueno",
+        "latitude": 35.7119325,
+        "longitude": 139.7757599
+      },
+      "destination": {
+        "name": "Nishi-magome",
+        "latitude": 35.5870065,
+        "longitude": 139.7062574
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "feedOrder": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:tamachi-mita"
+    },
+    {
+      "id": "jr-ikebukuro-to-toei-jimbocho",
+      "category": "JR_TO_TOEI",
+      "origin": {
+        "name": "Ikebukuro",
+        "latitude": 35.730257,
+        "longitude": 139.710949
+      },
+      "destination": {
+        "name": "Jimbocho",
+        "latitude": 35.695331,
+        "longitude": 139.758213
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "feedOrder": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:sugamo"
+    },
+    {
+      "id": "jr-shibuya-to-toei-asakusa",
+      "category": "JR_TO_TOEI",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.6580215,
+        "longitude": 139.7015858
+      },
+      "destination": {
+        "name": "Asakusa",
+        "latitude": 35.70892,
+        "longitude": 139.796542
+      },
+      "requiredFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "feedOrder": ["jp-tokyo-jr-east", "jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:gotanda"
+    },
+
+    {
+      "id": "toei-roppongi-to-jr-tokyo",
+      "category": "TOEI_TO_JR",
+      "origin": {
+        "name": "Roppongi",
+        "latitude": 35.664106,
+        "longitude": 139.731354
+      },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6815845,
+        "longitude": 139.7660203
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "feedOrder": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "expectedComplexId": "tokyo:hamamatsucho-daimon"
+    },
+    {
+      "id": "toei-nishimagome-to-jr-ueno",
+      "category": "TOEI_TO_JR",
+      "origin": {
+        "name": "Nishi-magome",
+        "latitude": 35.5870065,
+        "longitude": 139.7062574
+      },
+      "destination": {
+        "name": "Ueno",
+        "latitude": 35.7119325,
+        "longitude": 139.7757599
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "feedOrder": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "expectedComplexId": "tokyo:tamachi-mita"
+    },
+    {
+      "id": "toei-jimbocho-to-jr-ikebukuro",
+      "category": "TOEI_TO_JR",
+      "origin": {
+        "name": "Jimbocho",
+        "latitude": 35.695331,
+        "longitude": 139.758213
+      },
+      "destination": {
+        "name": "Ikebukuro",
+        "latitude": 35.730257,
+        "longitude": 139.710949
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "feedOrder": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "expectedComplexId": "tokyo:sugamo"
+    },
+    {
+      "id": "toei-asakusa-to-jr-shibuya",
+      "category": "TOEI_TO_JR",
+      "origin": {
+        "name": "Asakusa",
+        "latitude": 35.70892,
+        "longitude": 139.796542
+      },
+      "destination": {
+        "name": "Shibuya",
+        "latitude": 35.6580215,
+        "longitude": 139.7015858
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "allowedFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "feedOrder": ["jp-tokyo-toei-rail", "jp-tokyo-jr-east"],
+      "expectedComplexId": "tokyo:gotanda"
+    },
+
+    {
+      "id": "toei-nishimagome-to-takashimadaira",
+      "category": "TOEI_LINE_TO_LINE",
+      "origin": {
+        "name": "Nishi-magome",
+        "latitude": 35.5870065,
+        "longitude": 139.7062574
+      },
+      "destination": {
+        "name": "Takashimadaira",
+        "latitude": 35.7889786,
+        "longitude": 139.6617111
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:mita"
+    },
+    {
+      "id": "toei-takashimadaira-to-hikarigaoka",
+      "category": "TOEI_LINE_TO_LINE",
+      "origin": {
+        "name": "Takashimadaira",
+        "latitude": 35.7889786,
+        "longitude": 139.6617111
+      },
+      "destination": {
+        "name": "Hikarigaoka",
+        "latitude": 35.7588773,
+        "longitude": 139.6293108
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:kasuga"
+    },
+    {
+      "id": "toei-shinjuku-to-asakusa",
+      "category": "TOEI_LINE_TO_LINE",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.688433,
+        "longitude": 139.698418
+      },
+      "destination": {
+        "name": "Asakusa",
+        "latitude": 35.70892,
+        "longitude": 139.796542
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:higashi-nihombashi-bakuro-yokoyama"
+    },
+    {
+      "id": "toei-nishimagome-to-roppongi",
+      "category": "TOEI_LINE_TO_LINE",
+      "origin": {
+        "name": "Nishi-magome",
+        "latitude": 35.5870065,
+        "longitude": 139.7062574
+      },
+      "destination": {
+        "name": "Roppongi",
+        "latitude": 35.664106,
+        "longitude": 139.731354
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:hamamatsucho-daimon"
+    },
+
+    {
+      "id": "bus-to-subway-toyosu-nishimagome",
+      "category": "BUS_TO_SUBWAY",
+      "origin": {
+        "name": "Toyosu Market",
+        "latitude": 35.643522,
+        "longitude": 139.784051
+      },
+      "destination": {
+        "name": "Nishi-magome",
+        "latitude": 35.5870065,
+        "longitude": 139.7062574
+      },
+      "requiredFeeds": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "feedOrder": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:shimbashi"
+    },
+    {
+      "id": "bus-to-subway-toyosu-nakanobu",
+      "category": "BUS_TO_SUBWAY",
+      "origin": {
+        "name": "Toyosu Market",
+        "latitude": 35.643522,
+        "longitude": 139.784051
+      },
+      "destination": {
+        "name": "Nakanobu",
+        "latitude": 35.6054367,
+        "longitude": 139.7138448
+      },
+      "requiredFeeds": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "feedOrder": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:shimbashi"
+    },
+    {
+      "id": "bus-to-subway-toyosu-gotanda",
+      "category": "BUS_TO_SUBWAY",
+      "origin": {
+        "name": "Toyosu Market",
+        "latitude": 35.643522,
+        "longitude": 139.784051
+      },
+      "destination": {
+        "name": "Gotanda",
+        "latitude": 35.6270299,
+        "longitude": 139.7238047
+      },
+      "requiredFeeds": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "feedOrder": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:shimbashi"
+    },
+    {
+      "id": "bus-to-subway-akasaka-nishimagome",
+      "category": "BUS_TO_SUBWAY",
+      "origin": {
+        "name": "Akasaka Ark Hills",
+        "latitude": 35.667632,
+        "longitude": 139.740007
+      },
+      "destination": {
+        "name": "Nishi-magome",
+        "latitude": 35.5870065,
+        "longitude": 139.7062574
+      },
+      "requiredFeeds": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "allowedFeeds": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "feedOrder": ["jp-tokyo-toei-bus", "jp-tokyo-toei-rail"],
+      "expectedComplexId": "tokyo:shimbashi"
+    },
+
+    {
+      "id": "subway-to-bus-nishimagome-toyosu",
+      "category": "SUBWAY_TO_BUS",
+      "origin": {
+        "name": "Nishi-magome",
+        "latitude": 35.5870065,
+        "longitude": 139.7062574
+      },
+      "destination": {
+        "name": "Toyosu Market",
+        "latitude": 35.643522,
+        "longitude": 139.784051
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "allowedFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "feedOrder": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "expectedComplexId": "tokyo:shimbashi"
+    },
+    {
+      "id": "subway-to-bus-asakusa-toyosu",
+      "category": "SUBWAY_TO_BUS",
+      "origin": {
+        "name": "Asakusa",
+        "latitude": 35.70892,
+        "longitude": 139.796542
+      },
+      "destination": {
+        "name": "Toyosu Market",
+        "latitude": 35.643522,
+        "longitude": 139.784051
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "allowedFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "feedOrder": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "expectedComplexId": "tokyo:shimbashi"
+    },
+    {
+      "id": "subway-to-bus-gotanda-toyosu",
+      "category": "SUBWAY_TO_BUS",
+      "origin": {
+        "name": "Gotanda",
+        "latitude": 35.6270299,
+        "longitude": 139.7238047
+      },
+      "destination": {
+        "name": "Toyosu Market",
+        "latitude": 35.643522,
+        "longitude": 139.784051
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "allowedFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "feedOrder": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "expectedComplexId": "tokyo:shimbashi"
+    },
+    {
+      "id": "subway-to-bus-nishimagome-akasaka",
+      "category": "SUBWAY_TO_BUS",
+      "origin": {
+        "name": "Nishi-magome",
+        "latitude": 35.5870065,
+        "longitude": 139.7062574
+      },
+      "destination": {
+        "name": "Akasaka Ark Hills",
+        "latitude": 35.667632,
+        "longitude": 139.740007
+      },
+      "requiredFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "allowedFeeds": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "feedOrder": ["jp-tokyo-toei-rail", "jp-tokyo-toei-bus"],
+      "expectedComplexId": "tokyo:shimbashi"
+    }
+  ]
+}

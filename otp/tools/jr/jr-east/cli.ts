@@ -2,14 +2,15 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { JrEastPipelineError } from './errors.js';
-import type { YamanoteDirection, YamanoteService } from './model.js';
+import { getJrEastLineDefinition } from './line-registry.js';
+import type { YamanoteService } from './model.js';
 import {
   runYamanotePipeline,
   type YamanotePipelineOptions,
 } from './pipeline.js';
 
-const DEFAULT_OUTPUT_ROOT = fileURLToPath(
-  new URL('../../../data/japan/tokyo/jr-east/yamanote/', import.meta.url),
+const DEFAULT_DATA_ROOT = fileURLToPath(
+  new URL('../../../data/japan/tokyo/jr-east/', import.meta.url),
 );
 
 async function main(): Promise<void> {
@@ -78,21 +79,22 @@ export function parseArguments(args: string[]): YamanotePipelineOptions {
     index += 1;
   }
 
-  const mode = enumValue(values.get('mode') ?? 'sample', [
-    'sample',
-    'full-yamanote',
-  ]);
-  const defaultDirection = mode === 'sample' ? 'outer' : 'both';
+  const lineKey = values.get('line') ?? 'yamanote';
+  const line = getJrEastLineDefinition(lineKey);
+  const modeValue = values.get('mode') ?? 'sample';
+  const mode =
+    modeValue === 'full-yamanote' && lineKey === 'yamanote'
+      ? 'full-yamanote'
+      : enumValue(modeValue, ['sample', 'full-line']);
+  const defaultDirection = mode === 'sample' ? line.directions[0]!.id : 'both';
   const defaultService = mode === 'sample' ? 'weekday' : 'both';
   const maxTripsValue = values.get('max-trips');
   return {
+    lineKey,
     mode,
     directions: expandDirection(
-      enumValue(values.get('direction') ?? defaultDirection, [
-        'outer',
-        'inner',
-        'both',
-      ]),
+      values.get('direction') ?? defaultDirection,
+      line.directions.map((direction) => direction.id),
     ),
     services: expandService(
       enumValue(values.get('service') ?? defaultService, [
@@ -116,7 +118,7 @@ export function parseArguments(args: string[]): YamanotePipelineOptions {
       23,
     ),
     hourTo: integer(values.get('hour-to') ?? '23', 'hour-to', 0, 23),
-    outputRoot: values.get('output-root') ?? DEFAULT_OUTPUT_ROOT,
+    outputRoot: values.get('output-root') ?? join(DEFAULT_DATA_ROOT, lineKey),
     collector: {
       userAgent:
         values.get('user-agent') ??
@@ -162,10 +164,14 @@ function integer(
   return parsed;
 }
 
-function expandDirection(
-  value: YamanoteDirection | 'both',
-): YamanoteDirection[] {
-  return value === 'both' ? ['outer', 'inner'] : [value];
+function expandDirection(value: string, allowed: string[]): string[] {
+  if (value === 'both') return allowed;
+  if (!allowed.includes(value)) {
+    throw new Error(
+      `Expected one of ${[...allowed, 'both'].join(', ')}, received ${value}`,
+    );
+  }
+  return [value];
 }
 
 function expandService(value: YamanoteService | 'both'): YamanoteService[] {
@@ -173,9 +179,12 @@ function expandService(value: YamanoteService | 'both'): YamanoteService[] {
 }
 
 function printHelp(): void {
-  process.stdout.write(`JR East Yamanote collector/parser PoC\n\n`);
-  process.stdout.write(`  --mode sample|full-yamanote\n`);
-  process.stdout.write(`  --direction outer|inner|both\n`);
+  process.stdout.write(`JR East line collector/parser\n\n`);
+  process.stdout.write(
+    `  --line yamanote|chuo-rapid|chuo-sobu-local|keihin-tohoku\n`,
+  );
+  process.stdout.write(`  --mode sample|full-line\n`);
+  process.stdout.write(`  --direction DIRECTION|both\n`);
   process.stdout.write(`  --service weekday|holiday|both\n`);
   process.stdout.write(`  --max-trips N --max-details N\n`);
   process.stdout.write(`  --hour-from H --hour-to H\n`);

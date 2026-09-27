@@ -1,0 +1,503 @@
+{
+  "schemaVersion": "1.0",
+  "departureTime": "2026-09-29T10:00:00+09:00",
+  "itineraryCount": 12,
+  "routes": [
+    {
+      "id": "tokyu-shibuya-yokohama",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "destination": {
+        "name": "Yokohama",
+        "latitude": 35.4658,
+        "longitude": 139.6223
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu"],
+      "allowedFeeds": ["jp-tokyo-tokyu"]
+    },
+    {
+      "id": "tokyu-shibuya-jiyugaoka",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "destination": {
+        "name": "Jiyugaoka",
+        "latitude": 35.6074,
+        "longitude": 139.6688
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu"],
+      "allowedFeeds": ["jp-tokyo-tokyu"]
+    },
+    {
+      "id": "tokyu-shibuya-futako-tamagawa",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "destination": {
+        "name": "Futako-tamagawa",
+        "latitude": 35.6115,
+        "longitude": 139.6267
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu"],
+      "allowedFeeds": ["jp-tokyo-tokyu"]
+    },
+    {
+      "id": "tokyu-meguro-hiyoshi",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Meguro",
+        "latitude": 35.6339,
+        "longitude": 139.7156
+      },
+      "destination": {
+        "name": "Hiyoshi",
+        "latitude": 35.553,
+        "longitude": 139.6469
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu"],
+      "allowedFeeds": ["jp-tokyo-tokyu"]
+    },
+    {
+      "id": "tokyu-oimachi-jiyugaoka",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Oimachi",
+        "latitude": 35.6075,
+        "longitude": 139.7348
+      },
+      "destination": {
+        "name": "Jiyugaoka",
+        "latitude": 35.6074,
+        "longitude": 139.6688
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu"],
+      "allowedFeeds": ["jp-tokyo-tokyu"]
+    },
+    {
+      "id": "tokyu-gotanda-kamata",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Gotanda",
+        "latitude": 35.6264,
+        "longitude": 139.7234
+      },
+      "destination": {
+        "name": "Kamata",
+        "latitude": 35.5625,
+        "longitude": 139.716
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu"],
+      "allowedFeeds": ["jp-tokyo-tokyu"]
+    },
+    {
+      "id": "tokyu-tamagawa-kamata",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Tamagawa",
+        "latitude": 35.5896,
+        "longitude": 139.6688
+      },
+      "destination": {
+        "name": "Kamata",
+        "latitude": 35.5625,
+        "longitude": 139.716
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu"],
+      "allowedFeeds": ["jp-tokyo-tokyu"]
+    },
+    {
+      "id": "tokyu-sangenjaya-shimo-takaido",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Sangenjaya",
+        "latitude": 35.6437,
+        "longitude": 139.6702
+      },
+      "destination": {
+        "name": "Shimo-takaido",
+        "latitude": 35.6661,
+        "longitude": 139.6414
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu"],
+      "allowedFeeds": ["jp-tokyo-tokyu"]
+    },
+    {
+      "id": "keio-shinjuku-chofu",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "destination": {
+        "name": "Chofu",
+        "latitude": 35.6518,
+        "longitude": 139.5447
+      },
+      "requiredFeeds": ["jp-tokyo-keio"],
+      "allowedFeeds": ["jp-tokyo-keio"]
+    },
+    {
+      "id": "keio-shinjuku-keio-hachioji",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "destination": {
+        "name": "Keio-hachioji",
+        "latitude": 35.6578,
+        "longitude": 139.342
+      },
+      "requiredFeeds": ["jp-tokyo-keio"],
+      "allowedFeeds": ["jp-tokyo-keio"]
+    },
+    {
+      "id": "keio-shibuya-kichijoji",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shibuya",
+        "latitude": 35.658,
+        "longitude": 139.7016
+      },
+      "destination": {
+        "name": "Kichijoji",
+        "latitude": 35.703,
+        "longitude": 139.5797
+      },
+      "requiredFeeds": ["jp-tokyo-keio"],
+      "allowedFeeds": ["jp-tokyo-keio"]
+    },
+    {
+      "id": "keio-shinjuku-takaosanguchi",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "destination": {
+        "name": "Takaosanguchi",
+        "latitude": 35.6322,
+        "longitude": 139.2691
+      },
+      "requiredFeeds": ["jp-tokyo-keio"],
+      "allowedFeeds": ["jp-tokyo-keio"]
+    },
+    {
+      "id": "keio-shinjuku-hashimoto",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "destination": {
+        "name": "Hashimoto",
+        "latitude": 35.5949,
+        "longitude": 139.3451
+      },
+      "requiredFeeds": ["jp-tokyo-keio"],
+      "allowedFeeds": ["jp-tokyo-keio"]
+    },
+    {
+      "id": "keio-meidaimae-kichijoji",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Meidaimae",
+        "latitude": 35.6683,
+        "longitude": 139.6505
+      },
+      "destination": {
+        "name": "Kichijoji",
+        "latitude": 35.703,
+        "longitude": 139.5797
+      },
+      "requiredFeeds": ["jp-tokyo-keio"],
+      "allowedFeeds": ["jp-tokyo-keio"]
+    },
+    {
+      "id": "odakyu-shinjuku-machida",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "destination": {
+        "name": "Machida",
+        "latitude": 35.5442,
+        "longitude": 139.445
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu"],
+      "allowedFeeds": ["jp-tokyo-odakyu"]
+    },
+    {
+      "id": "odakyu-shinjuku-shimokitazawa",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "destination": {
+        "name": "Shimokitazawa",
+        "latitude": 35.6616,
+        "longitude": 139.6666
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu"],
+      "allowedFeeds": ["jp-tokyo-odakyu"]
+    },
+    {
+      "id": "odakyu-shinjuku-noborito",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "destination": {
+        "name": "Noborito",
+        "latitude": 35.6208,
+        "longitude": 139.5708
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu"],
+      "allowedFeeds": ["jp-tokyo-odakyu"]
+    },
+    {
+      "id": "odakyu-machida-sagami-ono",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Machida",
+        "latitude": 35.5442,
+        "longitude": 139.445
+      },
+      "destination": {
+        "name": "Sagami-ono",
+        "latitude": 35.5317,
+        "longitude": 139.4377
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu"],
+      "allowedFeeds": ["jp-tokyo-odakyu"]
+    },
+    {
+      "id": "odakyu-shinjuku-karakida",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "destination": {
+        "name": "Karakida",
+        "latitude": 35.617,
+        "longitude": 139.4113
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu"],
+      "allowedFeeds": ["jp-tokyo-odakyu"]
+    },
+    {
+      "id": "odakyu-machida-fujisawa",
+      "category": "PRIVATE_ONLY",
+      "origin": {
+        "name": "Machida",
+        "latitude": 35.5442,
+        "longitude": 139.445
+      },
+      "destination": {
+        "name": "Fujisawa",
+        "latitude": 35.3388,
+        "longitude": 139.487
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu"],
+      "allowedFeeds": ["jp-tokyo-odakyu"]
+    },
+    {
+      "id": "tokyu-jr-yokohama-ueno",
+      "category": "PRIVATE_JR_TRANSFER",
+      "origin": {
+        "name": "Yokohama",
+        "latitude": 35.4658,
+        "longitude": 139.6223
+      },
+      "destination": {
+        "name": "Ueno",
+        "latitude": 35.7136,
+        "longitude": 139.7762
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "keio-jr-kichijoji-tokyo",
+      "category": "PRIVATE_JR_TRANSFER",
+      "origin": {
+        "name": "Kichijoji",
+        "latitude": 35.703,
+        "longitude": 139.5797
+      },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6813,
+        "longitude": 139.7668
+      },
+      "requiredFeeds": ["jp-tokyo-keio", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "odakyu-jr-machida-tokyo",
+      "category": "PRIVATE_JR_TRANSFER",
+      "origin": {
+        "name": "Machida",
+        "latitude": 35.5442,
+        "longitude": 139.445
+      },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6813,
+        "longitude": 139.7668
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "tokyu-jr-jiyugaoka-shinjuku",
+      "category": "PRIVATE_JR_TRANSFER",
+      "origin": {
+        "name": "Jiyugaoka",
+        "latitude": 35.6074,
+        "longitude": 139.6688
+      },
+      "destination": {
+        "name": "Shinjuku",
+        "latitude": 35.6906,
+        "longitude": 139.6995
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "odakyu-jr-shimokitazawa-kichijoji",
+      "category": "PRIVATE_JR_TRANSFER",
+      "origin": {
+        "name": "Shimokitazawa",
+        "latitude": 35.6616,
+        "longitude": 139.6666
+      },
+      "destination": {
+        "name": "Kichijoji",
+        "latitude": 35.703,
+        "longitude": 139.5797
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "keio-jr-meidaimae-tokyo",
+      "category": "PRIVATE_JR_TRANSFER",
+      "origin": {
+        "name": "Meidaimae",
+        "latitude": 35.6683,
+        "longitude": 139.6505
+      },
+      "destination": {
+        "name": "Tokyo",
+        "latitude": 35.6813,
+        "longitude": 139.7668
+      },
+      "requiredFeeds": ["jp-tokyo-keio", "jp-tokyo-jr-east"]
+    },
+    {
+      "id": "tokyu-metro-jiyugaoka-ginza",
+      "category": "PRIVATE_METRO_TRANSFER",
+      "origin": {
+        "name": "Jiyugaoka",
+        "latitude": 35.6074,
+        "longitude": 139.6688
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu", "jp-tokyo-metro"]
+    },
+    {
+      "id": "tokyu-metro-yokohama-otemachi",
+      "category": "PRIVATE_METRO_TRANSFER",
+      "origin": {
+        "name": "Yokohama",
+        "latitude": 35.4658,
+        "longitude": 139.6223
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-tokyu", "jp-tokyo-metro"]
+    },
+    {
+      "id": "keio-metro-kichijoji-ginza",
+      "category": "PRIVATE_METRO_TRANSFER",
+      "origin": {
+        "name": "Kichijoji",
+        "latitude": 35.703,
+        "longitude": 139.5797
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-keio", "jp-tokyo-metro"]
+    },
+    {
+      "id": "keio-metro-chofu-otemachi",
+      "category": "PRIVATE_METRO_TRANSFER",
+      "origin": { "name": "Chofu", "latitude": 35.6518, "longitude": 139.5447 },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-keio", "jp-tokyo-metro"]
+    },
+    {
+      "id": "odakyu-metro-machida-otemachi",
+      "category": "PRIVATE_METRO_TRANSFER",
+      "origin": {
+        "name": "Machida",
+        "latitude": 35.5442,
+        "longitude": 139.445
+      },
+      "destination": {
+        "name": "Otemachi",
+        "latitude": 35.6841,
+        "longitude": 139.7638
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu", "jp-tokyo-metro"]
+    },
+    {
+      "id": "odakyu-metro-shimokitazawa-ginza",
+      "category": "PRIVATE_METRO_TRANSFER",
+      "origin": {
+        "name": "Shimokitazawa",
+        "latitude": 35.6616,
+        "longitude": 139.6666
+      },
+      "destination": {
+        "name": "Ginza",
+        "latitude": 35.6719,
+        "longitude": 139.765
+      },
+      "requiredFeeds": ["jp-tokyo-odakyu", "jp-tokyo-metro"]
+    }
+  ]
+}

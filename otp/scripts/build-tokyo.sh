@@ -9,7 +9,7 @@ require_command docker
 
 required_inputs=(tokyo.osm.pbf toei-train-gtfs.zip toei-bus-gtfs.zip)
 if [[ "${OTP_REQUIRE_JR:-false}" == "true" ]]; then
-  required_inputs+=(jr-east-yamanote.gtfs.zip)
+  required_inputs+=(jr-east.gtfs.zip)
 fi
 
 for required in "${required_inputs[@]}"; do

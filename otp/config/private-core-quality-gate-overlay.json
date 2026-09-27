@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "1.0",
+  "activation": "AFTER_FIRST_VALIDATED_PRIVATE_CORE_GRAPH",
+  "smokeRequiredCaseCount": 83,
+  "existingBaselineMustNotRegress": true,
+  "validatorErrorsMax": 0,
+  "failOnCriticalStationWarning": true,
+  "criticalStationComplexIds": [
+    "tokyo:shibuya",
+    "tokyo:shinjuku",
+    "tokyo:kichijoji",
+    "tokyo:shimokitazawa",
+    "tokyo:jiyugaoka",
+    "tokyo:meidaimae",
+    "tokyo:machida"
+  ],
+  "perFeedBudgets": {
+    "jp-tokyo-tokyu": "MEASURE_AFTER_FIRST_BUILD",
+    "jp-tokyo-keio": "MEASURE_AFTER_FIRST_BUILD",
+    "jp-tokyo-odakyu": "MEASURE_AFTER_FIRST_BUILD"
+  },
+  "policy": "Do not invent or relax linking thresholds before the first official-source graph has been diagnosed and reviewed."
+}

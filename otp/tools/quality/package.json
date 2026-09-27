@@ -1,0 +1,20 @@
+{
+  "name": "@tcache/otp-quality-gate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "assemble-regression": "node assemble-regression-suite.mjs",
+    "build-production-collector": "node build-production-collector-config.mjs",
+    "collect": "node collect-quality.mjs",
+    "collect-performance": "node collect-performance.mjs",
+    "capture-baseline": "node capture-baseline.mjs",
+    "capture-source-baseline": "node capture-source-baseline.mjs",
+    "capture-production-baseline": "node capture-production-baseline.mjs",
+    "check-sources": "node check-source-changes.mjs",
+    "gate": "node evaluate-quality-gate.mjs",
+    "production-gate": "node evaluate-production-readiness.mjs",
+    "coverage": "node generate-coverage-report.mjs",
+    "test": "node --test test/*.node.mjs"
+  }
+}

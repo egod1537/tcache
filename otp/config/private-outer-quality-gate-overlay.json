@@ -1,0 +1,36 @@
+{
+  "schemaVersion": "1.0",
+  "activation": "AFTER_ALL_FIVE_VALIDATED_PRIVATE_OUTER_FEEDS",
+  "smokeRequiredCaseCount": 118,
+  "existingBaselineMustNotRegress": true,
+  "validatorErrorsMax": 0,
+  "failOnCriticalStationWarning": true,
+  "criticalStationComplexIds": [
+    "tokyo:haneda-airport",
+    "tokyo:nippori",
+    "tokyo:ueno",
+    "tokyo:yokohama",
+    "tokyo:ikebukuro",
+    "tokyo:asakusa",
+    "tokyo:kita-senju",
+    "tokyo:musashi-kosugi"
+  ],
+  "perFeedBudgets": {
+    "jp-tokyo-keikyu": "MEASURE_AFTER_FIRST_BUILD",
+    "jp-tokyo-keisei": "MEASURE_AFTER_FIRST_BUILD",
+    "jp-tokyo-seibu": "MEASURE_AFTER_FIRST_BUILD",
+    "jp-tokyo-tobu": "MEASURE_AFTER_FIRST_BUILD",
+    "jp-tokyo-sotetsu": "MEASURE_AFTER_FIRST_BUILD"
+  },
+  "performanceMetrics": [
+    "graphBytes",
+    "buildDurationSeconds",
+    "buildPeakMemoryMiB",
+    "startupDurationSeconds",
+    "startupIdleMemoryMiB",
+    "queryLatencyP50Milliseconds",
+    "queryLatencyP95Milliseconds",
+    "queryLatencyMaxMilliseconds"
+  ],
+  "policy": "Do not activate, approve a candidate, or invent linking/performance thresholds until all five official feeds have validator error 0 and a reviewed first graph baseline."
+}

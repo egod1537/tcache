@@ -212,6 +212,32 @@ describe('tcache server', () => {
         OTP_GRAPH_BUILD_ID: 'tokyo-20260924',
         OTP_GTFS_DATASET_VERSION: 'toei-202609',
         OTP_OSM_DATASET_VERSION: 'tokyo-202609',
+        OTP_QUALITY_GATE_STATUS: 'PASS',
+        OTP_TOTAL_STOP_COUNT: '5000',
+        OTP_LINKED_STOP_COUNT: '4990',
+        OTP_ISOLATED_STOP_COUNT: '0',
+        OTP_ISOLATED_STOP_RATIO: '0',
+        OTP_UNLINKED_TRANSFER_COUNT: '132',
+        OTP_UNLINKED_TRANSFER_RATIO: '0.0264',
+        OTP_PRUNED_STOP_ISLAND_COUNT: '35',
+        OTP_SNAPPING_DISTANCE_P50_METERS: '1.5',
+        OTP_SNAPPING_DISTANCE_P95_METERS: '7.2',
+        OTP_SNAPPING_DISTANCE_MAX_METERS: '54',
+        OTP_CROSS_FEED_STATION_COMPLEX_COUNT: '32',
+        OTP_SMOKE_PASS_RATE: '1',
+        OTP_TRANSFER_REGRESSION_PASS_RATE: '1',
+        OTP_BASELINE_UNLINKED_DELTA: '-2',
+        OTP_BASELINE_PRUNED_DELTA: '0',
+        OTP_FEED_STATUS_JSON: JSON.stringify([
+          {
+            feedId: 'jp-tokyo-jr-east',
+            operator: 'JR East',
+            validatorStatus: 'PASS',
+            graphIncluded: true,
+            linkedRatio: 1,
+            status: 'VERIFIED',
+          },
+        ]),
       }),
     ).toMatchObject({
       routeProvider: 'otp',
@@ -221,7 +247,35 @@ describe('tcache server', () => {
       otpRequestTimeoutMs: 12000,
       otpVersion: '2.10.0',
       otpGraphBuildId: 'tokyo-20260924',
+      otpQualityGateStatus: 'PASS',
+      otpTotalStopCount: 5000,
+      otpLinkedStopCount: 4990,
+      otpIsolatedStopCount: 0,
+      otpIsolatedStopRatio: 0,
+      otpUnlinkedTransferCount: 132,
+      otpUnlinkedTransferRatio: 0.0264,
+      otpPrunedStopIslandCount: 35,
+      otpSnappingDistanceP50Meters: 1.5,
+      otpSnappingDistanceP95Meters: 7.2,
+      otpSnappingDistanceMaxMeters: 54,
+      otpCrossFeedStationComplexCount: 32,
+      otpSmokePassRate: 1,
+      otpTransferRegressionPassRate: 1,
+      otpBaselineUnlinkedDelta: -2,
+      otpBaselinePrunedDelta: 0,
+      otpFeedStatuses: [
+        expect.objectContaining({
+          feedId: 'jp-tokyo-jr-east',
+          status: 'VERIFIED',
+        }),
+      ],
     });
+    expect(() =>
+      loadConfig({ OTP_TRANSFER_REGRESSION_PASS_RATE: '1.1' }),
+    ).toThrow('Invalid OTP_TRANSFER_REGRESSION_PASS_RATE');
+    expect(() => loadConfig({ OTP_FEED_STATUS_JSON: '{}' })).toThrow(
+      'Invalid OTP_FEED_STATUS_JSON',
+    );
   });
 
   it.each([

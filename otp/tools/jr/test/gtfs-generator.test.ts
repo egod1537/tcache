@@ -64,6 +64,36 @@ describe('normalized timetable to GTFS', () => {
     }
   });
 
+  it('omits pass-through points from GTFS stop_times', () => {
+    const input = fixtureInput();
+    input.dataset.stations.push({
+      id: 'jr-east:akihabara',
+      operatorId: 'jr-east',
+      nameJa: '秋葉原',
+      nameEn: 'Akihabara',
+    });
+    input.stationMappingSet.mappings.push({
+      internalStationId: 'jr-east:akihabara',
+      operator: 'jr-east',
+      officialNameJa: '秋葉原',
+      stationNumber: 'JY03',
+      latitude: 35.6983647,
+      longitude: 139.7730592,
+      mappingStatus: 'confirmed',
+      reviewedAt: '2026-09-27T00:00:00.000Z',
+    });
+    input.dataset.trips[0]!.stopTimes.splice(1, 0, {
+      stationId: 'jr-east:akihabara',
+      sequence: 1,
+      passThrough: true,
+    });
+    input.dataset.trips[0]!.stopTimes[2]!.sequence = 2;
+
+    const stopTimes = generateGtfsFeed(input).files.get('stop_times.txt');
+    expect(stopTimes).not.toContain('jr-east:akihabara');
+    expect(stopTimes).toContain('jr-east:kanda,2');
+  });
+
   it('writes a reproducible ZIP and canonical content hash', async () => {
     const firstRoot = await temporaryRoot();
     const secondRoot = await temporaryRoot();

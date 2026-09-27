@@ -1,0 +1,1169 @@
+{
+  "schemaVersion": "1.0",
+  "feedId": "jp-tokyo-jr-east",
+  "inputPath": "/Users/yang/proj/tcache/otp/data/japan/tokyo/jr-east/expanded/jr-east:2610:1a8ce8e24584421d/gtfs/jr-east-expanded.gtfs.zip",
+  "outputPath": "/Users/yang/proj/tcache/otp/data/japan/tokyo/jr-east/expanded/jr-east:2610:1a8ce8e24584421d/gtfs/jr-east-expanded-linked.gtfs.zip",
+  "inputSha256": "c085eb610013e48a77d9e669c8f7d75d3531c2b0c05d55a4695a63cb9e59c00f",
+  "outputSha256": "c80bd22c9256efa5723a5135507c0a692e67c7b0b4dfc3089c93b61068960eaa",
+  "overrideConfigSha256": "f9775a4079964f35eb084705de7f9734324d1574f0c987ec1aa32a27de9cadf4",
+  "appliedCount": 68,
+  "skippedUnreviewedCount": 0,
+  "applied": [
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:さいたま新都心",
+      "stopName": "さいたま新都心",
+      "before": {
+        "lat": 35.8936457,
+        "lon": 139.6339646
+      },
+      "after": {
+        "lat": 35.8940399,
+        "lon": 139.6338757
+      },
+      "osmElementType": "node",
+      "osmElementId": "12773322833",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:三鷹",
+      "stopName": "三鷹",
+      "before": {
+        "lat": 35.7027618,
+        "lon": 139.5609353
+      },
+      "after": {
+        "lat": 35.7023877,
+        "lon": 139.5609316
+      },
+      "osmElementType": "node",
+      "osmElementId": "6872433256",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:上野",
+      "stopName": "上野",
+      "before": {
+        "lat": 35.7135763,
+        "lon": 139.7761427
+      },
+      "after": {
+        "lat": 35.7119325,
+        "lon": 139.7757599
+      },
+      "osmElementType": "node",
+      "osmElementId": "4564491170",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:下総中山",
+      "stopName": "下総中山",
+      "before": {
+        "lat": 35.7143691,
+        "lon": 139.9431044
+      },
+      "after": {
+        "lat": 35.714516,
+        "lon": 139.943006
+      },
+      "osmElementType": "node",
+      "osmElementId": "6987916493",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:与野",
+      "stopName": "与野",
+      "before": {
+        "lat": 35.8843939,
+        "lon": 139.6391602
+      },
+      "after": {
+        "lat": 35.8846393,
+        "lon": 139.6392357
+      },
+      "osmElementType": "node",
+      "osmElementId": "7024584354",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:北浦和",
+      "stopName": "北浦和",
+      "before": {
+        "lat": 35.8721594,
+        "lon": 139.6461046
+      },
+      "after": {
+        "lat": 35.872283,
+        "lon": 139.6462911
+      },
+      "osmElementType": "node",
+      "osmElementId": "7024717453",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:千葉",
+      "stopName": "千葉",
+      "before": {
+        "lat": 35.6134053,
+        "lon": 140.1124232
+      },
+      "after": {
+        "lat": 35.6134507,
+        "lon": 140.1120642
+      },
+      "osmElementType": "node",
+      "osmElementId": "2146506169",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:南浦和",
+      "stopName": "南浦和",
+      "before": {
+        "lat": 35.8477446,
+        "lon": 139.6691648
+      },
+      "after": {
+        "lat": 35.8474378,
+        "lon": 139.6694204
+      },
+      "osmElementType": "node",
+      "osmElementId": "9908917861",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:品川",
+      "stopName": "品川",
+      "before": {
+        "lat": 35.628654,
+        "lon": 139.7385067
+      },
+      "after": {
+        "lat": 35.6288205,
+        "lon": 139.738804
+      },
+      "osmElementType": "node",
+      "osmElementId": "9954223256",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:四ツ谷",
+      "stopName": "四ツ谷",
+      "before": {
+        "lat": 35.685895,
+        "lon": 139.730612
+      },
+      "after": {
+        "lat": 35.6858879,
+        "lon": 139.7309252
+      },
+      "osmElementType": "node",
+      "osmElementId": "7623482145",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:国分寺",
+      "stopName": "国分寺",
+      "before": {
+        "lat": 35.7001003,
+        "lon": 139.4803582
+      },
+      "after": {
+        "lat": 35.7000497,
+        "lon": 139.480494
+      },
+      "osmElementType": "node",
+      "osmElementId": "1954875959",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:国立",
+      "stopName": "国立",
+      "before": {
+        "lat": 35.6992607,
+        "lon": 139.4465307
+      },
+      "after": {
+        "lat": 35.6991829,
+        "lon": 139.4467888
+      },
+      "osmElementType": "node",
+      "osmElementId": "5999552170",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:大久保",
+      "stopName": "大久保",
+      "before": {
+        "lat": 35.7007776,
+        "lon": 139.6973178
+      },
+      "after": {
+        "lat": 35.6998497,
+        "lon": 139.6977858
+      },
+      "osmElementType": "node",
+      "osmElementId": "6018498167",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:大井町",
+      "stopName": "大井町",
+      "before": {
+        "lat": 35.6063926,
+        "lon": 139.7348829
+      },
+      "after": {
+        "lat": 35.6062697,
+        "lon": 139.7348714
+      },
+      "osmElementType": "node",
+      "osmElementId": "9923824139",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:大塚",
+      "stopName": "大塚",
+      "before": {
+        "lat": 35.7317315,
+        "lon": 139.7286102
+      },
+      "after": {
+        "lat": 35.7317443,
+        "lon": 139.7287739
+      },
+      "osmElementType": "node",
+      "osmElementId": "12057387988",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:大宮",
+      "stopName": "大宮",
+      "before": {
+        "lat": 35.9064481,
+        "lon": 139.6246669
+      },
+      "after": {
+        "lat": 35.9060648,
+        "lon": 139.6249667
+      },
+      "osmElementType": "node",
+      "osmElementId": "9857519591",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:大船",
+      "stopName": "大船",
+      "before": {
+        "lat": 35.3542451,
+        "lon": 139.5316605
+      },
+      "after": {
+        "lat": 35.3546347,
+        "lon": 139.5316344
+      },
+      "osmElementType": "node",
+      "osmElementId": "9929149689",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:小岩",
+      "stopName": "小岩",
+      "before": {
+        "lat": 35.7332364,
+        "lon": 139.881843
+      },
+      "after": {
+        "lat": 35.7329402,
+        "lon": 139.8817462
+      },
+      "osmElementType": "node",
+      "osmElementId": "7097909810",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:山手",
+      "stopName": "山手",
+      "before": {
+        "lat": 35.4273465,
+        "lon": 139.6462244
+      },
+      "after": {
+        "lat": 35.4272025,
+        "lon": 139.6461748
+      },
+      "osmElementType": "node",
+      "osmElementId": "6945421708",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:川口",
+      "stopName": "川口",
+      "before": {
+        "lat": 35.8019199,
+        "lon": 139.7175268
+      },
+      "after": {
+        "lat": 35.8017936,
+        "lon": 139.7171546
+      },
+      "osmElementType": "node",
+      "osmElementId": "1804088967",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:川崎",
+      "stopName": "川崎",
+      "before": {
+        "lat": 35.5314371,
+        "lon": 139.6968497
+      },
+      "after": {
+        "lat": 35.5315936,
+        "lon": 139.6969946
+      },
+      "osmElementType": "node",
+      "osmElementId": "7039655512",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:巣鴨",
+      "stopName": "巣鴨",
+      "before": {
+        "lat": 35.7334579,
+        "lon": 139.7394013
+      },
+      "after": {
+        "lat": 35.7333151,
+        "lon": 139.7392973
+      },
+      "osmElementType": "node",
+      "osmElementId": "2457988827",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:市ケ谷",
+      "stopName": "市ケ谷",
+      "before": {
+        "lat": 35.6913951,
+        "lon": 139.7354993
+      },
+      "after": {
+        "lat": 35.6912636,
+        "lon": 139.7356547
+      },
+      "osmElementType": "node",
+      "osmElementId": "6988110553",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:市川",
+      "stopName": "市川",
+      "before": {
+        "lat": 35.7287233,
+        "lon": 139.9080638
+      },
+      "after": {
+        "lat": 35.7294602,
+        "lon": 139.9074545
+      },
+      "osmElementType": "node",
+      "osmElementId": "6987856760",
+      "reason": "GTFS point was isolated from the public street graph; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:幕張",
+      "stopName": "幕張",
+      "before": {
+        "lat": 35.6593666,
+        "lon": 140.0579166
+      },
+      "after": {
+        "lat": 35.6593774,
+        "lon": 140.0576034
+      },
+      "osmElementType": "node",
+      "osmElementId": "6987944639",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:幕張本郷",
+      "stopName": "幕張本郷",
+      "before": {
+        "lat": 35.6727208,
+        "lon": 140.0423578
+      },
+      "after": {
+        "lat": 35.6724237,
+        "lon": 140.042069
+      },
+      "osmElementType": "node",
+      "osmElementId": "1646555362",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:平井",
+      "stopName": "平井",
+      "before": {
+        "lat": 35.7063752,
+        "lon": 139.8425634
+      },
+      "after": {
+        "lat": 35.706497,
+        "lon": 139.842813
+      },
+      "osmElementType": "node",
+      "osmElementId": "8204421722",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:恵比寿",
+      "stopName": "恵比寿",
+      "before": {
+        "lat": 35.6464034,
+        "lon": 139.7101042
+      },
+      "after": {
+        "lat": 35.6466778,
+        "lon": 139.7098568
+      },
+      "osmElementType": "node",
+      "osmElementId": "8900392961",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:新大久保",
+      "stopName": "新大久保",
+      "before": {
+        "lat": 35.7013028,
+        "lon": 139.7001876
+      },
+      "after": {
+        "lat": 35.7013927,
+        "lon": 139.7000514
+      },
+      "osmElementType": "node",
+      "osmElementId": "7041831627",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:新子安",
+      "stopName": "新子安",
+      "before": {
+        "lat": 35.4868742,
+        "lon": 139.6541569
+      },
+      "after": {
+        "lat": 35.4869528,
+        "lon": 139.65462
+      },
+      "osmElementType": "node",
+      "osmElementId": "7024652050",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:新小岩",
+      "stopName": "新小岩",
+      "before": {
+        "lat": 35.7169259,
+        "lon": 139.8579889
+      },
+      "after": {
+        "lat": 35.7167371,
+        "lon": 139.8583655
+      },
+      "osmElementType": "node",
+      "osmElementId": "2041323744",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:新杉田",
+      "stopName": "新杉田",
+      "before": {
+        "lat": 35.3865972,
+        "lon": 139.6196087
+      },
+      "after": {
+        "lat": 35.3864303,
+        "lon": 139.6196879
+      },
+      "osmElementType": "node",
+      "osmElementId": "6945450822",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:新検見川",
+      "stopName": "新検見川",
+      "before": {
+        "lat": 35.6518434,
+        "lon": 140.0731031
+      },
+      "after": {
+        "lat": 35.6519744,
+        "lon": 140.0731299
+      },
+      "osmElementType": "node",
+      "osmElementId": "1544053425",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:有楽町",
+      "stopName": "有楽町",
+      "before": {
+        "lat": 35.6749429,
+        "lon": 139.7630598
+      },
+      "after": {
+        "lat": 35.6747953,
+        "lon": 139.7630805
+      },
+      "osmElementType": "node",
+      "osmElementId": "7089991791",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:本八幡",
+      "stopName": "本八幡",
+      "before": {
+        "lat": 35.7209739,
+        "lon": 139.9272484
+      },
+      "after": {
+        "lat": 35.721674,
+        "lon": 139.925976
+      },
+      "osmElementType": "node",
+      "osmElementId": "2241938385",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:本郷台",
+      "stopName": "本郷台",
+      "before": {
+        "lat": 35.3679205,
+        "lon": 139.5501923
+      },
+      "after": {
+        "lat": 35.3673754,
+        "lon": 139.5503271
+      },
+      "osmElementType": "node",
+      "osmElementId": "6945475264",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:東京",
+      "stopName": "東京",
+      "before": {
+        "lat": 35.681244,
+        "lon": 139.7666095
+      },
+      "after": {
+        "lat": 35.6815845,
+        "lon": 139.7660203
+      },
+      "osmElementType": "node",
+      "osmElementId": "12159810372",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:東神奈川",
+      "stopName": "東神奈川",
+      "before": {
+        "lat": 35.4780192,
+        "lon": 139.6331964
+      },
+      "after": {
+        "lat": 35.4780982,
+        "lon": 139.6329666
+      },
+      "osmElementType": "node",
+      "osmElementId": "3915607370",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:東船橋",
+      "stopName": "東船橋",
+      "before": {
+        "lat": 35.6997191,
+        "lon": 140.0042809
+      },
+      "after": {
+        "lat": 35.6996675,
+        "lon": 140.0041709
+      },
+      "osmElementType": "node",
+      "osmElementId": "6987930957",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:根岸",
+      "stopName": "根岸",
+      "before": {
+        "lat": 35.4156485,
+        "lon": 139.6350416
+      },
+      "after": {
+        "lat": 35.415849,
+        "lon": 139.6349811
+      },
+      "osmElementType": "node",
+      "osmElementId": "6473692823",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:桜木町",
+      "stopName": "桜木町",
+      "before": {
+        "lat": 35.451018,
+        "lon": 139.6309891
+      },
+      "after": {
+        "lat": 35.450752,
+        "lon": 139.6311836
+      },
+      "osmElementType": "node",
+      "osmElementId": "9926003770",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:横浜",
+      "stopName": "横浜",
+      "before": {
+        "lat": 35.4656482,
+        "lon": 139.6225325
+      },
+      "after": {
+        "lat": 35.4655256,
+        "lon": 139.6223309
+      },
+      "osmElementType": "node",
+      "osmElementId": "9926007345",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:武蔵境",
+      "stopName": "武蔵境",
+      "before": {
+        "lat": 35.7021298,
+        "lon": 139.5440803
+      },
+      "after": {
+        "lat": 35.7022234,
+        "lon": 139.5435236
+      },
+      "osmElementType": "node",
+      "osmElementId": "9908917883",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:洋光台",
+      "stopName": "洋光台",
+      "before": {
+        "lat": 35.3787178,
+        "lon": 139.5965373
+      },
+      "after": {
+        "lat": 35.378618,
+        "lon": 139.5965112
+      },
+      "osmElementType": "node",
+      "osmElementId": "6945423169",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:津田沼",
+      "stopName": "津田沼",
+      "before": {
+        "lat": 35.6913124,
+        "lon": 140.0201214
+      },
+      "after": {
+        "lat": 35.6912421,
+        "lon": 140.0204918
+      },
+      "osmElementType": "node",
+      "osmElementId": "9923264262",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:浦和",
+      "stopName": "浦和",
+      "before": {
+        "lat": 35.85903,
+        "lon": 139.6572911
+      },
+      "after": {
+        "lat": 35.8588374,
+        "lon": 139.6572935
+      },
+      "osmElementType": "node",
+      "osmElementId": "9941519189",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:港南台",
+      "stopName": "港南台",
+      "before": {
+        "lat": 35.3752909,
+        "lon": 139.576685
+      },
+      "after": {
+        "lat": 35.375151,
+        "lon": 139.5765689
+      },
+      "osmElementType": "node",
+      "osmElementId": "6945479321",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:田端",
+      "stopName": "田端",
+      "before": {
+        "lat": 35.7373845,
+        "lon": 139.7617238
+      },
+      "after": {
+        "lat": 35.7369893,
+        "lon": 139.7618539
+      },
+      "osmElementType": "node",
+      "osmElementId": "2273285095",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:目黒",
+      "stopName": "目黒",
+      "before": {
+        "lat": 35.6340624,
+        "lon": 139.7156689
+      },
+      "after": {
+        "lat": 35.6340164,
+        "lon": 139.7154596
+      },
+      "osmElementType": "node",
+      "osmElementId": "9735345463",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:石川町",
+      "stopName": "石川町",
+      "before": {
+        "lat": 35.4392296,
+        "lon": 139.6427451
+      },
+      "after": {
+        "lat": 35.4395645,
+        "lon": 139.6426701
+      },
+      "osmElementType": "node",
+      "osmElementId": "9850182878",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:磯子",
+      "stopName": "磯子",
+      "before": {
+        "lat": 35.4001372,
+        "lon": 139.6181583
+      },
+      "after": {
+        "lat": 35.3998549,
+        "lon": 139.6179601
+      },
+      "osmElementType": "node",
+      "osmElementId": "9931570872",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:稲毛",
+      "stopName": "稲毛",
+      "before": {
+        "lat": 35.6370209,
+        "lon": 140.0924078
+      },
+      "after": {
+        "lat": 35.6369238,
+        "lon": 140.0924619
+      },
+      "osmElementType": "node",
+      "osmElementId": "6987954261",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:立川",
+      "stopName": "立川",
+      "before": {
+        "lat": 35.6980464,
+        "lon": 139.4135506
+      },
+      "after": {
+        "lat": 35.6979141,
+        "lon": 139.413875
+      },
+      "osmElementType": "node",
+      "osmElementId": "9924439649",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:船橋",
+      "stopName": "船橋",
+      "before": {
+        "lat": 35.7015367,
+        "lon": 139.9852165
+      },
+      "after": {
+        "lat": 35.7014291,
+        "lon": 139.9857837
+      },
+      "osmElementType": "node",
+      "osmElementId": "6987924615",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:荻窪",
+      "stopName": "荻窪",
+      "before": {
+        "lat": 35.7044707,
+        "lon": 139.6202317
+      },
+      "after": {
+        "lat": 35.7044654,
+        "lon": 139.6207177
+      },
+      "osmElementType": "node",
+      "osmElementId": "9933552905",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:蕨",
+      "stopName": "蕨",
+      "before": {
+        "lat": 35.8281263,
+        "lon": 139.6903852
+      },
+      "after": {
+        "lat": 35.8280246,
+        "lon": 139.6907677
+      },
+      "osmElementType": "node",
+      "osmElementId": "7024716440",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:西千葉",
+      "stopName": "西千葉",
+      "before": {
+        "lat": 35.6227646,
+        "lon": 140.10318
+      },
+      "after": {
+        "lat": 35.6225633,
+        "lon": 140.1033326
+      },
+      "osmElementType": "node",
+      "osmElementId": "6987956861",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:西国分寺",
+      "stopName": "西国分寺",
+      "before": {
+        "lat": 35.6997526,
+        "lon": 139.4657327
+      },
+      "after": {
+        "lat": 35.699783,
+        "lon": 139.4655848
+      },
+      "osmElementType": "node",
+      "osmElementId": "1954789353",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:西川口",
+      "stopName": "西川口",
+      "before": {
+        "lat": 35.8155859,
+        "lon": 139.7044795
+      },
+      "after": {
+        "lat": 35.8157013,
+        "lon": 139.7047123
+      },
+      "osmElementType": "node",
+      "osmElementId": "7024638950",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:西日暮里",
+      "stopName": "西日暮里",
+      "before": {
+        "lat": 35.7322151,
+        "lon": 139.766696
+      },
+      "after": {
+        "lat": 35.732083,
+        "lon": 139.7666674
+      },
+      "osmElementType": "node",
+      "osmElementId": "12376174010",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:西船橋",
+      "stopName": "西船橋",
+      "before": {
+        "lat": 35.7073564,
+        "lon": 139.9593388
+      },
+      "after": {
+        "lat": 35.7070683,
+        "lon": 139.9589384
+      },
+      "osmElementType": "node",
+      "osmElementId": "9889428224",
+      "reason": "GTFS point was isolated from the public street graph; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:西荻窪",
+      "stopName": "西荻窪",
+      "before": {
+        "lat": 35.7036667,
+        "lon": 139.5995915
+      },
+      "after": {
+        "lat": 35.7037766,
+        "lon": 139.6000001
+      },
+      "osmElementType": "node",
+      "osmElementId": "9926003775",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:赤羽",
+      "stopName": "赤羽",
+      "before": {
+        "lat": 35.7782533,
+        "lon": 139.7210464
+      },
+      "after": {
+        "lat": 35.7782769,
+        "lon": 139.7206909
+      },
+      "osmElementType": "node",
+      "osmElementId": "9939072405",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:阿佐ケ谷",
+      "stopName": "阿佐ケ谷",
+      "before": {
+        "lat": 35.7048561,
+        "lon": 139.6353681
+      },
+      "after": {
+        "lat": 35.7049293,
+        "lon": 139.6361365
+      },
+      "osmElementType": "node",
+      "osmElementId": "6988144606",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:飯田橋",
+      "stopName": "飯田橋",
+      "before": {
+        "lat": 35.7007786,
+        "lon": 139.7439464
+      },
+      "after": {
+        "lat": 35.700659,
+        "lon": 139.743304
+      },
+      "osmElementType": "node",
+      "osmElementId": "4414236590",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:高尾",
+      "stopName": "高尾",
+      "before": {
+        "lat": 35.6422803,
+        "lon": 139.2824029
+      },
+      "after": {
+        "lat": 35.6422692,
+        "lon": 139.2817431
+      },
+      "osmElementType": "node",
+      "osmElementId": "13296297922",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:高輪ゲートウェイ",
+      "stopName": "高輪ゲートウェイ",
+      "before": {
+        "lat": 35.6354057,
+        "lon": 139.7406431
+      },
+      "after": {
+        "lat": 35.6357677,
+        "lon": 139.7405924
+      },
+      "osmElementType": "node",
+      "osmElementId": "7371807243",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    },
+    {
+      "feedId": "jp-tokyo-jr-east",
+      "stopId": "jr-east:鶯谷",
+      "stopName": "鶯谷",
+      "before": {
+        "lat": 35.7217118,
+        "lon": 139.7779296
+      },
+      "after": {
+        "lat": 35.7224775,
+        "lon": 139.7777114
+      },
+      "osmElementType": "node",
+      "osmElementId": "5640927730",
+      "reason": "GTFS point linked to a pruned station-internal street component; snap to the reviewed public OSM station entrance.",
+      "reviewed": true
+    }
+  ]
+}
