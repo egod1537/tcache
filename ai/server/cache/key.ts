@@ -19,5 +19,5 @@ export function createAiCacheKey(request: NormalizedAiRequest): string {
   const digest = createHash('sha256')
     .update(JSON.stringify(stable(generationInput)))
     .digest('hex');
-  return `ai:v1:${digest}`;
+  return `ai:v2:${digest}`;
 }
