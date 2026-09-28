@@ -1,3 +1,5 @@
+import type { AiGenerationOptions } from '../../apps/testbed/src/api/client';
+
 export type AiProviderChoice = '' | 'gemini' | 'openwebui' | 'mock';
 
 export interface AiRequestDraft {
@@ -8,6 +10,9 @@ export interface AiRequestDraft {
   promptVersion: string;
   temperature: string;
   topP: string;
+  maxOutputTokens: string;
+  /** One stop sequence per line; blank lines are ignored. */
+  stopSequences: string;
   rawMessages: string;
   contextJson: string;
   cacheEnabled: boolean;
@@ -15,21 +20,6 @@ export interface AiRequestDraft {
 
 export type AiRequestBuildResult =
   { ok: true; request: Record<string, unknown> } | { ok: false; error: string };
-
-/**
- * `options` is passed to each provider as-is (Gemini `generationConfig`,
- * OpenWebUI chat body), so the Top-P key is provider-native. The mock provider
- * ignores options; it uses the Gemini spelling.
- */
-export const TOP_P_OPTION_KEYS = {
-  gemini: 'topP',
-  openwebui: 'top_p',
-  mock: 'topP',
-} as const;
-
-export function topPOptionKey(provider: AiProviderChoice) {
-  return provider ? TOP_P_OPTION_KEYS[provider] : undefined;
-}
 
 function parseOptionalNumber(
   raw: string,
@@ -47,20 +37,33 @@ function parseOptionalNumber(
   return value;
 }
 
-/** Prefix of the explicit message the Testbed builds from Context JSON. */
-export const CONTEXT_MESSAGE_PREFIX = 'Context JSON:\n';
+function parseOptionalPositiveInteger(
+  raw: string,
+  label: string,
+): number | undefined {
+  const text = raw.trim();
+  if (!text) return undefined;
+  const value = Number(text);
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return value;
+}
+
+function parseStopSequences(raw: string): string[] {
+  return raw.split('\n').filter((line) => line.length > 0);
+}
 
 /**
- * Testbed-only request composition: Context JSON is not a backend field. It
- * becomes one ordinary, visible `user` message placed before all other
- * messages. Empty input adds nothing.
+ * Parses Context JSON into the request's `context` field. The backend keeps it
+ * as opaque JSON and decides how it reaches each provider. Empty input omits
+ * the field.
  */
-function parseContextMessage(raw: string) {
+function parseContext(raw: string): { context?: unknown } {
   const text = raw.trim();
-  if (!text) return [];
-  let parsed: unknown;
+  if (!text) return {};
   try {
-    parsed = JSON.parse(text);
+    return { context: JSON.parse(text) as unknown };
   } catch (error) {
     throw new Error(
       `Context JSON must be valid JSON${
@@ -68,12 +71,6 @@ function parseContextMessage(raw: string) {
       }`,
     );
   }
-  return [
-    {
-      role: 'user',
-      content: `${CONTEXT_MESSAGE_PREFIX}${JSON.stringify(parsed, null, 2)}`,
-    },
-  ];
 }
 
 function parseMessages(draft: AiRequestDraft) {
@@ -93,13 +90,14 @@ function parseMessages(draft: AiRequestDraft) {
   return [{ role: 'user', content: draft.userPrompt.trim() }];
 }
 
-/** Builds the exact body POSTed to /api/ai/jobs; empty optional values are omitted. */
+/**
+ * Builds the exact body POSTed to /api/ai/jobs; empty optional values are
+ * omitted. Options always use canonical names regardless of provider.
+ */
 export function buildAiJobRequest(draft: AiRequestDraft): AiRequestBuildResult {
   try {
-    const messages = [
-      ...parseContextMessage(draft.contextJson),
-      ...parseMessages(draft),
-    ];
+    const messages = parseMessages(draft);
+    const context = parseContext(draft.contextJson);
     const temperature = parseOptionalNumber(
       draft.temperature,
       'Temperature',
@@ -107,13 +105,17 @@ export function buildAiJobRequest(draft: AiRequestDraft): AiRequestBuildResult {
       2,
     );
     const topP = parseOptionalNumber(draft.topP, 'Top-P', 0, 1);
-
-    const topPKey = topPOptionKey(draft.provider);
-    if (topP !== undefined && !topPKey) {
-      throw new Error(
-        'Select a provider to set Top-P. The option name is provider-specific (Gemini: topP, OpenWebUI: top_p).',
-      );
-    }
+    const maxOutputTokens = parseOptionalPositiveInteger(
+      draft.maxOutputTokens,
+      'Max output tokens',
+    );
+    const stopSequences = parseStopSequences(draft.stopSequences);
+    const options: AiGenerationOptions = {
+      ...(temperature !== undefined ? { temperature } : {}),
+      ...(topP !== undefined ? { topP } : {}),
+      ...(maxOutputTokens !== undefined ? { maxOutputTokens } : {}),
+      ...(stopSequences.length ? { stopSequences } : {}),
+    };
 
     return {
       ok: true,
@@ -127,10 +129,8 @@ export function buildAiJobRequest(draft: AiRequestDraft): AiRequestBuildResult {
           ? { promptVersion: draft.promptVersion.trim() }
           : {}),
         messages,
-        options: {
-          ...(temperature !== undefined ? { temperature } : {}),
-          ...(topP !== undefined && topPKey ? { [topPKey]: topP } : {}),
-        },
+        ...context,
+        options,
         cache: { enabled: draft.cacheEnabled },
       },
     };
