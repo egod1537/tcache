@@ -1,3 +1,4 @@
+/* global URL, process, console, performance, fetch, AbortSignal */
 // Research only. Run with Node 24 and --experimental-transform-types.
 // No server, resolver, cache, credentials file, or production policy is modified.
 import { registerHooks } from 'node:module';
