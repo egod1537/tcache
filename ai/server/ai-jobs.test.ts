@@ -71,6 +71,17 @@ class TestProvider implements AiProvider {
   }
 }
 
+class RecordingProvider extends TestProvider {
+  readonly requests: NormalizedAiRequest[] = [];
+  override async generate(
+    request: NormalizedAiRequest,
+    signal: AbortSignal,
+  ): Promise<AiProviderResult> {
+    this.requests.push(structuredClone(request));
+    return super.generate(request, signal);
+  }
+}
+
 class BlockingProvider extends TestProvider {
   override async generate(
     _request: NormalizedAiRequest,
@@ -176,6 +187,7 @@ describe('AI jobs', () => {
   it('builds stable keys from every generation-affecting input', () => {
     const base = {
       ...requestBody,
+      context: { destination: 'Tokyo', days: 3 },
       options: { temperature: 0.2, maxOutputTokens: 100 },
       tools: [{ functionDeclarations: [{ name: 'lookup' }] }],
       responseSchema: { type: 'object' },
@@ -185,10 +197,21 @@ describe('AI jobs', () => {
       createAiCacheKey(
         normalizeAiRequest({
           ...base,
+          context: { days: 3, destination: 'Tokyo' },
           options: { maxOutputTokens: 100, temperature: 0.2 },
         }),
       ),
     ).toBe(key);
+    // An empty stop list is the same generation input as no stop list.
+    expect(
+      createAiCacheKey(
+        normalizeAiRequest({
+          ...base,
+          options: { ...base.options, stopSequences: [] },
+        }),
+      ),
+    ).toBe(key);
+    expect(key).toMatch(/^ai:v2:[0-9a-f]{64}$/);
 
     const variants = [
       { provider: 'other' },
@@ -196,7 +219,18 @@ describe('AI jobs', () => {
       { systemPrompt: 'other system prompt' },
       { promptVersion: 'v2' },
       { messages: [{ role: 'user', content: 'other message' }] },
+      { context: { destination: 'Osaka', days: 3 } },
+      { context: undefined },
       { options: { temperature: 0.8, maxOutputTokens: 100 } },
+      { options: { temperature: 0.2, maxOutputTokens: 200 } },
+      { options: { temperature: 0.2, maxOutputTokens: 100, topP: 0.5 } },
+      {
+        options: {
+          temperature: 0.2,
+          maxOutputTokens: 100,
+          stopSequences: ['END'],
+        },
+      },
       { tools: [{ functionDeclarations: [{ name: 'other' }] }] },
       { responseSchema: { type: 'array' } },
     ];
@@ -444,6 +478,153 @@ describe('AI jobs', () => {
       error: { code: 'INVALID_REQUEST' },
     });
     expect(store.jobs.size).toBe(0);
+  });
+
+  it.each([
+    ['provider-native key', { top_p: 0.9 }, /Unknown option\(s\): top_p/],
+    ['Gemini-native key', { stop_sequences: ['x'] }, /Unknown option/],
+    ['non-object options', ['temperature'], /options must be an object/],
+    [
+      'string temperature',
+      { temperature: '0.2' },
+      /temperature must be a finite number/,
+    ],
+    [
+      'null temperature',
+      { temperature: null },
+      /temperature must be a finite number/,
+    ],
+    ['temperature above range', { temperature: 2.1 }, /between 0 and 2/],
+    ['negative topP', { topP: -0.1 }, /topP must be between 0 and 1/],
+    ['topP above range', { topP: 1.01 }, /topP must be between 0 and 1/],
+    ['zero maxOutputTokens', { maxOutputTokens: 0 }, /positive integer/],
+    [
+      'fractional maxOutputTokens',
+      { maxOutputTokens: 1.5 },
+      /positive integer/,
+    ],
+    ['string maxOutputTokens', { maxOutputTokens: '10' }, /positive integer/],
+    [
+      'string stopSequences',
+      { stopSequences: 'END' },
+      /array of non-empty strings/,
+    ],
+    [
+      'empty stop sequence',
+      { stopSequences: ['END', ''] },
+      /array of non-empty strings/,
+    ],
+    [
+      'non-string stop sequence',
+      { stopSequences: [1] },
+      /array of non-empty strings/,
+    ],
+  ])(
+    'rejects invalid options (%s) with 400',
+    async (_label, options, message) => {
+      const { app, store } = createTestApp(new TestProvider());
+      const response = await app.inject({
+        method: 'POST',
+        url: '/api/ai/jobs',
+        payload: { ...requestBody, options },
+      });
+      expect(response.statusCode).toBe(400);
+      const body = response.json<{
+        error: { code: string; message: string };
+      }>();
+      expect(body.error.code).toBe('INVALID_REQUEST');
+      expect(body.error.message).toMatch(message);
+      expect(store.jobs.size).toBe(0);
+    },
+  );
+
+  it('accepts every canonical option and passes them to the provider', async () => {
+    const provider = new RecordingProvider();
+    const { app } = createTestApp(provider);
+    const options = {
+      stopSequences: ['END'],
+      maxOutputTokens: 64,
+      topP: 0.9,
+      temperature: 0,
+    };
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/ai/jobs',
+      payload: { ...requestBody, options },
+    });
+    expect(created.statusCode).toBe(202);
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+    expect(job.status).toBe('completed');
+    expect(job.requestMetadata.optionKeys).toEqual([
+      'maxOutputTokens',
+      'stopSequences',
+      'temperature',
+      'topP',
+    ]);
+    expect(provider.requests[0]?.options).toEqual(options);
+  });
+
+  it('keeps context through the job while hiding it from status and SSE', async () => {
+    const provider = new RecordingProvider();
+    const { app } = createTestApp(provider);
+    const secret = 'CTX-SECRET-VALUE';
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/ai/jobs',
+      payload: {
+        ...requestBody,
+        context: { note: secret, trip: { b: 2, a: 1 } },
+      },
+    });
+    expect(created.statusCode).toBe(202);
+    const jobId = created.json<{ jobId: string }>().jobId;
+    const job = await waitForTerminal(app, jobId);
+    expect(job.requestMetadata).toMatchObject({ hasContext: true });
+    expect(JSON.stringify(job)).not.toContain(secret);
+
+    const events = await app.inject({
+      method: 'GET',
+      url: `/api/ai/jobs/${jobId}/events`,
+    });
+    expect(events.body).toContain('event: completed');
+    expect(events.body).not.toContain(secret);
+
+    const list = await app.inject({ method: 'GET', url: '/api/ai/jobs' });
+    expect(list.body).not.toContain(secret);
+
+    const result = await app.inject({
+      method: 'GET',
+      url: `/api/ai/jobs/${jobId}/result`,
+    });
+    const request = result.json<{ request: { context: unknown } }>().request;
+    expect(JSON.stringify(request.context)).toBe(
+      `{"note":"${secret}","trip":{"a":1,"b":2}}`,
+    );
+    expect(provider.requests[0]?.context).toEqual(request.context);
+  });
+
+  it('hits the cache for a context that differs only in key order', async () => {
+    const provider = new RecordingProvider();
+    const { app } = createTestApp(provider);
+    const run = async (context: unknown) => {
+      const created = await app.inject({
+        method: 'POST',
+        url: '/api/ai/jobs',
+        payload: { ...requestBody, context },
+      });
+      return waitForTerminal(app, created.json<{ jobId: string }>().jobId);
+    };
+    const first = await run({ city: 'Tokyo', filters: { x: 1, y: 2 } });
+    const reordered = await run({ filters: { y: 2, x: 1 }, city: 'Tokyo' });
+    const different = await run({ city: 'Osaka', filters: { x: 1, y: 2 } });
+    expect(first.cache).toMatchObject({ hit: false });
+    expect(reordered.cache).toMatchObject({ hit: true, key: first.cache?.key });
+    expect(different.cache?.hit).toBe(false);
+    expect(different.cache?.key).not.toBe(first.cache?.key);
+    expect(provider.calls).toBe(2);
   });
 
   it('reports unsupported providers and models as distinct job failures', async () => {
