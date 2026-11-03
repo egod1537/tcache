@@ -22,8 +22,5 @@
     "types": ["vite/client", "react", "react-dom"]
   },
   "include": ["src", "../../ai/testbed", "../../route/testbed"],
-  "exclude": [
-    "../../route/testbed/**/*.test.ts",
-    "../../ai/testbed/**/*.test.ts"
-  ]
+  "exclude": ["../../route/testbed/**/*.test.ts"]
 }
