@@ -1,0 +1,11 @@
+{
+  // tsx applies tsconfig paths at runtime. The `fastify` mapping in tsconfig.json
+  // points at fastify.d.ts (needed by tsc), which tsx would try to execute.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@tcache/common": ["../../packages/common/src/index.ts"],
+      "*": ["node_modules/*"]
+    }
+  }
+}
