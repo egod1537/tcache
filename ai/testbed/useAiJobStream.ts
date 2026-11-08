@@ -12,12 +12,13 @@ import {
 
 /**
  * Opens one EventSource for the selected Job and records what it receives.
- * The subscription is keyed only by `jobId` (status changes must not reconnect)
- * and is closed on Job change and on unmount.
+ * The subscription is keyed by `jobId` and explicit reconnect requests
+ * (status changes must not reconnect), and closes on Job change or unmount.
  */
 export function useAiJobStream(
   jobId: string | null,
   onJob: (job: AiJobView) => void,
+  reconnectRevision: number,
 ): AiStreamState {
   const [state, dispatch] = useReducer(
     aiStreamReducer,
@@ -50,7 +51,7 @@ export function useAiJobStream(
           receivedAt: new Date().toISOString(),
         }),
     );
-  }, [jobId]);
+  }, [jobId, reconnectRevision]);
 
   // The effect runs after render, so hide state that still belongs to the
   // previously selected Job instead of flashing it for one frame.
