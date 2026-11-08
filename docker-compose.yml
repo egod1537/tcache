@@ -38,6 +38,7 @@ services:
     environment:
       NODE_ENV: production
       TCACHE_PORT: 3200
+      TCACHE_HOST: 0.0.0.0
       REDIS_URL: redis://redis:6379
       DATABASE_URL: ${DATABASE_URL:?DATABASE_URL must be set}
       GIT_COMMIT_SHA: ${GIT_COMMIT_SHA:-dev}
@@ -79,7 +80,7 @@ services:
           'CMD',
           'node',
           '-e',
-          "fetch('http://localhost:3200/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:3200/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
         ]
       interval: 10s
       timeout: 5s

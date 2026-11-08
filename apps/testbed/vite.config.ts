@@ -5,7 +5,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '../../', '');
   const serverPort = Number(env.TCACHE_PORT || '3200');
   const testbedPort = Number(env.TCACHE_TESTBED_PORT || '3201');
-  const backend = `http://localhost:${serverPort}`;
+  const backend = `http://127.0.0.1:${serverPort}`;
 
   return {
     envDir: '../../',
@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
       ],
     },
     server: {
-      host: '0.0.0.0',
+      host: '127.0.0.1',
       port: testbedPort,
       proxy: {
         '/api/status': {
