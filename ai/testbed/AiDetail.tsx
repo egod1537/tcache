@@ -35,11 +35,13 @@ interface AiDetailProps {
   result: AiJobResult | null;
   resultLoading: boolean;
   cancelling: boolean;
+  cancelError: string | null;
   stream: AiStreamState;
   systemState: CheckState;
   serverState: CheckState;
   service: ServiceStatus | null;
   onCancel: (jobId: string) => void;
+  onReconnect: (jobId: string) => void;
 }
 
 export function AiDetail({
@@ -47,11 +49,13 @@ export function AiDetail({
   result,
   resultLoading,
   cancelling,
+  cancelError,
   stream,
   systemState,
   serverState,
   service,
   onCancel,
+  onReconnect,
 }: AiDetailProps) {
   const [tab, setTab] = useState<AiDetailTab>('overview');
 
@@ -119,6 +123,14 @@ export function AiDetail({
           <Callout compact intent={Intent.WARNING} title="SSE disconnected">
             Live updates stopped before the Job finished. The Job status shown
             may be stale; the Job itself is unaffected.
+            <Button onClick={() => onReconnect(job.jobId)} size="small">
+              Reconnect SSE
+            </Button>
+          </Callout>
+        )}
+        {cancelError && (
+          <Callout compact intent={Intent.DANGER} title="Cancel failed">
+            {cancelError}
           </Callout>
         )}
         {job.error && (

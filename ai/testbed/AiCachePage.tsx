@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
+  ApiRequestError,
   cancelAiJob,
   createAiJob,
   getAiJob,
@@ -38,9 +39,16 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
   const [result, setResult] = useState<AiJobResult | null>(null);
   const [refreshing, setRefreshing] = useState(true);
   const [refreshError, setRefreshError] = useState(false);
+  const [inspectionError, setInspectionError] = useState<string | null>(null);
   const [resultLoading, setResultLoading] = useState(false);
   const [creating, setCreating] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
+  const [cancellingJobIds, setCancellingJobIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [reconnectRevision, setReconnectRevision] = useState(0);
+  const resultRequestIdRef = useRef(0);
+  const selectedJobIdRef = useRef(selectedJobId);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const selectedJob = useMemo(
@@ -48,24 +56,34 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
     [jobs, selectedJobId],
   );
 
-  function selectJob(jobId: string) {
+  function selectJob(jobId: string | null) {
+    selectedJobIdRef.current = jobId;
+    resultRequestIdRef.current += 1;
     setSelectedJobId(jobId);
     setResult(null);
-    window.localStorage.setItem(SELECTED_JOB_KEY, jobId);
+    setResultLoading(false);
+    setCancelError(null);
+    setInspectionError(null);
+    if (jobId) window.localStorage.setItem(SELECTED_JOB_KEY, jobId);
+    else window.localStorage.removeItem(SELECTED_JOB_KEY);
   }
 
-  const stream = useAiJobStream(selectedJob?.jobId ?? null, (job) =>
-    setJobs((current) => upsertJob(current, job)),
+  const stream = useAiJobStream(
+    selectedJob?.jobId ?? null,
+    (job) => setJobs((current) => upsertJob(current, job)),
+    reconnectRevision,
   );
 
   async function loadResult(jobId: string) {
+    const requestId = ++resultRequestIdRef.current;
     setResultLoading(true);
     try {
-      setResult(await getAiJobResult(jobId));
+      const loaded = await getAiJobResult(jobId);
+      if (resultRequestIdRef.current === requestId) setResult(loaded);
     } catch {
-      setResult(null);
+      if (resultRequestIdRef.current === requestId) setResult(null);
     } finally {
-      setResultLoading(false);
+      if (resultRequestIdRef.current === requestId) setResultLoading(false);
     }
   }
 
@@ -100,6 +118,48 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
     }
   }, [selectedJob?.jobId, selectedJob?.status]);
 
+  useEffect(() => {
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout>;
+    async function reconcile() {
+      try {
+        const nextJobs = await listAiJobs();
+        if (disposed) return;
+        setRefreshError(false);
+        if (selectedJobId) {
+          try {
+            const current = await getAiJob(selectedJobId);
+            if (disposed) return;
+            setJobs(upsertJob(nextJobs, current));
+            setInspectionError(null);
+          } catch (error) {
+            if (disposed) return;
+            if (error instanceof ApiRequestError && error.status === 404) {
+              setJobs(nextJobs);
+              selectJob(null);
+              setInspectionError(error.message);
+            } else {
+              setInspectionError(
+                error instanceof Error ? error.message : String(error),
+              );
+            }
+          }
+        } else {
+          setJobs(nextJobs);
+        }
+      } catch {
+        if (!disposed) setRefreshError(true);
+      } finally {
+        if (!disposed) timer = setTimeout(() => void reconcile(), 3000);
+      }
+    }
+    timer = setTimeout(() => void reconcile(), 3000);
+    return () => {
+      disposed = true;
+      clearTimeout(timer);
+    };
+  }, [selectedJobId]);
+
   async function create(request: unknown) {
     setCreating(true);
     try {
@@ -114,13 +174,36 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
   }
 
   async function cancel(jobId: string) {
-    setCancelling(true);
+    setCancellingJobIds((current) => new Set(current).add(jobId));
+    setCancelError(null);
     try {
       await cancelAiJob(jobId);
       const job = await getAiJob(jobId);
       setJobs((current) => upsertJob(current, job));
+    } catch (error) {
+      if (selectedJobIdRef.current === jobId) {
+        setCancelError(
+          error instanceof Error ? error.message : 'Failed to cancel AI Job',
+        );
+      }
     } finally {
-      setCancelling(false);
+      setCancellingJobIds((current) => {
+        const next = new Set(current);
+        next.delete(jobId);
+        return next;
+      });
+    }
+  }
+
+  async function reconnect(jobId: string) {
+    try {
+      const job = await getAiJob(jobId);
+      setJobs((current) => upsertJob(current, job));
+    } catch {
+      // Reopen SSE even when polling is unavailable.
+    }
+    if (selectedJobIdRef.current === jobId) {
+      setReconnectRevision((current) => current + 1);
     }
   }
 
@@ -139,18 +222,23 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
           />
         }
       >
-        <AiDetail
-          cancelling={cancelling}
-          job={selectedJob}
-          onCancel={(jobId) => void cancel(jobId)}
-          // A slow result response for a previously selected Job must not show.
-          result={result?.jobId === selectedJob?.jobId ? result : null}
-          resultLoading={resultLoading}
-          serverState={status.server}
-          service={status.service}
-          stream={stream}
-          systemState={status.aiCache}
-        />
+        <>
+          {inspectionError && <div role="alert">{inspectionError}</div>}
+          <AiDetail
+            cancelError={cancelError}
+            cancelling={cancellingJobIds.has(selectedJob?.jobId ?? '')}
+            job={selectedJob}
+            onCancel={(jobId) => void cancel(jobId)}
+            onReconnect={(jobId) => void reconnect(jobId)}
+            // A slow result response for a previously selected Job must not show.
+            result={result?.jobId === selectedJob?.jobId ? result : null}
+            resultLoading={resultLoading}
+            serverState={status.server}
+            service={status.service}
+            stream={stream}
+            systemState={status.aiCache}
+          />
+        </>
       </Workspace>
       <NewAiJobDialog
         creating={creating}
