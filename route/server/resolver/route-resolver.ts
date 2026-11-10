@@ -14,6 +14,8 @@ import {
   getEffectiveRouteProviderCapabilities,
   validateRouteProviderCapabilities,
 } from './provider-resolver.js';
+import { resolveRequestCountry } from './country-resolution.js';
+import { normalizeRouteOptionsForProvider } from './route-options.js';
 
 export interface RouteResolution {
   result: unknown;
@@ -74,20 +76,43 @@ export class RouteResolver {
   }
 
   selectProvider(request: NormalizedRouteRequest): RouteProviderSelection {
+    return this.prepareRequest(request).selection;
+  }
+
+  prepareRequest(request: NormalizedRouteRequest): {
+    request: NormalizedRouteRequest;
+    selection: RouteProviderSelection;
+  } {
+    const selection = this.selectProviderOnly(request);
+    return {
+      request: normalizeRouteOptionsForProvider(request, selection.provider),
+      selection,
+    };
+  }
+
+  private selectProviderOnly(
+    request: NormalizedRouteRequest,
+  ): RouteProviderSelection {
     if (this.options.providerResolver) {
       return this.options.providerResolver.resolve(request);
     }
     const provider = this.options.provider?.providerName ?? 'unknown';
+    const countryResolution = resolveRequestCountry(request);
     validateRouteProviderCapabilities(
       request,
       provider as RouteProviderSelection['provider'],
       this.options.provider?.capabilities,
+      countryResolution.countryCode,
     );
     validateRouteRequestForProvider(request, provider);
     return {
       provider: provider as RouteProviderSelection['provider'],
       reason: `configured -> ${provider}`,
       source: 'global-force',
+      ...(countryResolution.countryCode
+        ? { resolvedCountryCode: countryResolution.countryCode }
+        : {}),
+      countryResolutionSource: countryResolution.source,
       available: this.options.provider?.available !== false,
       ...(this.options.provider?.unavailableReason
         ? { unavailableReason: this.options.provider.unavailableReason }
@@ -114,10 +139,14 @@ export class RouteResolver {
     observer: RouteResolutionObserver = {},
     selected?: RouteProviderSelection,
   ): Promise<RouteResolution> {
-    const selection = selected ?? this.selectProvider(request);
+    const selection = selected ?? this.selectProviderOnly(request);
+    const normalizedRequest = normalizeRouteOptionsForProvider(
+      request,
+      selection.provider,
+    );
     const provider = this.getProvider(selection);
     const providerRequest = provider.getDebugRequest
-      ? redactProviderDebug(provider.getDebugRequest(request))
+      ? redactProviderDebug(provider.getDebugRequest(normalizedRequest))
       : undefined;
     const options: RouteCanonicalizationOptions = {
       ...canonicalization,
@@ -125,9 +154,12 @@ export class RouteResolver {
         ? { timeZone: this.options.routeTimeZone }
         : {}),
       ...(this.options.isHoliday ? { isHoliday: this.options.isHoliday } : {}),
+      ...(selection.resolvedCountryCode
+        ? { resolvedCountryCode: selection.resolvedCountryCode }
+        : {}),
     };
     const identity = createRouteCacheIdentity(
-      request,
+      normalizedRequest,
       selection.provider,
       options,
       provider.cacheKeySeed,
@@ -163,7 +195,10 @@ export class RouteResolver {
     const providerStartedAt = performance.now();
 
     try {
-      const providerResult = await provider.getRoute(request, combinedSignal);
+      const providerResult = await provider.getRoute(
+        normalizedRequest,
+        combinedSignal,
+      );
       const normalizedResult = withoutTransportDebug(providerResult.result);
       const providerLatencyMs = Math.round(
         performance.now() - providerStartedAt,

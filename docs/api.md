@@ -66,7 +66,10 @@ Required fields and validation:
   offset.
 - `countryCode`, when present, is an ISO 3166-1 alpha-2 code.
 - `timeZone`, when present, is an IANA timezone.
-- `routingPreference` is accepted only for `DRIVING`.
+- `routingPreference` is accepted only for `DRIVING`. When Google is selected,
+  a request with `departureTime` and no preference is normalized to
+  `TRAFFIC_AWARE`. `departureTime` with an explicit `TRAFFIC_UNAWARE` is
+  rejected with `INVALID_ROUTE_OPTIONS` before a Job or provider call is made.
 
 A location may contain coordinates, a name, an address, or provider-specific
 IDs:
@@ -100,15 +103,51 @@ clients. New clients should use the ordered contract above.
 When `ROUTE_PROVIDER=auto`, tcache resolves the provider in this order:
 
 1. An allowed request-level `provider`.
-2. Exact country and mode policy.
-3. Country default.
+2. An explicit `countryCode` and its country/mode policy.
+3. A coordinate-resolved country and its country/mode policy.
 4. Mode default.
 5. Global default.
+
+`regionCode` is a localization/search hint and is never treated as a country
+selection input. Coordinate resolution is available for the built-in KR and
+JP policy regions only when every route location has coordinates and resolves
+to the same country.
+
+The built-in automatic contract is:
+
+| Resolved country | Mode           | Provider         |
+| ---------------- | -------------- | ---------------- |
+| `KR`             | `DRIVING`      | `kakao-mobility` |
+| `KR`             | `WALKING`      | `kakao-maps`     |
+| `KR`             | `BICYCLING`    | `kakao-maps`     |
+| `KR`             | `TRANSIT`      | `kakao-maps`     |
+| `JP`             | `DRIVING`      | `google`         |
+| `JP`             | `WALKING`      | `google`         |
+| `JP`             | `BICYCLING`    | `google`         |
+| `JP`             | `TRANSIT`      | `ekispert`       |
+| Other or unknown | supported mode | `google`         |
+
+The Job snapshot includes `resolvedCountryCode` and
+`countryResolutionSource` (`explicit`, `coordinates`, or `none`). When no
+country can be resolved and a global default is used, `warnings` contains
+`COUNTRY_CODE_MISSING`. The normalized request in the snapshot exposes any
+provider-dependent option defaults, including Google's `TRAFFIC_AWARE`.
 
 A fixed `ROUTE_PROVIDER` has higher precedence than all policy entries and
 rejects request overrides. Selection validates provider availability and
 capabilities before creating the Job. There is no automatic fallback after a
 selection or an upstream failure.
+
+For example, this invalid Google option combination returns HTTP 400:
+
+```json
+{
+  "error": {
+    "code": "INVALID_ROUTE_OPTIONS",
+    "message": "departureTime cannot be used with TRAFFIC_UNAWARE. Remove departureTime or use TRAFFIC_AWARE."
+  }
+}
+```
 
 ### Lifecycle and result
 

@@ -54,6 +54,10 @@ export class RouteJobRunner {
     return this.options.resolver.validateRequest(request);
   }
 
+  prepareRequest(request: ReturnType<typeof normalizeRouteRequest>) {
+    return this.options.resolver.prepareRequest(request);
+  }
+
   async run(jobId: string): Promise<void> {
     const initial = await this.options.store.get(jobId);
     if (!initial || isTerminalStatus(initial.status)) return;
@@ -72,11 +76,17 @@ export class RouteJobRunner {
       });
 
       errorCode = 'INVALID_REQUEST';
-      const normalizedRequest = normalizeRouteRequest(initial.request);
-      const selection = this.options.resolver.selectProvider(normalizedRequest);
+      const prepared = this.options.resolver.prepareRequest(
+        normalizeRouteRequest(initial.request),
+      );
+      const normalizedRequest = prepared.request;
+      const selection = prepared.selection;
       const canonicalizationOptions = {
         fallbackTime: new Date(initial.createdAt),
         provider: selection.provider,
+        ...(selection.resolvedCountryCode
+          ? { resolvedCountryCode: selection.resolvedCountryCode }
+          : {}),
         ...(this.options.routeTimeZone
           ? { timeZone: this.options.routeTimeZone }
           : {}),
@@ -119,6 +129,7 @@ export class RouteJobRunner {
                 timeZone: resolveRouteTimeZone(
                   normalizedRequest,
                   this.options.routeTimeZone,
+                  selection.resolvedCountryCode,
                 ),
               },
               selectedProvider: selection.provider,
@@ -137,6 +148,11 @@ export class RouteJobRunner {
               ...(normalizedRequest.countryCode
                 ? { countryCode: normalizedRequest.countryCode }
                 : {}),
+              ...(selection.resolvedCountryCode
+                ? { resolvedCountryCode: selection.resolvedCountryCode }
+                : {}),
+              countryResolutionSource: selection.countryResolutionSource,
+              ...(selection.warnings ? { warnings: selection.warnings } : {}),
               mode: normalizedRequest.travelMode,
             });
             startedAnalytics = this.recordAnalytics('started', checkingCache, {

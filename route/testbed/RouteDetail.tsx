@@ -177,7 +177,15 @@ export function RouteDetail({
               label="선택 출처"
               value={job.providerSelectionSource ?? '—'}
             />
-            <Fact label="국가" value={job.countryCode ?? '기본 정책'} />
+            <Fact label="요청 국가" value={job.countryCode ?? '미지정'} />
+            <Fact
+              label="판별 국가"
+              value={job.resolvedCountryCode ?? '판별 안 됨'}
+            />
+            <Fact
+              label="국가 판별 출처"
+              value={job.countryResolutionSource ?? '—'}
+            />
             <Fact
               label="이동 수단"
               value={routeModeLabel(job.mode ?? job.request.travelMode)}

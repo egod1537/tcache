@@ -12,6 +12,10 @@ import {
   type RouteProviderPolicy,
   type RouteProviderPolicySource,
 } from './provider-policy.js';
+import {
+  resolveRequestCountry,
+  type CountryResolutionSource,
+} from './country-resolution.js';
 
 export type RouteProviderSelectionSource =
   | 'request-override'
@@ -33,6 +37,14 @@ export interface RouteProviderSelection {
   capabilities?: RouteProviderCapabilities;
   available?: boolean;
   unavailableReason?: string;
+  resolvedCountryCode?: string;
+  countryResolutionSource: CountryResolutionSource;
+  warnings?: RouteProviderWarning[];
+}
+
+export interface RouteProviderWarning {
+  code: 'COUNTRY_CODE_MISSING';
+  message: string;
 }
 
 export interface RouteProviderResolver {
@@ -161,6 +173,7 @@ export class RouteProviderPolicyResolver implements RouteProviderResolver {
       request,
       selection.provider,
       adapter.capabilities,
+      selection.resolvedCountryCode,
     );
     validateRouteRequestForProvider(request, selection.provider);
     return {
@@ -181,6 +194,13 @@ export class RouteProviderPolicyResolver implements RouteProviderResolver {
   }
 
   private select(request: NormalizedRouteRequest): RouteProviderSelection {
+    const countryResolution = resolveRequestCountry(request);
+    const countryMetadata = {
+      ...(countryResolution.countryCode
+        ? { resolvedCountryCode: countryResolution.countryCode }
+        : {}),
+      countryResolutionSource: countryResolution.source,
+    };
     if (this.options.fixedProvider) {
       if (request.provider) {
         throw new RouteProviderResolutionError(
@@ -188,6 +208,7 @@ export class RouteProviderPolicyResolver implements RouteProviderResolver {
         );
       }
       return {
+        ...countryMetadata,
         provider: this.options.fixedProvider,
         reason: `global force -> ${this.options.fixedProvider}`,
         source: 'global-force',
@@ -201,13 +222,14 @@ export class RouteProviderPolicyResolver implements RouteProviderResolver {
         );
       }
       return {
+        ...countryMetadata,
         provider: toProviderName(request.provider),
         reason: `request override -> ${request.provider}`,
         source: 'request-override',
       };
     }
 
-    const countryCode = request.countryCode;
+    const countryCode = countryResolution.countryCode;
     const countryPolicy = countryCode
       ? this.policy.countries[countryCode]
       : undefined;
@@ -217,13 +239,15 @@ export class RouteProviderPolicyResolver implements RouteProviderResolver {
         countryModeKey(countryCode, request.travelMode),
       );
       return {
+        ...countryMetadata,
         provider: exactProvider,
-        reason: `${legacy ? 'legacy ' : ''}${countryCode} + ${request.travelMode} -> ${exactProvider}`,
+        reason: `${legacy ? 'legacy ' : ''}${countryCode}${countryResolution.source === 'coordinates' ? ' (coordinates)' : ''} + ${request.travelMode} -> ${exactProvider}`,
         source: legacy ? 'legacy' : 'country-mode',
       };
     }
     if (countryCode && countryPolicy?.defaultProvider) {
       return {
+        ...countryMetadata,
         provider: countryPolicy.defaultProvider,
         reason: `${countryCode} default -> ${countryPolicy.defaultProvider}`,
         source: 'country-default',
@@ -232,16 +256,20 @@ export class RouteProviderPolicyResolver implements RouteProviderResolver {
     const modeDefault = this.policy.modeDefaults?.[request.travelMode];
     if (modeDefault) {
       return {
+        ...countryMetadata,
         provider: modeDefault,
         reason: `${request.travelMode} default -> ${modeDefault}`,
         source: 'mode-default',
+        ...missingCountryWarning(countryResolution.source),
       };
     }
     if (this.policy.defaultProvider) {
       return {
+        ...countryMetadata,
         provider: this.policy.defaultProvider,
         reason: `global default -> ${this.policy.defaultProvider}`,
         source: 'global-default',
+        ...missingCountryWarning(countryResolution.source),
       };
     }
     throw new RouteProviderResolutionError(
@@ -264,17 +292,18 @@ export function validateRouteProviderCapabilities(
   request: NormalizedRouteRequest,
   provider: RouteProviderName,
   capabilities: RouteProviderCapabilities | undefined,
+  resolvedCountryCode = request.countryCode,
 ) {
   if (!capabilities) return;
   if (!capabilities.modes.includes(request.travelMode)) {
     throw mismatch(provider, `mode ${request.travelMode} is not supported`);
   }
   if (
-    request.countryCode &&
+    resolvedCountryCode &&
     capabilities.countries &&
-    !capabilities.countries.includes(request.countryCode)
+    !capabilities.countries.includes(resolvedCountryCode)
   ) {
-    throw mismatch(provider, `country ${request.countryCode} is not supported`);
+    throw mismatch(provider, `country ${resolvedCountryCode} is not supported`);
   }
   const modeCapabilities = capabilities.modeCapabilities?.[request.travelMode];
   const supportsWaypoints =
@@ -310,6 +339,22 @@ export function validateRouteProviderCapabilities(
   if (requiresDepartureTime && !request.departureTime) {
     throw mismatch(provider, 'departureTime is required');
   }
+}
+
+function missingCountryWarning(
+  source: CountryResolutionSource,
+): { warnings: RouteProviderWarning[] } | Record<string, never> {
+  return source === 'none'
+    ? {
+        warnings: [
+          {
+            code: 'COUNTRY_CODE_MISSING',
+            message:
+              'A global default provider was selected because countryCode was not provided.',
+          },
+        ],
+      }
+    : {};
 }
 
 function mismatch(provider: RouteProviderName, message: string) {

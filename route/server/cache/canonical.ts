@@ -32,6 +32,7 @@ export interface RouteCanonicalizationOptions {
   timeZone?: string;
   isHoliday?: (date: Date) => boolean;
   provider?: string;
+  resolvedCountryCode?: string;
 }
 
 export function canonicalizeRouteLocation(
@@ -96,7 +97,11 @@ export function getRouteTemporalMetadata(
   const date = request.departureTime
     ? new Date(request.departureTime)
     : (options.fallbackTime ?? new Date());
-  const timeZone = resolveRouteTimeZone(request, options.timeZone);
+  const timeZone = resolveRouteTimeZone(
+    request,
+    options.timeZone,
+    options.resolvedCountryCode,
+  );
   const policy = getTimeBucketPolicy(
     request.travelMode,
     options.provider ?? request.provider,
@@ -114,11 +119,12 @@ export function getRouteTemporalMetadata(
 export function resolveRouteTimeZone(
   request: NormalizedRouteRequest,
   fallbackTimeZone?: string,
+  resolvedCountryCode = request.countryCode,
 ): string {
   return (
     request.timeZone ??
-    (request.countryCode
-      ? COUNTRY_TIME_ZONES[request.countryCode]
+    (resolvedCountryCode
+      ? COUNTRY_TIME_ZONES[resolvedCountryCode]
       : undefined) ??
     fallbackTimeZone ??
     'UTC'

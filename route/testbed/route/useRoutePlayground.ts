@@ -231,6 +231,13 @@ async function executeRouteJob(
       ...(job.providerSelectionSource
         ? { providerSelectionSource: job.providerSelectionSource }
         : {}),
+      ...(job.resolvedCountryCode
+        ? { resolvedCountryCode: job.resolvedCountryCode }
+        : {}),
+      ...(job.countryResolutionSource
+        ? { countryResolutionSource: job.countryResolutionSource }
+        : {}),
+      ...(job.warnings ? { warnings: job.warnings } : {}),
       ...(job.providerCapabilities
         ? { providerCapabilities: job.providerCapabilities }
         : {}),

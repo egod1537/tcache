@@ -32,13 +32,19 @@ export function createRouteCacheIdentity(
   providerCacheKeySeed?: string,
 ): RouteCacheIdentity {
   const normalizedProvider = provider.trim().toLowerCase() || 'unknown';
-  const countryCode = request.countryCode?.toLowerCase() ?? 'unknown';
+  const resolvedCountryCode =
+    options.resolvedCountryCode ?? request.countryCode;
+  const countryCode = resolvedCountryCode?.toLowerCase() ?? 'unknown';
   const mode = request.travelMode.toLowerCase();
   const temporal = getRouteTemporalMetadata(request, {
     ...options,
     provider: normalizedProvider,
   });
-  const timeZone = resolveRouteTimeZone(request, options.timeZone);
+  const timeZone = resolveRouteTimeZone(
+    request,
+    options.timeZone,
+    resolvedCountryCode,
+  );
   const bucketPolicy = getTimeBucketPolicy(
     request.travelMode,
     normalizedProvider,
@@ -47,7 +53,7 @@ export function createRouteCacheIdentity(
     provider: normalizedProvider,
     ...(providerCacheKeySeed ? { providerCacheKeySeed } : {}),
     mode: request.travelMode,
-    countryCode: request.countryCode ?? null,
+    countryCode: resolvedCountryCode ?? null,
     timeZone,
     origin: canonicalizeRouteLocation(request.origin, normalizedProvider),
     intermediates: request.intermediates.map((location) =>

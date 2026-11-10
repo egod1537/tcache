@@ -7,7 +7,11 @@ import type {
   RouteProviderCapabilities,
   RouteProviderName,
 } from '../providers/provider.js';
-import type { RouteProviderSelectionSource } from '../resolver/provider-resolver.js';
+import type {
+  RouteProviderSelectionSource,
+  RouteProviderWarning,
+} from '../resolver/provider-resolver.js';
+import type { CountryResolutionSource } from '../resolver/country-resolution.js';
 
 export type RouteJobStatus =
   'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
@@ -86,6 +90,9 @@ export interface RouteJob {
   rawProviderResponse?: unknown;
   rawProviderResponseExposed?: boolean;
   countryCode?: string;
+  resolvedCountryCode?: string;
+  countryResolutionSource?: CountryResolutionSource;
+  warnings?: RouteProviderWarning[];
   mode?: RouteTravelMode;
   provider?: string;
   providerLatencyMs?: number;
@@ -153,6 +160,13 @@ export function toJobStatus(job: RouteJob) {
       ? { rawProviderResponseExposed: job.rawProviderResponseExposed }
       : {}),
     ...(job.countryCode ? { countryCode: job.countryCode } : {}),
+    ...(job.resolvedCountryCode
+      ? { resolvedCountryCode: job.resolvedCountryCode }
+      : {}),
+    ...(job.countryResolutionSource
+      ? { countryResolutionSource: job.countryResolutionSource }
+      : {}),
+    ...(job.warnings ? { warnings: job.warnings } : {}),
     ...(job.mode ? { mode: job.mode } : {}),
     ...(job.provider ? { provider: job.provider } : {}),
     ...(job.providerLatencyMs !== undefined

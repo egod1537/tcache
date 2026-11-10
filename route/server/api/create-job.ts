@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 
 import { normalizePublicRouteRequest } from '../types/route.js';
 import { RouteProviderResolutionError } from '../resolver/provider-resolver.js';
+import { RouteOptionsValidationError } from '../resolver/route-options.js';
 import type { RouteApiContext } from './context.js';
 
 export function registerCreateJob(
@@ -12,13 +13,17 @@ export function registerCreateJob(
     let input;
     let selection;
     try {
-      input = normalizePublicRouteRequest(request.body);
-      selection = context.jobs.selectProvider(input);
+      const prepared = context.jobs.prepareRequest(
+        normalizePublicRouteRequest(request.body),
+      );
+      input = prepared.request;
+      selection = prepared.selection;
     } catch (error) {
       return reply.code(400).send({
         error: {
           code:
-            error instanceof RouteProviderResolutionError
+            error instanceof RouteProviderResolutionError ||
+            error instanceof RouteOptionsValidationError
               ? error.code
               : 'INVALID_ROUTE_REQUEST',
           message:

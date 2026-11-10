@@ -5,6 +5,7 @@ import type {
   RouteTravelMode,
 } from '../../types/route.js';
 import { normalizeRouteRequest } from '../../types/route.js';
+import { normalizeRouteOptionsForProvider } from '../../resolver/route-options.js';
 import type { GoogleRoutesRequest, GoogleWaypoint } from './types.js';
 
 const GOOGLE_TRAVEL_MODES: Record<
@@ -40,7 +41,10 @@ function toWaypoint(point: NormalizedRouteLocation): GoogleWaypoint {
 export function toGoogleRoutesRequest(
   request: NormalizedRouteRequest | RouteRequestInput,
 ): GoogleRoutesRequest {
-  const normalized = normalizeRouteRequest(request);
+  const normalized = normalizeRouteOptionsForProvider(
+    normalizeRouteRequest(request),
+    'google',
+  );
   return {
     origin: toWaypoint(normalized.origin),
     destination: toWaypoint(normalized.destination),

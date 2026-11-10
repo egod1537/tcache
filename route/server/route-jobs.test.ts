@@ -15,6 +15,7 @@ import type { RouteJobStore } from './jobs/route-job-store.js';
 import type {
   RouteProvider,
   RouteProviderResult,
+  RouteProviderName,
 } from './providers/provider.js';
 import { GoogleRouteProvider } from './providers/google/client.js';
 import { createKakaoHttpError } from './providers/kakao/errors.js';
@@ -23,6 +24,11 @@ import { EkispertRouteProvider } from './providers/ekispert/provider.js';
 import { OtpRouteProvider } from './providers/otp/provider.js';
 import { otpDirectRouteFixture } from './providers/otp/fixtures/routes.js';
 import { RouteResolver } from './resolver/route-resolver.js';
+import {
+  RouteProviderPolicyResolver,
+  RouteProviderRegistry,
+} from './resolver/provider-resolver.js';
+import { BUILT_IN_ROUTE_PROVIDER_POLICY } from './resolver/provider-policy.js';
 import { toGoogleRoutesRequest } from './providers/google/mapper.js';
 import { parseGoogleRoutesResponse } from './providers/google/parser.js';
 import {
@@ -80,6 +86,30 @@ class TestProvider implements RouteProvider {
     return {
       provider: 'test',
       result: { request, route: ['origin', 'destination'] },
+    };
+  }
+}
+
+class NamedTestProvider implements RouteProvider {
+  calls = 0;
+  readonly adapterVersion = 'named-test-v1';
+
+  constructor(
+    readonly providerName: RouteProviderName,
+    readonly capabilities: NonNullable<RouteProvider['capabilities']>,
+  ) {}
+
+  getDebugRequest(request: NormalizedRouteRequest) {
+    return request;
+  }
+
+  async getRoute(
+    request: NormalizedRouteRequest,
+  ): Promise<RouteProviderResult> {
+    this.calls += 1;
+    return {
+      provider: this.providerName,
+      result: { provider: this.providerName, request, routes: [] },
     };
   }
 }
@@ -199,6 +229,32 @@ function createTestApp(
   return { app, store, cache, jobs };
 }
 
+function createAutoTestApp(providers: RouteProvider[]) {
+  const store = new MemoryJobStore();
+  const cache = new MemoryCache();
+  const events = new InMemoryRouteJobEventBus();
+  const registry = new RouteProviderRegistry(providers);
+  const runner = new RouteJobRunner({
+    store,
+    events,
+    resolver: new RouteResolver({
+      cache,
+      cachePolicy: createRouteCachePolicy(3_600),
+      providers: registry,
+      providerResolver: new RouteProviderPolicyResolver({
+        registry,
+        policy: BUILT_IN_ROUTE_PROVIDER_POLICY,
+        allowOverride: true,
+      }),
+      providerTimeoutMs: 1_000,
+    }),
+  });
+  const jobs = new RouteJobService(store, events, runner);
+  const app = buildApp({ routeCache: { jobs, events } });
+  apps.push(app);
+  return { app, store, cache, jobs };
+}
+
 async function waitForTerminal(
   app: ReturnType<typeof buildApp>,
   jobId: string,
@@ -221,6 +277,129 @@ afterEach(async () => {
 });
 
 describe('route jobs', () => {
+  it('normalizes Google driving traffic options and exposes country warnings', async () => {
+    const provider = new NamedTestProvider('google', {
+      modes: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'],
+      supportsWaypoints: true,
+      maxLocations: 27,
+      supportsDepartureTime: true,
+    });
+    const { app } = createAutoTestApp([provider]);
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: {
+        locations: [
+          { latitude: 40.7128, longitude: -74.006 },
+          { latitude: 40.758, longitude: -73.9855 },
+        ],
+        mode: 'DRIVING',
+        regionCode: 'KR',
+        departureTime: '2026-11-10T12:43:24Z',
+      },
+    });
+
+    expect(created.statusCode).toBe(202);
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+    expect(job).toMatchObject({
+      status: 'completed',
+      selectedProvider: 'google',
+      countryResolutionSource: 'none',
+      warnings: [
+        {
+          code: 'COUNTRY_CODE_MISSING',
+          message:
+            'A global default provider was selected because countryCode was not provided.',
+        },
+      ],
+      request: { routingPreference: 'TRAFFIC_AWARE' },
+      normalizedRequest: { routingPreference: 'TRAFFIC_AWARE' },
+      providerRequest: { routingPreference: 'TRAFFIC_AWARE' },
+      cache: {
+        key: expect.stringMatching(/^route:v4:google:driving:unknown:/),
+      },
+    });
+    expect(job.resolvedCountryCode).toBeUndefined();
+    expect(provider.calls).toBe(1);
+  });
+
+  it('rejects Google TRAFFIC_UNAWARE with departureTime before creating a job', async () => {
+    const provider = new NamedTestProvider('google', {
+      modes: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'],
+      supportsWaypoints: true,
+      maxLocations: 27,
+      supportsDepartureTime: true,
+    });
+    const { app, store } = createAutoTestApp([provider]);
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: {
+        locations: [{ address: 'A' }, { address: 'B' }],
+        mode: 'DRIVING',
+        provider: 'google',
+        departureTime: '2026-11-10T12:43:24Z',
+        routingPreference: 'TRAFFIC_UNAWARE',
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(response.json()).toEqual({
+      error: {
+        code: 'INVALID_ROUTE_OPTIONS',
+        message:
+          'departureTime cannot be used with TRAFFIC_UNAWARE. Remove departureTime or use TRAFFIC_AWARE.',
+      },
+    });
+    expect(provider.calls).toBe(0);
+    expect(store.jobs.size).toBe(0);
+  });
+
+  it('selects Kakao from Korean coordinates when only regionCode is supplied', async () => {
+    const provider = new NamedTestProvider('kakao-mobility', {
+      countries: ['KR'],
+      modes: ['DRIVING'],
+      supportsWaypoints: true,
+      maxLocations: 7,
+      requiresCoordinates: true,
+    });
+    const { app } = createAutoTestApp([provider]);
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/route/jobs',
+      payload: {
+        locations: [
+          { latitude: 37.5665, longitude: 126.978 },
+          { latitude: 37.5547, longitude: 126.9707 },
+        ],
+        mode: 'DRIVING',
+        regionCode: 'KR',
+        departureTime: '2026-11-10T12:43:24Z',
+      },
+    });
+
+    expect(created.statusCode).toBe(202);
+    const job = await waitForTerminal(
+      app,
+      created.json<{ jobId: string }>().jobId,
+    );
+    expect(job).toMatchObject({
+      status: 'completed',
+      selectedProvider: 'kakao-mobility',
+      providerSelectionSource: 'country-mode',
+      resolvedCountryCode: 'KR',
+      countryResolutionSource: 'coordinates',
+      cache: {
+        key: expect.stringMatching(/^route:v4:kakao-mobility:driving:kr:/),
+      },
+    });
+    expect(job.countryCode).toBeUndefined();
+    expect(job.warnings).toBeUndefined();
+  });
+
   it('runs an OTP Route Job through the shared lifecycle and v4 cache', async () => {
     const provider = new OtpRouteProvider({
       enabled: true,

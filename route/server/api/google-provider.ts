@@ -4,6 +4,10 @@ import type { RouteProvider } from '../providers/provider.js';
 import { validateRouteRequestForProvider } from '../providers/location-validation.js';
 import { GoogleRoutesError } from '../providers/google/errors.js';
 import { normalizePublicRouteRequest } from '../types/route.js';
+import {
+  normalizeRouteOptionsForProvider,
+  RouteOptionsValidationError,
+} from '../resolver/route-options.js';
 
 export interface GoogleProviderDebugContext {
   provider: RouteProvider;
@@ -20,12 +24,18 @@ export function registerGoogleProviderDebug(
     async (request, reply) => {
       let normalizedRequest;
       try {
-        normalizedRequest = normalizePublicRouteRequest(request.body);
+        normalizedRequest = normalizeRouteOptionsForProvider(
+          normalizePublicRouteRequest(request.body),
+          'google',
+        );
         validateRouteRequestForProvider(normalizedRequest, 'google');
       } catch (error) {
         return reply.code(400).send({
           error: {
-            code: 'INVALID_ROUTE_REQUEST',
+            code:
+              error instanceof RouteOptionsValidationError
+                ? error.code
+                : 'INVALID_ROUTE_REQUEST',
             message:
               error instanceof Error ? error.message : 'Invalid route request',
           },

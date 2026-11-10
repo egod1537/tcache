@@ -18,6 +18,11 @@ export type RouteProviderSelectionSource =
   | 'mode-default'
   | 'global-default'
   | 'legacy';
+export type CountryResolutionSource = 'explicit' | 'coordinates' | 'none';
+export interface RouteProviderWarning {
+  code: 'COUNTRY_CODE_MISSING';
+  message: string;
+}
 
 export interface RouteLocation {
   coordinates?: { latitude: number; longitude: number };
@@ -173,6 +178,9 @@ export interface RoutePlaygroundResponse {
   selectedProvider?: string;
   providerSelectionReason?: string;
   providerSelectionSource?: RouteProviderSelectionSource;
+  resolvedCountryCode?: string;
+  countryResolutionSource?: CountryResolutionSource;
+  warnings?: RouteProviderWarning[];
   providerCapabilities?: RouteProviderCapabilities;
   providerAvailable?: boolean;
   providerUnavailableReason?: string;
@@ -315,6 +323,9 @@ export interface RouteJobView {
   rawProviderResponse?: unknown;
   rawProviderResponseExposed?: boolean;
   countryCode?: string;
+  resolvedCountryCode?: string;
+  countryResolutionSource?: CountryResolutionSource;
+  warnings?: RouteProviderWarning[];
   mode?: RouteTravelMode;
   provider?: string;
   providerLatencyMs?: number;

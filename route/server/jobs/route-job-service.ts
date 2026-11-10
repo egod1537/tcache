@@ -16,9 +16,12 @@ export class RouteJobService {
 
   async create(
     request: NormalizedRouteRequest,
-    selection = this.selectProvider(request),
+    selection?: RouteProviderSelection,
     clientRequest?: unknown,
   ): Promise<RouteJob> {
+    const prepared = this.prepareRequest(request);
+    const normalizedRequest = prepared.request;
+    const resolvedSelection = selection ?? prepared.selection;
     const now = new Date().toISOString();
     const job: RouteJob = {
       jobId: `route_${randomUUID().replaceAll('-', '')}`,
@@ -28,23 +31,32 @@ export class RouteJobService {
       message: 'Route job queued',
       createdAt: now,
       updatedAt: now,
-      request,
+      request: normalizedRequest,
       ...(clientRequest !== undefined ? { clientRequest } : {}),
-      selectedProvider: selection.provider,
-      providerSelectionReason: selection.reason,
-      providerSelectionSource: selection.source,
-      ...(selection.capabilities
-        ? { providerCapabilities: selection.capabilities }
+      selectedProvider: resolvedSelection.provider,
+      providerSelectionReason: resolvedSelection.reason,
+      providerSelectionSource: resolvedSelection.source,
+      ...(resolvedSelection.capabilities
+        ? { providerCapabilities: resolvedSelection.capabilities }
         : {}),
-      ...(selection.available !== undefined
-        ? { providerAvailable: selection.available }
+      ...(resolvedSelection.available !== undefined
+        ? { providerAvailable: resolvedSelection.available }
         : {}),
-      ...(selection.unavailableReason
-        ? { providerUnavailableReason: selection.unavailableReason }
+      ...(resolvedSelection.unavailableReason
+        ? { providerUnavailableReason: resolvedSelection.unavailableReason }
         : {}),
       fallbackPolicy: 'disabled',
-      ...(request.countryCode ? { countryCode: request.countryCode } : {}),
-      mode: request.travelMode,
+      ...(normalizedRequest.countryCode
+        ? { countryCode: normalizedRequest.countryCode }
+        : {}),
+      ...(resolvedSelection.resolvedCountryCode
+        ? { resolvedCountryCode: resolvedSelection.resolvedCountryCode }
+        : {}),
+      countryResolutionSource: resolvedSelection.countryResolutionSource,
+      ...(resolvedSelection.warnings
+        ? { warnings: resolvedSelection.warnings }
+        : {}),
+      mode: normalizedRequest.travelMode,
     };
 
     await this.store.save(job);
@@ -55,6 +67,10 @@ export class RouteJobService {
 
   validateRequest(request: NormalizedRouteRequest) {
     return this.selectProvider(request);
+  }
+
+  prepareRequest(request: NormalizedRouteRequest) {
+    return this.runner.prepareRequest(request);
   }
 
   selectProvider(request: NormalizedRouteRequest): RouteProviderSelection {

@@ -145,10 +145,69 @@ describe('RouteProviderPolicyResolver', () => {
     expect(createResolver().resolve(request('US', 'TRANSIT'))).toMatchObject({
       provider: 'google',
       source: 'mode-default',
+      resolvedCountryCode: 'US',
+      countryResolutionSource: 'explicit',
     });
     expect(
       createResolver().resolve(request(undefined, 'DRIVING')),
-    ).toMatchObject({ provider: 'google', source: 'mode-default' });
+    ).toMatchObject({
+      provider: 'google',
+      source: 'country-mode',
+      resolvedCountryCode: 'JP',
+      countryResolutionSource: 'coordinates',
+    });
+  });
+
+  it.each([
+    ['DRIVING', 'kakao-mobility'],
+    ['WALKING', 'kakao-maps'],
+    ['BICYCLING', 'kakao-maps'],
+    ['TRANSIT', 'kakao-maps'],
+  ] as const)(
+    'resolves Korean coordinates for %s as %s without using regionCode',
+    (travelMode, provider) => {
+      const resolved = createResolver().resolve(
+        normalizeRouteRequest({
+          origin: { latitude: 37.5665, longitude: 126.978 },
+          destination: { latitude: 37.5547, longitude: 126.9707 },
+          travelMode,
+          regionCode: 'US',
+        }),
+      );
+
+      expect(resolved).toMatchObject({
+        provider,
+        source: 'country-mode',
+        resolvedCountryCode: 'KR',
+        countryResolutionSource: 'coordinates',
+      });
+      expect(resolved.reason).toContain('KR (coordinates)');
+    },
+  );
+
+  it('does not treat regionCode as country and warns on a global default', () => {
+    const resolved = createResolver().resolve(
+      normalizeRouteRequest({
+        origin: { latitude: 40.7128, longitude: -74.006 },
+        destination: { latitude: 40.758, longitude: -73.9855 },
+        travelMode: 'DRIVING',
+        regionCode: 'KR',
+      }),
+    );
+
+    expect(resolved).toMatchObject({
+      provider: 'google',
+      source: 'mode-default',
+      countryResolutionSource: 'none',
+      warnings: [
+        {
+          code: 'COUNTRY_CODE_MISSING',
+          message:
+            'A global default provider was selected because countryCode was not provided.',
+        },
+      ],
+    });
+    expect(resolved.resolvedCountryCode).toBeUndefined();
   });
 
   it('uses country default, mode default, then global default precedence', () => {
@@ -221,6 +280,19 @@ describe('RouteProviderPolicyResolver', () => {
     ).toThrow(
       'Route provider capability mismatch (navitime): mode DRIVING is not supported',
     );
+  });
+
+  it('validates override country support against coordinate resolution', () => {
+    expect(() =>
+      createResolver().resolve(
+        normalizeRouteRequest({
+          origin: { latitude: 37.5665, longitude: 126.978 },
+          destination: { latitude: 37.5547, longitude: 126.9707 },
+          travelMode: 'TRANSIT',
+          provider: 'navitime',
+        }),
+      ),
+    ).toThrow('country KR is not supported');
   });
 
   it('rejects coordinate and waypoint capability mismatches', () => {

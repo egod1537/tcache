@@ -100,11 +100,17 @@ The built-in policy is equivalent to:
 }
 ```
 
-Selection precedence is a fixed `ROUTE_PROVIDER`, an allowed request override,
-an exact country/mode entry, a country default, a mode default, then the global
-default. Policy JSON is validated at startup. Unknown fields, invalid country
-codes, invalid modes, and unregistered providers prevent the server from
-starting.
+Selection precedence is a fixed `ROUTE_PROVIDER`; in auto mode it is an
+allowed request override, explicit `countryCode`, coordinate-resolved country,
+country/mode entry, country default, mode default, then the global default.
+`regionCode` does not participate in country resolution. Built-in coordinate
+resolution covers KR and JP when every location resolves consistently. Policy
+JSON is validated at startup. Unknown fields, invalid country codes, invalid
+modes, and unregistered providers prevent the server from starting.
+
+Request overrides are checked for provider availability, mode, resolved
+country, waypoint/location limits, and required coordinate or identifier
+formats before a Route Job is created.
 
 `JAPAN_TRANSIT_PROVIDER` accepts `ekispert`, `navitime`, or `otp`. It is applied
 only as a compatibility rule when policy JSON has no explicit `JP + TRANSIT`
@@ -187,6 +193,11 @@ The SHA-256 input is a stable serialization of:
 - alternative-route flag;
 - local day type and 10-minute departure-time bucket;
 - language, region, driving preference, units, and normalized options.
+
+Provider-dependent normalization runs before key construction. In particular,
+Google `DRIVING` requests with `departureTime` default to `TRAFFIC_AWARE`, so
+implicit and explicit traffic-aware requests share an identity while different
+time buckets and preferences remain isolated.
 
 Coordinates have highest precedence and are rounded to five decimal places.
 Otherwise tcache uses the selected provider's external ID, then an NFKC,

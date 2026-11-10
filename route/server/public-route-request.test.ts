@@ -14,6 +14,10 @@ import {
   normalizePublicRouteRequest,
   normalizeRouteRequest,
 } from './types/route.js';
+import {
+  normalizeRouteOptionsForProvider,
+  RouteOptionsValidationError,
+} from './resolver/route-options.js';
 
 const departureTime = '2026-10-02T14:23:00+09:00';
 
@@ -216,6 +220,61 @@ describe('public route request normalization', () => {
 });
 
 describe('public route temporal metadata and cache keys', () => {
+  it('normalizes Google driving departure traffic options before caching', () => {
+    const request = normalizeRouteRequest({
+      origin: { address: 'A' },
+      destination: { address: 'B' },
+      travelMode: 'DRIVING',
+      departureTime: '2026-11-10T12:43:24Z',
+    });
+    const normalized = normalizeRouteOptionsForProvider(request, 'google');
+    const explicit = normalizeRouteOptionsForProvider(
+      { ...request, routingPreference: 'TRAFFIC_AWARE' },
+      'google',
+    );
+
+    expect(normalized.routingPreference).toBe('TRAFFIC_AWARE');
+    expect(createRouteCacheKey(normalized, 'google')).toBe(
+      createRouteCacheKey(explicit, 'google'),
+    );
+    expect(createRouteCacheKey(normalized, 'google')).not.toBe(
+      createRouteCacheKey(
+        {
+          ...normalized,
+          departureTime: '2026-11-10T12:53:24Z',
+        },
+        'google',
+      ),
+    );
+    expect(
+      normalizeRouteOptionsForProvider(request, 'kakao-mobility')
+        .routingPreference,
+    ).toBeUndefined();
+  });
+
+  it('rejects Google TRAFFIC_UNAWARE with departureTime locally', () => {
+    const request = normalizeRouteRequest({
+      origin: { address: 'A' },
+      destination: { address: 'B' },
+      travelMode: 'DRIVING',
+      departureTime: '2026-11-10T12:43:24Z',
+      routingPreference: 'traffic_unaware',
+    });
+
+    expect(() => normalizeRouteOptionsForProvider(request, 'google')).toThrow(
+      RouteOptionsValidationError,
+    );
+    try {
+      normalizeRouteOptionsForProvider(request, 'google');
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: 'INVALID_ROUTE_OPTIONS',
+        message:
+          'departureTime cannot be used with TRAFFIC_UNAWARE. Remove departureTime or use TRAFFIC_AWARE.',
+      });
+    }
+  });
+
   it.each([
     ['2026-10-02T14:23:00+09:00', 'weekday'],
     ['2026-10-03T14:29:00+09:00', 'saturday'],

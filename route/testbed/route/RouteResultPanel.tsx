@@ -308,6 +308,14 @@ function DebugTabPanel({
           label="선택 출처"
           value={response?.providerSelectionSource ?? '—'}
         />
+        <Fact
+          label="판별 국가"
+          value={response?.resolvedCountryCode ?? '판별 안 됨'}
+        />
+        <Fact
+          label="국가 판별 출처"
+          value={response?.countryResolutionSource ?? '—'}
+        />
         <Fact label="Job ID" value={response?.jobId ?? '—'} />
         <Fact
           label="요청 시각"

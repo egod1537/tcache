@@ -93,7 +93,11 @@ export class RepositoryRouteAnalyticsRecorder implements RouteAnalyticsRecorder 
       dayType: job.requestMetadata?.dayType ?? temporal.dayType,
       timeBucket: job.requestMetadata?.timeBucket ?? temporal.timeBucket,
       provider: job.provider ?? context.provider,
-      countryCode: job.countryCode ?? request.countryCode ?? null,
+      countryCode:
+        job.resolvedCountryCode ??
+        job.countryCode ??
+        request.countryCode ??
+        null,
       providerSelectionSource: job.providerSelectionSource ?? 'global-force',
       cacheKey:
         job.cache?.key ??
