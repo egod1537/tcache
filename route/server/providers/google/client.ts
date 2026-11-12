@@ -40,13 +40,16 @@ export const GOOGLE_ROUTES_FIELD_MASK = [
   'routes.legs.steps.transitDetails.headsign',
   'routes.legs.steps.transitDetails.transitLine.name',
   'routes.legs.steps.transitDetails.transitLine.nameShort',
+  'routes.legs.steps.transitDetails.transitLine.color',
+  'routes.legs.steps.transitDetails.transitLine.textColor',
   'routes.legs.steps.transitDetails.transitLine.vehicle.type',
   'routes.legs.steps.transitDetails.stopCount',
 ].join(',');
 
 export class GoogleRouteProvider implements RouteProvider {
   readonly providerName = 'google';
-  readonly adapterVersion = '1';
+  readonly adapterVersion = '2';
+  readonly cacheKeySeed = 'google-transit-colors-v2';
   readonly capabilities: RouteProviderCapabilities = {
     modes: ['DRIVING', 'WALKING', 'BICYCLING', 'TRANSIT'],
     supportsWaypoints: true,
