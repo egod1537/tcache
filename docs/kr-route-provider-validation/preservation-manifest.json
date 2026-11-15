@@ -1,0 +1,10 @@
+{
+  "baseCommit": "0554644018b44609bc93e74be67e0f6fef5260bf",
+  "sha256": {
+    "policy-snapshot.md": "278ccedd51597aca6359a47303a0ae9983a72d99f9fe79af6f0a3202fb026bea",
+    "README.md": "870c56d7933a3cf5a7fee9c08d4d4dbd28a04711b48a754e39670a74ea377368",
+    "candidate-source-matrix.md": "c06d402396a65011ef4c264447ad371f76fbc69578dcfc577052a500b968dd6d",
+    "w2-test-matrix.md": "5f9fa569c773b2083a5db9bc654daff9338dbefa74ccb0e40c646589d28bb1f1"
+  },
+  "verifiedUnchanged": true
+}

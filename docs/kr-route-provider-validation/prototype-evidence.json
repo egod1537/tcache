@@ -1,0 +1,1 @@
+{"kind":"SYNTHETIC_SELF_TEST","status":"PASS","networkCalls":0,"checks":["kakao-walk-mapping","kakao-drive-mapping","kakao-walk-parser","kakao-drive-parser","tmap-normalizer","tmap-default-names","malformed-tmap","kakao-no-route","mobility-no-route","empty-geometry","out-of-KR-geometry"]}
