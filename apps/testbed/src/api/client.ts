@@ -809,6 +809,14 @@ export type RouteJobStreamEventType =
 export type AiJobStatus =
   'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
+/** Provider-neutral option names accepted by POST /api/ai/jobs. */
+export interface AiGenerationOptions {
+  temperature?: number;
+  topP?: number;
+  maxOutputTokens?: number;
+  stopSequences?: string[];
+}
+
 export interface AiRequestMetadata {
   provider: string;
   model: string;
@@ -816,6 +824,7 @@ export interface AiRequestMetadata {
   promptHash: string;
   promptVersion?: string;
   hasSystemPrompt: boolean;
+  hasContext: boolean;
   optionKeys: string[];
   toolCount: number;
   hasResponseSchema: boolean;
@@ -850,7 +859,8 @@ export interface AiJobResult {
     systemPrompt?: string;
     promptVersion?: string;
     messages: Array<{ role: string; content: string }>;
-    options: Record<string, unknown>;
+    context?: unknown;
+    options: AiGenerationOptions;
     cache: { enabled: boolean };
   };
   text?: string;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import {
   cancelAiJob,
@@ -42,6 +42,14 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
   const [creating, setCreating] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const resultRequest = useRef(0);
+
+  useEffect(
+    () => () => {
+      resultRequest.current += 1;
+    },
+    [],
+  );
 
   const selectedJob = useMemo(
     () => jobs.find((job) => job.jobId === selectedJobId) ?? null,
@@ -49,8 +57,11 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
   );
 
   function selectJob(jobId: string) {
+    if (jobId === selectedJobId) return;
+    resultRequest.current += 1;
     setSelectedJobId(jobId);
     setResult(null);
+    setResultLoading(false);
     window.localStorage.setItem(SELECTED_JOB_KEY, jobId);
   }
 
@@ -59,13 +70,15 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
   );
 
   async function loadResult(jobId: string) {
+    const requestId = ++resultRequest.current;
     setResultLoading(true);
     try {
-      setResult(await getAiJobResult(jobId));
+      const nextResult = await getAiJobResult(jobId);
+      if (requestId === resultRequest.current) setResult(nextResult);
     } catch {
-      setResult(null);
+      if (requestId === resultRequest.current) setResult(null);
     } finally {
-      setResultLoading(false);
+      if (requestId === resultRequest.current) setResultLoading(false);
     }
   }
 

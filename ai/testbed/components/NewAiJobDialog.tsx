@@ -23,7 +23,6 @@ import {
 import { JsonViewer } from '../../../apps/testbed/src/components/common/JsonViewer';
 import {
   buildAiJobRequest,
-  topPOptionKey,
   type AiProviderChoice as Provider,
 } from '../ai-request-builder';
 
@@ -53,6 +52,8 @@ export function NewAiJobDialog({
   const [promptVersion, setPromptVersion] = useState('v1');
   const [temperature, setTemperature] = useState('0.2');
   const [topP, setTopP] = useState('');
+  const [maxOutputTokens, setMaxOutputTokens] = useState('');
+  const [stopSequences, setStopSequences] = useState('');
   const [previewOpen, setPreviewOpen] = useState(false);
   const [rawMessages, setRawMessages] = useState('');
   const [contextJson, setContextJson] = useState('');
@@ -100,6 +101,8 @@ export function NewAiJobDialog({
         promptVersion,
         temperature,
         topP,
+        maxOutputTokens,
+        stopSequences,
         rawMessages,
         contextJson,
         cacheEnabled,
@@ -112,12 +115,13 @@ export function NewAiJobDialog({
       promptVersion,
       temperature,
       topP,
+      maxOutputTokens,
+      stopSequences,
       rawMessages,
       contextJson,
       cacheEnabled,
     ],
   );
-  const topPKey = topPOptionKey(provider);
 
   async function submit() {
     if (!built.ok) {
@@ -258,7 +262,7 @@ export function NewAiJobDialog({
         </FormGroup>
 
         <FormGroup
-          helperText='Optional. Sent as an explicit first "user" message ("Context JSON:" + formatted JSON), before all other messages. Check Request preview.'
+          helperText='Optional. Sent as the request "context" field (opaque JSON). The server decides how it reaches the provider.'
           label="Context JSON"
           labelFor="ai-context-json"
         >
@@ -315,11 +319,7 @@ export function NewAiJobDialog({
               />
             </FormGroup>
             <FormGroup
-              helperText={
-                topPKey
-                  ? `Optional, 0–1. Sent as "${topPKey}" for this provider.`
-                  : 'Optional, 0–1. Select a provider first: the option name is provider-specific.'
-              }
+              helperText="Optional, 0–1."
               label="Top-P"
               labelFor="ai-top-p"
             >
@@ -339,7 +339,42 @@ export function NewAiJobDialog({
                 value={topP}
               />
             </FormGroup>
+            <FormGroup
+              helperText="Optional, positive integer."
+              label="Max output tokens"
+              labelFor="ai-max-output-tokens"
+            >
+              <NumericInput
+                allowNumericCharactersOnly
+                fill
+                id="ai-max-output-tokens"
+                majorStepSize={256}
+                min={1}
+                minorStepSize={null}
+                onValueChange={(_value, valueAsString) =>
+                  setMaxOutputTokens(valueAsString)
+                }
+                placeholder="Provider default"
+                stepSize={64}
+                value={maxOutputTokens}
+              />
+            </FormGroup>
           </div>
+          <FormGroup
+            helperText="Optional. One stop sequence per line."
+            label="Stop sequences"
+            labelFor="ai-stop-sequences"
+          >
+            <TextArea
+              className={Classes.MONOSPACE_TEXT}
+              fill
+              id="ai-stop-sequences"
+              onChange={(event) => setStopSequences(event.target.value)}
+              rows={2}
+              spellCheck={false}
+              value={stopSequences}
+            />
+          </FormGroup>
           <FormGroup
             helperText="When set, this array replaces User Prompt."
             label="Raw messages JSON"

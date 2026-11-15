@@ -57,11 +57,15 @@ export function registerJobEvents(app: FastifyInstance, context: AiApiContext) {
       reply.raw.flushHeaders();
       reply.raw.write(encode({ type: 'snapshot', job: snapshot }));
       ready = true;
+      reply.raw.on('close', cleanup);
 
       for (const event of buffered) {
-        if (Date.parse(event.job.updatedAt) > Date.parse(snapshot.updatedAt))
+        // Multiple transitions can share one millisecond. Replaying an equal
+        // timestamp is safer than losing the terminal event and hanging SSE.
+        if (Date.parse(event.job.updatedAt) >= Date.parse(snapshot.updatedAt))
           send(event);
       }
+      if (closed) return;
       if (isTerminalStatus(snapshot.status) && !closed) {
         send({ type: snapshot.status, job: snapshot });
         return;
@@ -69,7 +73,6 @@ export function registerJobEvents(app: FastifyInstance, context: AiApiContext) {
       connection.heartbeat = setInterval(() => {
         if (!closed && !reply.raw.destroyed) reply.raw.write(': heartbeat\n\n');
       }, 15_000);
-      reply.raw.on('close', cleanup);
     },
   );
 }
