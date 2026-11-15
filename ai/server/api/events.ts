@@ -62,12 +62,37 @@ export function registerJobEvents(app: FastifyInstance, context: AiApiContext) {
         if (Date.parse(event.job.updatedAt) > Date.parse(snapshot.updatedAt))
           send(event);
       }
+      if (closed) return;
       if (isTerminalStatus(snapshot.status) && !closed) {
         send({ type: snapshot.status, job: snapshot });
         return;
       }
+      let checking = false;
       connection.heartbeat = setInterval(() => {
-        if (!closed && !reply.raw.destroyed) reply.raw.write(': heartbeat\n\n');
+        if (closed || checking) return;
+        checking = true;
+        void context.jobs
+          .get(jobId)
+          .then((job) => {
+            if (closed || reply.raw.destroyed) return;
+            if (!job) {
+              cleanup();
+              reply.raw.end();
+              return;
+            }
+            reply.raw.write(': heartbeat\n\n');
+          })
+          .catch((error: unknown) => {
+            request.log.warn(
+              { err: error, jobId },
+              'AI Job heartbeat lookup failed',
+            );
+            cleanup();
+            reply.raw.end();
+          })
+          .finally(() => {
+            checking = false;
+          });
       }, 15_000);
       reply.raw.on('close', cleanup);
     },

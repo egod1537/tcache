@@ -9,6 +9,7 @@ import type { OtpFeedStatus } from '../../../route/server/providers/otp/types.js
 export interface AppConfig {
   nodeEnv: string;
   port: number;
+  host: string;
   redisUrl: string;
   databaseUrl: string;
   gitCommitSha: string;
@@ -197,6 +198,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
 
   return {
     nodeEnv,
+    host: env.TCACHE_HOST?.trim() || '127.0.0.1',
     port: readPositiveInteger('TCACHE_PORT', env.TCACHE_PORT, 3200, 65_535),
     redisUrl: env.REDIS_URL ?? 'redis://localhost:6379',
     databaseUrl: env.DATABASE_URL?.trim() ?? '',
