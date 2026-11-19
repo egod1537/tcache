@@ -218,7 +218,7 @@ hash, creation and expiry times, and optional provider dataset metadata.
 Redis stores AI entries with the prefix `tcache:ai:cache:`. The public identity
 is `ai:v1:<sha256>`, computed from a stable serialization of the complete
 normalized generation input: provider, model, system prompt, prompt version,
-messages, options, tools, and response schema. The `cache` control object is
+messages, context, options, tools, and response schema. The `cache` control object is
 excluded. `cache.enabled=false` bypasses both lookup and storage.
 
 ## Browser testbed

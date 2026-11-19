@@ -44,21 +44,58 @@ export interface AiJobRunnerOptions {
 }
 
 export class AiJobRunner {
+  public constructor(private readonly options: AiJobRunnerOptions) {}
+
+  public run(jobId: string): Promise<void> {
+    const active = this.runs.get(jobId);
+    if (active) return active;
+    const execution = this.execute(jobId).finally(() => {
+      this.runs.delete(jobId);
+    });
+    this.runs.set(jobId, execution);
+    return execution;
+  }
+
+  public async cancel(jobId: string): Promise<AiJob | null> {
+    const cancelled = await this.withJobLock(jobId, async () => {
+      const current = await this.options.store.get(jobId);
+      if (!current || isTerminalStatus(current.status)) return current;
+      const now = new Date().toISOString();
+      const next: AiJob = {
+        ...current,
+        status: 'cancelled',
+        stage: 'cancelled',
+        message: 'AI job cancelled',
+        updatedAt: now,
+        completedAt: now,
+        error: { code: 'JOB_CANCELLED', message: 'The AI job was cancelled' },
+      };
+      await this.options.store.save(next);
+      return next;
+    });
+    if (cancelled?.status === 'cancelled') {
+      this.controllers.get(jobId)?.abort(new Error('AI job cancelled'));
+      await this.options.events.publish(jobId, {
+        type: 'cancelled',
+        job: cancelled,
+      });
+    }
+    return cancelled;
+  }
+
+  private readonly runs = new Map<string, Promise<void>>();
   private readonly controllers = new Map<string, AbortController>();
   private readonly locks = new Map<string, Promise<void>>();
 
-  constructor(private readonly options: AiJobRunnerOptions) {}
-
-  async run(jobId: string): Promise<void> {
-    const initial = await this.options.store.get(jobId);
-    if (!initial || isTerminalStatus(initial.status)) return;
-
+  private async execute(jobId: string): Promise<void> {
     const controller = new AbortController();
     this.controllers.set(jobId, controller);
     let errorCode: AiJobError['code'] = 'INTERNAL_ERROR';
     let timedOut = false;
 
     try {
+      const initial = await this.options.store.get(jobId);
+      if (!initial || isTerminalStatus(initial.status)) return;
       await this.transition(jobId, {
         status: 'running',
         stage: 'normalizing_request',
@@ -131,6 +168,7 @@ export class AiJobRunner {
         message: 'AI provider 응답 대기 중',
       });
       errorCode = 'AI_PROVIDER_ERROR';
+      controller.signal.throwIfAborted();
       const timeout = setTimeout(() => {
         timedOut = true;
         controller.abort(new Error('AI provider timed out'));
@@ -138,6 +176,7 @@ export class AiJobRunner {
       const providerResult = await provider
         .generate(normalizedRequest, controller.signal)
         .finally(() => clearTimeout(timeout));
+      controller.signal.throwIfAborted();
 
       await this.transition(jobId, {
         stage: 'processing_response',
@@ -165,11 +204,9 @@ export class AiJobRunner {
         result: providerResult.result,
       });
     } catch (error) {
+      if (error instanceof AiJobStoppedError) return;
       const current = await this.options.store.get(jobId);
-      if (
-        error instanceof AiJobStoppedError ||
-        current?.status === 'cancelled'
-      ) {
+      if (current?.status === 'cancelled') {
         return;
       }
       if (error instanceof AiProviderSelectionError) errorCode = error.code;
@@ -182,33 +219,6 @@ export class AiJobRunner {
     } finally {
       this.controllers.delete(jobId);
     }
-  }
-
-  async cancel(jobId: string): Promise<AiJob | null> {
-    const cancelled = await this.withJobLock(jobId, async () => {
-      const current = await this.options.store.get(jobId);
-      if (!current || isTerminalStatus(current.status)) return current;
-      const now = new Date().toISOString();
-      const next: AiJob = {
-        ...current,
-        status: 'cancelled',
-        stage: 'cancelled',
-        message: 'AI job cancelled',
-        updatedAt: now,
-        completedAt: now,
-        error: { code: 'JOB_CANCELLED', message: 'The AI job was cancelled' },
-      };
-      await this.options.store.save(next);
-      return next;
-    });
-    if (cancelled?.status === 'cancelled') {
-      this.controllers.get(jobId)?.abort(new Error('AI job cancelled'));
-      await this.options.events.publish(jobId, {
-        type: 'cancelled',
-        job: cancelled,
-      });
-    }
-    return cancelled;
   }
 
   private async complete(

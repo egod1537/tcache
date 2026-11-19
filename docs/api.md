@@ -283,6 +283,7 @@ failure is logged and does not turn a successful Route Job into a failure.
   "systemPrompt": "Answer concisely.",
   "promptVersion": "v1",
   "messages": [{ "role": "user", "content": "What does a route cache avoid?" }],
+  "context": { "topic": "sample" },
   "options": { "temperature": 0.2 },
   "tools": [],
   "cache": { "enabled": true }
@@ -293,6 +294,10 @@ failure is logged and does not turn a successful Route Job into a failure.
 when defaults exist for the active provider. `options` defaults to `{}` and
 `cache.enabled` defaults to `true`. `tools` must be an array when present;
 `responseSchema` may contain a provider-specific schema.
+
+Optional `context` is caller-provided JSON. Object keys are sorted and array
+order is preserved. Gemini and OpenWebUI receive the context before the
+messages and use the selected provider's generation options.
 
 The Job snapshot and SSE payload expose request metadata such as the prompt
 hash, message count, option keys, tool count, provider, and model instead of

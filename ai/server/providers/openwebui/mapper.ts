@@ -1,4 +1,5 @@
 import type { NormalizedAiRequest } from '../../types/ai.js';
+import { contextMessages } from '../context.js';
 import type { OpenWebUIChatRequest } from './types.js';
 
 export function toOpenWebUIRequest(
@@ -11,6 +12,7 @@ export function toOpenWebUIRequest(
       ...(request.systemPrompt
         ? [{ role: 'system', content: request.systemPrompt }]
         : []),
+      ...contextMessages(request.context),
       ...request.messages.map((message) => ({
         role:
           message.role === 'model'
