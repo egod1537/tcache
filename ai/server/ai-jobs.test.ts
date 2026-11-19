@@ -33,8 +33,9 @@ class MemoryJobStore implements AiJobStore {
     const job = this.jobs.get(jobId);
     return job ? structuredClone(job) : null;
   }
-  async list(limit: number) {
+  async list(limit: number, sessionOwner?: string) {
     return [...this.jobs.values()]
+      .filter((job) => !sessionOwner || job.sessionOwner === sessionOwner)
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
       .slice(0, limit)
       .map((job) => structuredClone(job));
@@ -131,8 +132,11 @@ function createTestApp(
   });
   const jobs = new AiJobService(store, events, runner);
   const app = buildApp({ aiCache: { jobs, events, ...context } });
+  app.addHook('onRequest', async (request) => {
+    request.headers.cookie ??= 'tcache_ai_session=' + 'a'.repeat(43);
+  });
   apps.push(app);
-  return { app, store, cache, jobs };
+  return { app, store, cache, jobs, events };
 }
 
 async function waitForTerminal(
@@ -258,6 +262,18 @@ describe('AI jobs', () => {
     });
   });
 
+  it('ignores object order even for option keys with equivalent Unicode collation', () => {
+    const left = normalizeAiRequest({
+      ...requestBody,
+      options: { é: 1, 'e\u0301': 2 },
+    });
+    const right = normalizeAiRequest({
+      ...requestBody,
+      options: { 'e\u0301': 2, é: 1 },
+    });
+    expect(createAiCacheKey(left)).toBe(createAiCacheKey(right));
+  });
+
   it('creates a background job and exposes redacted status, SSE, and result', async () => {
     const { app } = createTestApp(new TestProvider());
     const created = await app.inject({
@@ -307,6 +323,93 @@ describe('AI jobs', () => {
     expect(events.body).toContain('event: snapshot');
     expect(events.body).toContain('event: completed');
     expect(events.body).not.toContain('sensitive user context');
+  });
+
+  it('issues an isolated session and denies another browser every Job endpoint', async () => {
+    const provider = new TestProvider();
+    const { app } = createTestApp(provider);
+    const post = (cookie: string) =>
+      app.inject({
+        method: 'POST',
+        url: '/api/ai/jobs',
+        headers: { cookie },
+        payload: requestBody,
+      });
+    const own = await post('');
+    const other = await post('');
+    const ownSetCookie = String(own.headers['set-cookie']);
+    expect(ownSetCookie).toMatch(
+      /; Path=\/api\/ai\/jobs; HttpOnly; SameSite=Strict/,
+    );
+    const ownCookie = ownSetCookie.split(';')[0];
+    const otherCookie = String(other.headers['set-cookie']).split(';')[0];
+    expect(ownCookie).not.toBe(otherCookie);
+    const { jobId } = own.json<{ jobId: string }>();
+    const otherId = other.json<{ jobId: string }>().jobId;
+    const get = (url: string, cookie: string) =>
+      app.inject({ method: 'GET', url, headers: { cookie } });
+    const root = `/api/ai/jobs/${jobId}`;
+    expect((await get(root, '')).statusCode).toBe(404);
+    for (const path of [root, root + '/result', root + '/events']) {
+      expect((await get(path, otherCookie)).statusCode).toBe(404);
+    }
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: root + '/cancel',
+          headers: { cookie: otherCookie },
+        })
+      ).statusCode,
+    ).toBe(404);
+    const listed = await get('/api/ai/jobs', otherCookie);
+    expect(listed.json().jobs.map((job: AiJob) => job.jobId)).toEqual([
+      otherId,
+    ]);
+    await vi.waitFor(async () => {
+      const result = await get(root + '/result', ownCookie);
+      expect(result.statusCode).toBe(200);
+      expect(result.json()).toMatchObject({
+        text: 'answer',
+        cache: { hit: false },
+      });
+    });
+    await vi.waitFor(async () => {
+      const result = await get(`/api/ai/jobs/${otherId}/result`, otherCookie);
+      expect(result.statusCode).toBe(200);
+      expect(result.json()).toMatchObject({ cache: { hit: false } });
+    });
+    expect(provider.calls).toBe(2);
+  });
+
+  it('redacts a configured provider key echoed in successful Raw JSON', async () => {
+    const secret = 'fixture-provider-key';
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        Response.json({
+          choices: [{ message: { content: 'provider response' } }],
+          diagnostic: { authorization: 'Bearer ' + secret },
+        }),
+      ),
+    );
+    const { app } = createTestApp(
+      new OpenWebUIAiProvider('http://openwebui.test', secret),
+    );
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/ai/jobs',
+      payload: { ...requestBody, provider: 'openwebui', model: 'local-model' },
+    });
+    const { jobId } = created.json<{ jobId: string }>();
+    await waitForTerminal(app, jobId);
+    const result = await app.inject({ url: `/api/ai/jobs/${jobId}/result` });
+    expect(result.statusCode).toBe(200);
+    expect(result.body).not.toContain(secret);
+    expect(result.json()).toMatchObject({
+      text: 'provider response',
+      result: { diagnostic: { authorization: 'Bearer [REDACTED]' } },
+    });
   });
 
   it('uses cached responses without calling the provider twice', async () => {
@@ -374,7 +477,7 @@ describe('AI jobs', () => {
   });
 
   it('cancels provider work idempotently', async () => {
-    const { app } = createTestApp(new BlockingProvider());
+    const { app, events } = createTestApp(new BlockingProvider());
     const created = await app.inject({
       method: 'POST',
       url: '/api/ai/jobs',
@@ -382,6 +485,10 @@ describe('AI jobs', () => {
     });
     const jobId = created.json<{ jobId: string }>().jobId;
     await new Promise((resolve) => setTimeout(resolve, 20));
+    const terminalEvents: string[] = [];
+    const unsubscribe = events.subscribe(jobId, (event) => {
+      if (event.type === 'cancelled') terminalEvents.push(event.type);
+    });
     const cancelled = await app.inject({
       method: 'POST',
       url: `/api/ai/jobs/${jobId}/cancel`,
@@ -392,6 +499,57 @@ describe('AI jobs', () => {
     });
     expect(cancelled.json()).toEqual({ jobId, status: 'cancelled' });
     expect(repeated.json()).toEqual({ jobId, status: 'cancelled' });
+    expect(terminalEvents).toEqual(['cancelled']);
+    unsubscribe();
+  });
+
+  it('finishes atomically when a cache write already won the completion lock', async () => {
+    const cache = new MemoryCache();
+    let releaseWrite: () => void = () => {};
+    let notifyWrite: () => void = () => {};
+    const writing = new Promise<void>((resolve) => {
+      notifyWrite = resolve;
+    });
+    const release = new Promise<void>((resolve) => {
+      releaseWrite = resolve;
+    });
+    const set = cache.set.bind(cache);
+    vi.spyOn(cache, 'set').mockImplementation(async (key, value) => {
+      notifyWrite();
+      await release;
+      await set(key, value);
+    });
+    const { app, events } = createTestApp(new TestProvider(), 1000, cache);
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/ai/jobs',
+      payload: requestBody,
+    });
+    const jobId = created.json<{ jobId: string }>().jobId;
+    const terminal: string[] = [];
+    const unsubscribe = events.subscribe(jobId, (event) => {
+      if (event.type === 'completed' || event.type === 'cancelled')
+        terminal.push(event.type);
+    });
+    await writing;
+    const cancelling = app.inject({
+      method: 'POST',
+      url: `/api/ai/jobs/${jobId}/cancel`,
+    });
+    try {
+      expect(
+        await Promise.race([
+          cancelling.then(() => 'cancelled early'),
+          new Promise((resolve) => setTimeout(() => resolve('waiting'), 30)),
+        ]),
+      ).toBe('waiting');
+    } finally {
+      releaseWrite();
+    }
+    expect((await cancelling).json()).toEqual({ jobId, status: 'completed' });
+    expect(terminal).toEqual(['completed']);
+    expect(cache.values.size).toBe(1);
+    unsubscribe();
   });
 
   it('fails jobs that exceed the provider timeout', async () => {
@@ -728,9 +886,16 @@ describe('AI jobs', () => {
       },
     });
     expect(await jobs.resumePending()).toBe(1);
-    expect(await waitForTerminal(app, 'ai_resumed')).toMatchObject({
-      status: 'completed',
-      progress: 100,
+    // The legacy Job can finish internally without becoming visible to a
+    // browser session that never owned it.
+    await vi.waitFor(async () => {
+      expect(await jobs.get('ai_resumed')).toMatchObject({
+        status: 'completed',
+        progress: 100,
+      });
     });
+    expect(
+      (await app.inject({ url: '/api/ai/jobs/ai_resumed/result' })).statusCode,
+    ).toBe(404);
   });
 });

@@ -57,9 +57,11 @@ export class AiJobRunner {
   }
 
   public async cancel(jobId: string): Promise<AiJob | null> {
-    const cancelled = await this.withJobLock(jobId, async () => {
+    const { job, changed } = await this.withJobLock(jobId, async () => {
       const current = await this.options.store.get(jobId);
-      if (!current || isTerminalStatus(current.status)) return current;
+      if (!current || isTerminalStatus(current.status)) {
+        return { job: current, changed: false };
+      }
       const now = new Date().toISOString();
       const next: AiJob = {
         ...current,
@@ -71,16 +73,16 @@ export class AiJobRunner {
         error: { code: 'JOB_CANCELLED', message: 'The AI job was cancelled' },
       };
       await this.options.store.save(next);
-      return next;
+      return { job: next, changed: true };
     });
-    if (cancelled?.status === 'cancelled') {
+    if (changed && job) {
       this.controllers.get(jobId)?.abort(new Error('AI job cancelled'));
       await this.options.events.publish(jobId, {
         type: 'cancelled',
-        job: cancelled,
+        job,
       });
     }
-    return cancelled;
+    return job;
   }
 
   private readonly runs = new Map<string, Promise<void>>();
@@ -105,7 +107,10 @@ export class AiJobRunner {
 
       errorCode = 'INVALID_REQUEST';
       const normalizedRequest = normalizeAiRequest(initial.request);
-      const cacheKey = createAiCacheKey(normalizedRequest);
+      const cacheKey = createAiCacheKey(
+        normalizedRequest,
+        initial.sessionOwner,
+      );
       await this.transition(jobId, {
         stage: 'checking_cache',
         progress: 10,
@@ -193,16 +198,22 @@ export class AiJobRunner {
           message: 'AI cache 저장 중',
         });
         errorCode = 'CACHE_ERROR';
-        await this.options.cache.set(
-          cacheKey,
-          providerResult,
-          this.options.cachePolicy.ttlSeconds,
-        );
       }
 
-      await this.complete(jobId, 'AI job completed', {
-        result: providerResult.result,
-      });
+      // A cancelled Job must not publish a result into the session cache.
+      await this.complete(
+        jobId,
+        'AI job completed',
+        { result: providerResult.result },
+        normalizedRequest.cache.enabled
+          ? () =>
+              this.options.cache.set(
+                cacheKey,
+                providerResult,
+                this.options.cachePolicy.ttlSeconds,
+              )
+          : undefined,
+      );
     } catch (error) {
       if (error instanceof AiJobStoppedError) return;
       const current = await this.options.store.get(jobId);
@@ -225,6 +236,7 @@ export class AiJobRunner {
     jobId: string,
     message: string,
     patch: Partial<AiJob> = {},
+    beforeSave?: () => Promise<void>,
   ) {
     await this.transition(
       jobId,
@@ -237,6 +249,7 @@ export class AiJobRunner {
         completedAt: new Date().toISOString(),
       },
       'completed',
+      beforeSave,
     );
   }
 
@@ -263,6 +276,7 @@ export class AiJobRunner {
     jobId: string,
     patch: Partial<AiJob>,
     eventType: AiJobEventType = 'progress',
+    beforeSave?: () => Promise<void>,
   ) {
     const job = await this.withJobLock(jobId, async () => {
       const current = await this.options.store.get(jobId);
@@ -277,6 +291,7 @@ export class AiJobRunner {
         createdAt: current.createdAt,
         updatedAt: new Date().toISOString(),
       };
+      await beforeSave?.();
       await this.options.store.save(next);
       return next;
     });

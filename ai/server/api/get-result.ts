@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 
 import { extractAiText } from '../providers/result-text.js';
 import { notFound, type AiApiContext } from './context.js';
+import { getOwnedJob } from './session.js';
 
 interface JobParams {
   jobId: string;
@@ -12,7 +13,7 @@ export function registerGetResult(app: FastifyInstance, context: AiApiContext) {
     '/jobs/:jobId/result',
     async (request, reply) => {
       reply.header('Cache-Control', 'no-store');
-      const job = await context.jobs.get(request.params.jobId);
+      const job = await getOwnedJob(context, request, request.params.jobId);
       if (!job) return reply.code(404).send(notFound(request.params.jobId));
       if (job.status === 'completed') {
         return {

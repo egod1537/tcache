@@ -6,6 +6,7 @@ import {
   type AiJobEvent,
 } from '../jobs/ai-job.js';
 import { notFound, type AiApiContext } from './context.js';
+import { getOwnedJob } from './session.js';
 
 interface JobParams {
   jobId: string;
@@ -20,7 +21,8 @@ export function registerJobEvents(app: FastifyInstance, context: AiApiContext) {
     '/jobs/:jobId/events',
     async (request, reply) => {
       const { jobId } = request.params;
-      const existing = await context.jobs.get(jobId);
+      reply.header('Cache-Control', 'no-store');
+      const existing = await getOwnedJob(context, request, jobId);
       if (reply.raw.destroyed || reply.raw.writableEnded) return;
       if (!existing) return reply.code(404).send(notFound(jobId));
 

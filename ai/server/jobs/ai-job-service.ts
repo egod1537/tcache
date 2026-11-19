@@ -14,10 +14,14 @@ export class AiJobService {
     private readonly runner: AiJobRunner,
   ) {}
 
-  public async create(request: NormalizedAiRequest): Promise<AiJob> {
+  public async create(
+    request: NormalizedAiRequest,
+    sessionOwner?: string,
+  ): Promise<AiJob> {
     const now = new Date().toISOString();
     const job: AiJob = {
       jobId: `ai_${randomUUID().replaceAll('-', '')}`,
+      ...(sessionOwner ? { sessionOwner } : {}),
       status: 'queued',
       stage: 'queued',
       progress: 0,
@@ -39,8 +43,8 @@ export class AiJobService {
     return this.store.get(jobId);
   }
 
-  public list(limit: number) {
-    return this.store.list(limit);
+  public list(limit: number, sessionOwner?: string) {
+    return this.store.list(limit, sessionOwner);
   }
 
   public cancel(jobId: string) {
