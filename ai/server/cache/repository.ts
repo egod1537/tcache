@@ -18,7 +18,13 @@ export class RedisAiCacheRepository implements AiCacheRepository {
 
   async get(key: string): Promise<CachedAiResponse | null> {
     const value = await this.redis.get(`${CACHE_PREFIX}${key}`);
-    return value ? (JSON.parse(value) as CachedAiResponse) : null;
+    if (!value) return null;
+    try {
+      return JSON.parse(value) as CachedAiResponse | null;
+    } catch (error) {
+      if (error instanceof SyntaxError) return null;
+      throw error;
+    }
   }
 
   async set(key: string, value: CachedAiResponse, ttlSeconds: number) {

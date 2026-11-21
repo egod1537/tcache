@@ -20,6 +20,7 @@ import {
 } from './providers/provider.js';
 import { OpenWebUIAiProvider } from './providers/openwebui/client.js';
 import { OpenWebUIModelService } from './providers/openwebui/models.js';
+import { isAiProviderResponse } from './providers/provider-json.js';
 import { extractAiText } from './providers/result-text.js';
 import type { NormalizedAiRequest } from './types/ai.js';
 import { normalizeAiRequest } from './types/ai.js';
@@ -474,6 +475,71 @@ describe('AI jobs', () => {
     );
     expect(job.cache).toMatchObject({ hit: true });
     expect(upstream).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([{ error: { message: 'upstream error' } }, { choices: [] }])(
+    'does not cache an invalid successful-looking OpenWebUI response: %j',
+    async (invalid) => {
+      const upstream = vi
+        .fn()
+        .mockResolvedValueOnce(Response.json(invalid))
+        .mockResolvedValueOnce(
+          Response.json({ choices: [{ message: { content: 'answer' } }] }),
+        );
+      vi.stubGlobal('fetch', upstream);
+      const { app, cache } = createTestApp(
+        new OpenWebUIAiProvider('http://openwebui.test'),
+      );
+      const payload = { ...requestBody, provider: 'openwebui', model: 'qwen' };
+
+      const submit = async () => {
+        const response = await app.inject({
+          method: 'POST',
+          url: '/api/ai/jobs',
+          payload,
+        });
+        expect(response.statusCode).toBe(202);
+        return waitForTerminal(app, response.json<{ jobId: string }>().jobId);
+      };
+
+      expect(await submit()).toMatchObject({
+        status: 'failed',
+        error: { code: 'AI_PROVIDER_ERROR' },
+      });
+      expect(cache.values.size).toBe(0);
+      expect(await submit()).toMatchObject({
+        status: 'completed',
+        cache: { hit: false },
+      });
+      expect(upstream).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it('accepts provider tool completions and rejects empty Gemini responses', () => {
+    expect(
+      isAiProviderResponse('openwebui', {
+        choices: [
+          {
+            message: {
+              content: null,
+              tool_calls: [{ function: { name: 'lookup', arguments: '{}' } }],
+            },
+          },
+        ],
+      }),
+    ).toBe(true);
+    expect(
+      isAiProviderResponse('gemini', {
+        candidates: [
+          { content: { parts: [{ functionCall: { name: 'lookup' } }] } },
+        ],
+      }),
+    ).toBe(true);
+    expect(
+      isAiProviderResponse('gemini', {
+        candidates: [{ content: { parts: [{}] }, finishReason: 'SAFETY' }],
+      }),
+    ).toBe(false);
   });
 
   it('cancels provider work idempotently', async () => {

@@ -5,6 +5,7 @@ import {
   AiProviderSelectionError,
   type AiProviderRegistry,
 } from '../providers/provider.js';
+import { isAiProviderResponse } from '../providers/provider-json.js';
 import { normalizeAiRequest, toAiRequestMetadata } from '../types/ai.js';
 import {
   isTerminalStatus,
@@ -124,7 +125,12 @@ export class AiJobRunner {
       const cached = normalizedRequest.cache.enabled
         ? await this.options.cache.get(cacheKey)
         : null;
-      if (cached) {
+      if (
+        cached &&
+        cached.provider === normalizedRequest.provider &&
+        cached.model === normalizedRequest.model &&
+        isAiProviderResponse(cached.provider, cached.result)
+      ) {
         await this.transition(jobId, {
           stage: 'cache_hit',
           progress: 100,
@@ -182,6 +188,14 @@ export class AiJobRunner {
         .generate(normalizedRequest, controller.signal)
         .finally(() => clearTimeout(timeout));
       controller.signal.throwIfAborted();
+
+      if (
+        providerResult.provider !== normalizedRequest.provider ||
+        providerResult.model !== normalizedRequest.model ||
+        !isAiProviderResponse(providerResult.provider, providerResult.result)
+      ) {
+        throw new Error('The AI provider returned an invalid response');
+      }
 
       await this.transition(jobId, {
         stage: 'processing_response',
