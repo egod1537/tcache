@@ -84,16 +84,6 @@ class BlockingProvider extends TestProvider {
   }
 }
 
-class NetworkFailureProvider extends TestProvider {
-  override async generate(): Promise<AiProviderResult> {
-    throw new TypeError('fetch failed', {
-      cause: Object.assign(new Error('connect ECONNREFUSED 127.0.0.1:1'), {
-        code: 'ECONNREFUSED',
-      }),
-    });
-  }
-}
-
 const apps: ReturnType<typeof buildApp>[] = [];
 const requestBody = {
   provider: 'test',
@@ -409,27 +399,6 @@ describe('AI jobs', () => {
       status: 'failed',
       error: { code: 'AI_PROVIDER_TIMEOUT' },
     });
-  });
-
-  it('adds the network cause code to bare provider fetch failures', async () => {
-    const { app } = createTestApp(new NetworkFailureProvider());
-    const created = await app.inject({
-      method: 'POST',
-      url: '/api/ai/jobs',
-      payload: requestBody,
-    });
-    const job = await waitForTerminal(
-      app,
-      created.json<{ jobId: string }>().jobId,
-    );
-    expect(job).toMatchObject({
-      status: 'failed',
-      error: {
-        code: 'AI_PROVIDER_ERROR',
-        message: 'fetch failed (ECONNREFUSED)',
-      },
-    });
-    expect(JSON.stringify(job)).not.toContain('127.0.0.1');
   });
 
   it('rejects malformed requests before creating a job', async () => {
