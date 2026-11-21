@@ -9,6 +9,8 @@ import { registerGetJob } from './api/get-job.js';
 import { registerGetResult } from './api/get-result.js';
 import { registerOpenWebUIModels } from './api/openwebui-models.js';
 
+import { AiJobStorageUnavailableError } from './jobs/ai-job-store.js';
+
 export interface AiCacheRoutesOptions {
   context?: AiApiContext;
 }
@@ -23,6 +25,12 @@ export const aiCacheRoutes: FastifyPluginAsync<AiCacheRoutesOptions> = async (
   }));
 
   if (!options.context) return;
+  app.setErrorHandler((error, _request, reply) => {
+    if (!(error instanceof AiJobStorageUnavailableError)) throw error;
+    return reply.code(503).send({
+      error: { code: 'AI_STORAGE_UNAVAILABLE', message: error.message },
+    });
+  });
   registerCreateJob(app, options.context);
   registerGetJob(app, options.context);
   registerGetResult(app, options.context);

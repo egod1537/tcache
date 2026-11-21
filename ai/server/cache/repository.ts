@@ -14,9 +14,10 @@ export interface AiCacheRepository {
 const CACHE_PREFIX = 'tcache:ai:cache:';
 
 export class RedisAiCacheRepository implements AiCacheRepository {
-  constructor(private readonly redis: RedisClient) {}
+  public constructor(private readonly redis: RedisClient) {}
 
-  async get(key: string): Promise<CachedAiResponse | null> {
+  public async get(key: string): Promise<CachedAiResponse | null> {
+    this.requireReady();
     const value = await this.redis.get(`${CACHE_PREFIX}${key}`);
     if (!value) return null;
     try {
@@ -27,9 +28,15 @@ export class RedisAiCacheRepository implements AiCacheRepository {
     }
   }
 
-  async set(key: string, value: CachedAiResponse, ttlSeconds: number) {
+  public async set(key: string, value: CachedAiResponse, ttlSeconds: number) {
+    this.requireReady();
     await this.redis.set(`${CACHE_PREFIX}${key}`, JSON.stringify(value), {
       EX: ttlSeconds,
     });
+  }
+
+  private requireReady(): void {
+    if (!this.redis.isReady)
+      throw new Error('AI response cache is temporarily unavailable');
   }
 }
