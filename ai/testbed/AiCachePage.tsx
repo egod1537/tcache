@@ -57,6 +57,7 @@ export function AiCachePage({ dark, status }: AiCachePageProps) {
   );
 
   function selectJob(jobId: string | null) {
+    if (selectedJobIdRef.current === jobId) return;
     selectedJobIdRef.current = jobId;
     resultRequestIdRef.current += 1;
     setSelectedJobId(jobId);
