@@ -5,6 +5,7 @@ import {
   AiProviderSelectionError,
   type AiProviderRegistry,
 } from '../providers/provider.js';
+import { isAiProviderResponse } from '../providers/provider-json.js';
 import { normalizeAiRequest, toAiRequestMetadata } from '../types/ai.js';
 import {
   isTerminalStatus,
@@ -44,21 +45,60 @@ export interface AiJobRunnerOptions {
 }
 
 export class AiJobRunner {
+  public constructor(private readonly options: AiJobRunnerOptions) {}
+
+  public run(jobId: string): Promise<void> {
+    const active = this.runs.get(jobId);
+    if (active) return active;
+    const execution = this.execute(jobId).finally(() => {
+      this.runs.delete(jobId);
+    });
+    this.runs.set(jobId, execution);
+    return execution;
+  }
+
+  public async cancel(jobId: string): Promise<AiJob | null> {
+    const { job, changed } = await this.withJobLock(jobId, async () => {
+      const current = await this.options.store.get(jobId);
+      if (!current || isTerminalStatus(current.status)) {
+        return { job: current, changed: false };
+      }
+      const now = new Date().toISOString();
+      const next: AiJob = {
+        ...current,
+        status: 'cancelled',
+        stage: 'cancelled',
+        message: 'AI job cancelled',
+        updatedAt: now,
+        completedAt: now,
+        error: { code: 'JOB_CANCELLED', message: 'The AI job was cancelled' },
+      };
+      await this.options.store.save(next);
+      return { job: next, changed: true };
+    });
+    if (changed && job) {
+      this.controllers.get(jobId)?.abort(new Error('AI job cancelled'));
+      await this.options.events.publish(jobId, {
+        type: 'cancelled',
+        job,
+      });
+    }
+    return job;
+  }
+
+  private readonly runs = new Map<string, Promise<void>>();
   private readonly controllers = new Map<string, AbortController>();
   private readonly locks = new Map<string, Promise<void>>();
 
-  constructor(private readonly options: AiJobRunnerOptions) {}
-
-  async run(jobId: string): Promise<void> {
-    const initial = await this.options.store.get(jobId);
-    if (!initial || isTerminalStatus(initial.status)) return;
-
+  private async execute(jobId: string): Promise<void> {
     const controller = new AbortController();
     this.controllers.set(jobId, controller);
     let errorCode: AiJobError['code'] = 'INTERNAL_ERROR';
     let timedOut = false;
 
     try {
+      const initial = await this.options.store.get(jobId);
+      if (!initial || isTerminalStatus(initial.status)) return;
       await this.transition(jobId, {
         status: 'running',
         stage: 'normalizing_request',
@@ -68,7 +108,10 @@ export class AiJobRunner {
 
       errorCode = 'INVALID_REQUEST';
       const normalizedRequest = normalizeAiRequest(initial.request);
-      const cacheKey = createAiCacheKey(normalizedRequest);
+      const cacheKey = createAiCacheKey(
+        normalizedRequest,
+        initial.sessionOwner,
+      );
       await this.transition(jobId, {
         stage: 'checking_cache',
         progress: 10,
@@ -82,7 +125,12 @@ export class AiJobRunner {
       const cached = normalizedRequest.cache.enabled
         ? await this.options.cache.get(cacheKey)
         : null;
-      if (cached) {
+      if (
+        cached &&
+        cached.provider === normalizedRequest.provider &&
+        cached.model === normalizedRequest.model &&
+        isAiProviderResponse(cached.provider, cached.result)
+      ) {
         await this.transition(jobId, {
           stage: 'cache_hit',
           progress: 100,
@@ -131,6 +179,7 @@ export class AiJobRunner {
         message: 'AI provider 응답 대기 중',
       });
       errorCode = 'AI_PROVIDER_ERROR';
+      controller.signal.throwIfAborted();
       const timeout = setTimeout(() => {
         timedOut = true;
         controller.abort(new Error('AI provider timed out'));
@@ -138,6 +187,15 @@ export class AiJobRunner {
       const providerResult = await provider
         .generate(normalizedRequest, controller.signal)
         .finally(() => clearTimeout(timeout));
+      controller.signal.throwIfAborted();
+
+      if (
+        providerResult.provider !== normalizedRequest.provider ||
+        providerResult.model !== normalizedRequest.model ||
+        !isAiProviderResponse(providerResult.provider, providerResult.result)
+      ) {
+        throw new Error('The AI provider returned an invalid response');
+      }
 
       await this.transition(jobId, {
         stage: 'processing_response',
@@ -154,22 +212,26 @@ export class AiJobRunner {
           message: 'AI cache 저장 중',
         });
         errorCode = 'CACHE_ERROR';
-        await this.options.cache.set(
-          cacheKey,
-          providerResult,
-          this.options.cachePolicy.ttlSeconds,
-        );
       }
 
-      await this.complete(jobId, 'AI job completed', {
-        result: providerResult.result,
-      });
+      // A cancelled Job must not publish a result into the session cache.
+      await this.complete(
+        jobId,
+        'AI job completed',
+        { result: providerResult.result },
+        normalizedRequest.cache.enabled
+          ? () =>
+              this.options.cache.set(
+                cacheKey,
+                providerResult,
+                this.options.cachePolicy.ttlSeconds,
+              )
+          : undefined,
+      );
     } catch (error) {
+      if (error instanceof AiJobStoppedError) return;
       const current = await this.options.store.get(jobId);
-      if (
-        error instanceof AiJobStoppedError ||
-        current?.status === 'cancelled'
-      ) {
+      if (current?.status === 'cancelled') {
         return;
       }
       if (error instanceof AiProviderSelectionError) errorCode = error.code;
@@ -184,37 +246,11 @@ export class AiJobRunner {
     }
   }
 
-  async cancel(jobId: string): Promise<AiJob | null> {
-    const cancelled = await this.withJobLock(jobId, async () => {
-      const current = await this.options.store.get(jobId);
-      if (!current || isTerminalStatus(current.status)) return current;
-      const now = new Date().toISOString();
-      const next: AiJob = {
-        ...current,
-        status: 'cancelled',
-        stage: 'cancelled',
-        message: 'AI job cancelled',
-        updatedAt: now,
-        completedAt: now,
-        error: { code: 'JOB_CANCELLED', message: 'The AI job was cancelled' },
-      };
-      await this.options.store.save(next);
-      return next;
-    });
-    if (cancelled?.status === 'cancelled') {
-      this.controllers.get(jobId)?.abort(new Error('AI job cancelled'));
-      await this.options.events.publish(jobId, {
-        type: 'cancelled',
-        job: cancelled,
-      });
-    }
-    return cancelled;
-  }
-
   private async complete(
     jobId: string,
     message: string,
     patch: Partial<AiJob> = {},
+    beforeSave?: () => Promise<void>,
   ) {
     await this.transition(
       jobId,
@@ -227,6 +263,7 @@ export class AiJobRunner {
         completedAt: new Date().toISOString(),
       },
       'completed',
+      beforeSave,
     );
   }
 
@@ -253,6 +290,7 @@ export class AiJobRunner {
     jobId: string,
     patch: Partial<AiJob>,
     eventType: AiJobEventType = 'progress',
+    beforeSave?: () => Promise<void>,
   ) {
     const job = await this.withJobLock(jobId, async () => {
       const current = await this.options.store.get(jobId);
@@ -267,6 +305,7 @@ export class AiJobRunner {
         createdAt: current.createdAt,
         updatedAt: new Date().toISOString(),
       };
+      await beforeSave?.();
       await this.options.store.save(next);
       return next;
     });

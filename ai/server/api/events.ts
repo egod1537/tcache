@@ -6,6 +6,7 @@ import {
   type AiJobEvent,
 } from '../jobs/ai-job.js';
 import { notFound, type AiApiContext } from './context.js';
+import { getOwnedJob } from './session.js';
 
 interface JobParams {
   jobId: string;
@@ -20,11 +21,14 @@ export function registerJobEvents(app: FastifyInstance, context: AiApiContext) {
     '/jobs/:jobId/events',
     async (request, reply) => {
       const { jobId } = request.params;
-      const existing = await context.jobs.get(jobId);
+      reply.header('Cache-Control', 'no-store');
+      const existing = await getOwnedJob(context, request, jobId);
+      if (reply.raw.destroyed || reply.raw.writableEnded) return;
       if (!existing) return reply.code(404).send(notFound(jobId));
 
       let ready = false;
       let closed = false;
+      let unsubscribe = () => {};
       const buffered: AiJobEvent[] = [];
       const connection: { heartbeat?: ReturnType<typeof setInterval> } = {};
       const cleanup = () => {
@@ -32,44 +36,97 @@ export function registerJobEvents(app: FastifyInstance, context: AiApiContext) {
         closed = true;
         unsubscribe();
         if (connection.heartbeat) clearInterval(connection.heartbeat);
+        reply.raw.off('close', cleanup);
+        reply.raw.off('error', cleanup);
+      };
+      const end = () => {
+        cleanup();
+        if (!reply.raw.destroyed && !reply.raw.writableEnded) reply.raw.end();
       };
       const send = (event: AiJobEvent) => {
-        if (closed || reply.raw.destroyed) return;
-        reply.raw.write(encode(event));
-        if (event.type !== 'progress' && event.type !== 'snapshot') {
+        if (closed || reply.raw.destroyed) {
           cleanup();
-          reply.raw.end();
+          return;
         }
+        reply.raw.write(encode(event));
+        if (isTerminalStatus(event.job.status)) end();
       };
-      const unsubscribe = context.events.subscribe(jobId, (event) => {
-        if (ready) send(event);
-        else buffered.push(event);
-      });
 
-      const snapshot = (await context.jobs.get(jobId)) ?? existing;
-      reply.hijack();
-      reply.raw.writeHead(200, {
-        'Content-Type': 'text/event-stream; charset=utf-8',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
-        'X-Accel-Buffering': 'no',
-      });
-      reply.raw.flushHeaders();
-      reply.raw.write(encode({ type: 'snapshot', job: snapshot }));
-      ready = true;
+      try {
+        reply.raw.once('close', cleanup);
+        reply.raw.once('error', cleanup);
+        unsubscribe = context.events.subscribe(jobId, (event) => {
+          if (ready) send(event);
+          else buffered.push(event);
+        });
+        const snapshot = await context.jobs.get(jobId);
+        if (closed || reply.raw.destroyed) {
+          cleanup();
+          return;
+        }
+        if (!snapshot) {
+          cleanup();
+          return reply.code(404).send(notFound(jobId));
+        }
+        reply.hijack();
+        reply.raw.writeHead(200, {
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+          'X-Accel-Buffering': 'no',
+        });
+        reply.raw.flushHeaders();
+        reply.raw.write(encode({ type: 'snapshot', job: snapshot }));
+        ready = true;
 
-      for (const event of buffered) {
-        if (Date.parse(event.job.updatedAt) > Date.parse(snapshot.updatedAt))
-          send(event);
+        if (isTerminalStatus(snapshot.status)) {
+          send({ type: snapshot.status, job: snapshot });
+          return;
+        }
+        for (const event of buffered) {
+          // Wall-clock timestamps are not event sequence numbers. In particular,
+          // a terminal transition can share the snapshot's millisecond.
+          if (
+            isTerminalStatus(event.job.status) ||
+            Date.parse(event.job.updatedAt) > Date.parse(snapshot.updatedAt)
+          )
+            send(event);
+        }
+        if (closed) return;
+        let checking = false;
+        connection.heartbeat = setInterval(() => {
+          if (closed || checking) return;
+          checking = true;
+          void context.jobs
+            .get(jobId)
+            .then((job) => {
+              if (closed) return;
+              if (reply.raw.destroyed || !job) {
+                end();
+                return;
+              }
+              if (isTerminalStatus(job.status)) {
+                send({ type: job.status, job });
+                return;
+              }
+              reply.raw.write(': heartbeat\n\n');
+            })
+            .catch(() => {
+              request.log.warn(
+                { jobId, code: 'JOB_STATE_UNAVAILABLE' },
+                'AI Job heartbeat lookup failed',
+              );
+              end();
+            })
+            .finally(() => {
+              checking = false;
+            });
+        }, 15_000);
+      } catch (error) {
+        cleanup();
+        if (!reply.raw.headersSent && !reply.raw.destroyed) throw error;
+        if (!reply.raw.destroyed) reply.raw.end();
       }
-      if (isTerminalStatus(snapshot.status) && !closed) {
-        send({ type: snapshot.status, job: snapshot });
-        return;
-      }
-      connection.heartbeat = setInterval(() => {
-        if (!closed && !reply.raw.destroyed) reply.raw.write(': heartbeat\n\n');
-      }, 15_000);
-      reply.raw.on('close', cleanup);
     },
   );
 }

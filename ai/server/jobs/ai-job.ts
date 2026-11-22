@@ -41,6 +41,7 @@ export interface AiCacheMetadata {
 
 export interface AiJob {
   jobId: string;
+  sessionOwner?: string;
   status: AiJobStatus;
   stage: AiJobStage;
   progress: number;

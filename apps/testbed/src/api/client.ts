@@ -850,6 +850,7 @@ export interface AiJobResult {
     systemPrompt?: string;
     promptVersion?: string;
     messages: Array<{ role: string; content: string }>;
+    context?: unknown;
     options: Record<string, unknown>;
     cache: { enabled: boolean };
   };

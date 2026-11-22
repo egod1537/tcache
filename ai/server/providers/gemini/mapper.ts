@@ -1,4 +1,5 @@
 import type { NormalizedAiRequest } from '../../types/ai.js';
+import { contextMessages } from '../context.js';
 import type { GeminiGenerateRequest } from './types.js';
 
 export function toGeminiRequest(
@@ -10,13 +11,15 @@ export function toGeminiRequest(
   }
 
   return {
-    contents: request.messages.map((message) => ({
-      role:
-        message.role === 'assistant' || message.role === 'model'
-          ? 'model'
-          : 'user',
-      parts: [{ text: message.content }],
-    })),
+    contents: [...contextMessages(request.context), ...request.messages].map(
+      (message) => ({
+        role:
+          message.role === 'assistant' || message.role === 'model'
+            ? 'model'
+            : 'user',
+        parts: [{ text: message.content }],
+      }),
+    ),
     ...(request.systemPrompt
       ? { systemInstruction: { parts: [{ text: request.systemPrompt }] } }
       : {}),

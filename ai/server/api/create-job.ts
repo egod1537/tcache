@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 
 import { normalizeAiRequest } from '../types/ai.js';
 import type { AiApiContext } from './context.js';
+import { getOrCreateSessionOwner } from './session.js';
 
 export function registerCreateJob(app: FastifyInstance, context: AiApiContext) {
   app.post<{ Body: unknown }>('/jobs', async (request, reply) => {
@@ -17,7 +18,10 @@ export function registerCreateJob(app: FastifyInstance, context: AiApiContext) {
         },
       });
     }
-    const job = await context.jobs.create(input);
+    const job = await context.jobs.create(
+      input,
+      getOrCreateSessionOwner(request, reply),
+    );
     return reply.code(202).send({
       jobId: job.jobId,
       status: job.status,

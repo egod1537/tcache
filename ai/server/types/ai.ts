@@ -11,6 +11,7 @@ export interface AiJobRequest {
   systemPrompt?: string;
   promptVersion?: string;
   messages: AiMessage[];
+  context?: unknown;
   options: Record<string, unknown>;
   tools?: unknown[];
   responseSchema?: unknown;
@@ -46,6 +47,17 @@ function requiredString(value: unknown, field: string) {
     throw new Error(`${field} must be a non-empty string`);
   }
   return value.trim();
+}
+
+// Context is opaque JSON from the caller. Sort object keys without reordering arrays.
+function canonicalizeContext(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalizeContext);
+  if (!isRecord(value)) return value;
+  return Object.fromEntries(
+    Object.keys(value)
+      .sort()
+      .map((key) => [key, canonicalizeContext(value[key])]),
+  );
 }
 
 export function normalizeAiRequest(
@@ -110,6 +122,9 @@ export function normalizeAiRequest(
       ? { promptVersion: input.promptVersion.trim() }
       : {}),
     messages,
+    ...(input.context !== undefined
+      ? { context: canonicalizeContext(input.context) }
+      : {}),
     options: isRecord(input.options) ? input.options : {},
     ...(Array.isArray(input.tools) ? { tools: input.tools } : {}),
     ...(input.responseSchema !== undefined
@@ -125,6 +140,7 @@ export function toAiRequestMetadata(
   const sensitiveInput = JSON.stringify({
     systemPrompt: request.systemPrompt ?? '',
     messages: request.messages,
+    context: request.context,
   });
   return {
     provider: request.provider,

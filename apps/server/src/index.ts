@@ -354,7 +354,7 @@ try {
   } else if (config.aiProvider === 'mock') {
     app.log.warn('Using the mock AI provider');
   }
-  await app.listen({ host: '0.0.0.0', port: config.port });
+  await app.listen({ host: config.host, port: config.port });
 } catch (error) {
   app.log.error(error);
   postgres.stop();

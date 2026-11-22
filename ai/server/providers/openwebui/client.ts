@@ -1,5 +1,6 @@
 import type { NormalizedAiRequest } from '../../types/ai.js';
 import type { AiProvider, AiProviderResult } from '../provider.js';
+import { readProviderJson } from '../provider-json.js';
 import { toOpenWebUIRequest } from './mapper.js';
 import type { OpenWebUIChatResponse } from './types.js';
 
@@ -92,7 +93,10 @@ export class OpenWebUIAiProvider implements AiProvider {
     return {
       provider: this.name,
       model: request.model,
-      result: (await response.json()) as OpenWebUIChatResponse,
+      result: (await readProviderJson(
+        response,
+        this.apiKey,
+      )) as OpenWebUIChatResponse,
     };
   }
 }

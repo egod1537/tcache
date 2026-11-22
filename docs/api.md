@@ -283,6 +283,7 @@ failure is logged and does not turn a successful Route Job into a failure.
   "systemPrompt": "Answer concisely.",
   "promptVersion": "v1",
   "messages": [{ "role": "user", "content": "What does a route cache avoid?" }],
+  "context": { "topic": "sample" },
   "options": { "temperature": 0.2 },
   "tools": [],
   "cache": { "enabled": true }
@@ -294,6 +295,16 @@ when defaults exist for the active provider. `options` defaults to `{}` and
 `cache.enabled` defaults to `true`. `tools` must be an array when present;
 `responseSchema` may contain a provider-specific schema.
 
+Optional `context` is caller-provided JSON. Object keys are sorted and array
+order is preserved. Gemini and OpenWebUI receive the context before the
+messages and use the selected provider's generation options.
+
+Job creation returns an HttpOnly session cookie for a new client. Send that
+cookie on later Job list, status, result, SSE, and cancel requests. Job access
+and response caching are scoped to the session. Older records without a
+session owner remain inaccessible and expire under their existing TTL. This
+session boundary does not provide deployment user authentication.
+
 The Job snapshot and SSE payload expose request metadata such as the prompt
 hash, message count, option keys, tool count, provider, and model instead of
 raw prompts. The result endpoint uses `Cache-Control: no-store` and returns the
@@ -301,6 +312,6 @@ full normalized request, extracted `text` when available, and raw normalized
 provider result. Clients should treat the result endpoint as sensitive.
 
 AI result status codes are `200` when completed, `202` while pending, `409`
-after failure/cancellation, and `404` when missing. AI SSE uses the same event
+after failure/cancellation, and `404` when missing or outside the session. AI SSE uses the same event
 names and heartbeat behavior as Route SSE. It reports Job progress, not token
 streaming.

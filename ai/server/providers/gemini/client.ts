@@ -1,5 +1,6 @@
 import type { NormalizedAiRequest } from '../../types/ai.js';
 import type { AiProvider, AiProviderResult } from '../provider.js';
+import { readProviderJson } from '../provider-json.js';
 import { toGeminiRequest } from './mapper.js';
 import type { GeminiGenerateResponse } from './types.js';
 
@@ -9,7 +10,10 @@ async function geminiErrorMessage(response: Response) {
     const body = (await response.json()) as {
       error?: { message?: unknown; status?: unknown };
     };
-    if (typeof body.error?.status === 'string') {
+    if (
+      typeof body.error?.status === 'string' &&
+      /^[A-Z_]{1,60}$/.test(body.error.status)
+    ) {
       detail = ` (${body.error.status.slice(0, 100)})`;
     }
   } catch {
@@ -51,7 +55,10 @@ export class GeminiAiProvider implements AiProvider {
     return {
       provider: this.name,
       model: request.model,
-      result: (await response.json()) as GeminiGenerateResponse,
+      result: (await readProviderJson(
+        response,
+        this.apiKey,
+      )) as GeminiGenerateResponse,
     };
   }
 }
